@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <a href="{{ url_for('orders.index') }}" class="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back to orders
+    </a>
+    <div class="flex items-center justify-between mt-3">
+      <h1 class="font-display text-3xl font-bold text-gray-800">Order #{{ order.id }}</h1>
+      <span class="badge-{{ order.status }} text-sm px-3 py-1">{{ order.status }}</span>
+    </div>
+    <p class="text-gray-400 text-sm mt-1">Placed on {{ order.created_at.strftime('%d %B %Y at %I:%M %p') }}</p>
+  </div>
+
+  <!-- Product -->
+  <div class="card p-6 mb-4 flex gap-4">
+    <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+      <img src="{{ order.product.image_url }}" alt="{{ order.product.name }}" class="w-full h-full object-cover" />
+    </div>
+    <div class="flex-1">
+      <h3 class="font-semibold text-gray-800 text-lg">{{ order.product.name }}</h3>
+      <p class="text-sm text-gray-400">{{ order.product.category }}</p>
+      <div class="grid grid-cols-3 gap-3 mt-3">
+        <div>
+          <p class="text-xs text-gray-400">Quantity</p>
+          <p class="font-semibold text-gray-800">{{ order.quantity_kg }} kg</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Unit Price</p>
+          <p class="font-semibold text-gray-800">LKR {{ "{:,.0f}".format(order.product.price_per_kg) }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Total</p>
+          <p class="font-display font-bold text-leaf text-lg">LKR {{ "{:,.0f}".format(order.total_price) }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- People -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+    <div class="card p-5">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Farmer</p>
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-earth flex items-center justify-center text-white font-bold text-sm">{{ order.product.farmer.name[0].upper() }}</div>
+        <div>
+          <p class="font-semibold text-gray-800 text-sm">{{ order.product.farmer.name }}</p>
+          <p class="text-xs text-gray-400">{{ order.product.farmer.phone or 'No phone' }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="card p-5">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Buyer</p>
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-sky flex items-center justify-center text-white font-bold text-sm">{{ order.buyer.name[0].upper() }}</div>
+        <div>
+          <p class="font-semibold text-gray-800 text-sm">{{ order.buyer.name }}</p>
+          <p class="text-xs text-gray-400">{{ order.buyer.phone or 'No phone' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delivery & Notes -->
+  {% if order.delivery_address %}
+  <div class="card p-5 mb-4">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Delivery Address</p>
+    <p class="text-sm text-gray-700">{{ order.delivery_address }}</p>
+  </div>
+  {% endif %}
+  {% if order.notes %}
+  <div class="card p-5 mb-4">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Order Notes</p>
+    <p class="text-sm text-gray-600 italic">{{ order.notes }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Status update (farmer only) -->
+  {% if current_user.role == 'farmer' and order.product.farmer_id == current_user.id %}
+  <div class="card p-6 mt-2">
+    <p class="font-semibold text-gray-800 mb-3">Update Order Status</p>
+    <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex gap-3">
+      <select name="status" class="form-input flex-1">
+        {% for s in ['pending','confirmed','delivered','cancelled'] %}
+        <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s|capitalize }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-primary px-6">Update</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Cancel (buyer only, pending) -->
+  {% if current_user.role == 'buyer' and order.status == 'pending' %}
+  <div class="mt-4">
+    <form method="POST" action="{{ url_for('orders.cancel_order', order_id=order.id) }}">
+      <button type="submit" onclick="return confirm('Cancel this order?')"
+        class="w-full py-3 btn-danger rounded-xl">Cancel Order</button>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

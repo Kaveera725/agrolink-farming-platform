@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <div class="mb-5">
+    <a href="{{ url_for('marketplace.index') }}" class="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back to marketplace
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
+    <!-- Image -->
+    <div class="rounded-2xl overflow-hidden h-80 lg:h-auto shadow-md">
+      <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+    </div>
+
+    <!-- Details -->
+    <div class="flex flex-col justify-center">
+      <span class="inline-block text-xs font-semibold bg-leaf-pale text-leaf px-3 py-1 rounded-full mb-3 w-fit">{{ product.category }}</span>
+      <h1 class="font-display text-4xl font-bold text-gray-800 mb-2">{{ product.name }}</h1>
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+        {{ product.location or product.farmer.location or 'Sri Lanka' }}
+      </div>
+
+      {% if product.description %}
+      <p class="text-gray-600 leading-relaxed mb-5">{{ product.description }}</p>
+      {% endif %}
+
+      <div class="bg-gray-50 rounded-2xl p-5 mb-6">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Price per kg</p>
+            <p class="font-display text-3xl font-bold text-leaf mt-1">LKR {{ "{:,.0f}".format(product.price_per_kg) }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide">Available</p>
+            <p class="font-display text-3xl font-bold text-gray-800 mt-1">{{ product.quantity_kg }} kg</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Farmer info -->
+      <div class="flex items-center gap-3 p-4 bg-earth-pale rounded-xl mb-6">
+        <div class="w-10 h-10 rounded-full bg-earth flex items-center justify-center text-white font-bold flex-shrink-0">
+          {{ product.farmer.name[0].upper() }}
+        </div>
+        <div>
+          <p class="font-semibold text-gray-800 text-sm">{{ product.farmer.name }}</p>
+          <p class="text-xs text-gray-500">Farmer · {{ product.farmer.location or 'Sri Lanka' }}</p>
+        </div>
+      </div>
+
+      {% if current_user.is_authenticated and current_user.role == 'buyer' %}
+        {% if product.is_available %}
+        <a href="{{ url_for('orders.place_order', product_id=product.id) }}" class="btn-primary py-3.5 text-base flex justify-center">
+          🛒 Place Order
+        </a>
+        {% else %}
+        <button disabled class="w-full py-3.5 bg-gray-100 text-gray-400 rounded-xl font-semibold cursor-not-allowed">Out of Stock</button>
+        {% endif %}
+      {% elif not current_user.is_authenticated %}
+      <a href="{{ url_for('auth.login') }}" class="btn-primary py-3.5 text-base flex justify-center">Log in to Order</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Related products -->
+  {% if related %}
+  <div>
+    <h2 class="font-display text-2xl font-bold text-gray-800 mb-5">More {{ product.category }}</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {% for rp in related %}
+      <a href="{{ url_for('marketplace.product_detail', product_id=rp.id) }}" class="card hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 block">
+        <div class="h-36 overflow-hidden">
+          <img src="{{ rp.image_url }}" alt="{{ rp.name }}" class="w-full h-full object-cover" />
+        </div>
+        <div class="p-4">
+          <h3 class="font-semibold text-gray-800 text-sm truncate">{{ rp.name }}</h3>
+          <p class="font-bold text-leaf mt-1 text-sm">LKR {{ "{:,.0f}".format(rp.price_per_kg) }}/kg</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Marketplace{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner -->
+<div class="bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <div class="max-w-2xl">
+
+      <h1 class="font-display text-4xl sm:text-5xl font-bold leading-tight mb-3">
+        Fresh From Farmers,<br />Best Price Guaranteed
+      </h1>
+
+      <p class="text-green-100 text-lg mb-6">
+        Connect directly with farmers and find the lowest prices in Sri Lanka.
+      </p>
+
+      <!-- Search -->
+      <form method="GET" class="flex gap-2">
+        <input type="text" name="search" value="{{ search }}"
+          placeholder="Search crops, fruits, vegetables..."
+          class="flex-1 px-5 py-3 rounded-xl text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white shadow-md" />
+
+        {% if selected_category %}
+        <input type="hidden" name="category" value="{{ selected_category }}" />
+        {% endif %}
+
+        <button type="submit"
+          class="bg-yellow-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-yellow-600 transition shadow-md text-sm">
+          Search
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Category pills -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+  <div class="flex flex-wrap gap-2 mb-6">
+
+    <a href="{{ url_for('marketplace.index', search=search) }}"
+       class="px-4 py-1.5 rounded-full text-sm font-semibold transition
+       {% if not selected_category %}bg-leaf text-white{% else %}bg-white text-gray-600 border hover:text-leaf{% endif %}">
+      All (Cheapest First)
+    </a>
+
+    {% for cat in categories %}
+    <a href="{{ url_for('marketplace.index', category=cat, search=search) }}"
+       class="px-4 py-1.5 rounded-full text-sm font-semibold transition
+       {% if selected_category == cat %}bg-leaf text-white{% else %}bg-white text-gray-600 border hover:text-leaf{% endif %}">
+      {{ cat }}
+    </a>
+    {% endfor %}
+
+  </div>
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-5">
+    <p class="text-sm text-gray-500">
+      <span class="font-bold text-gray-800">{{ products|length }}</span> products found
+      {% if selected_category %} in <b>{{ selected_category }}</b>{% endif %}
+    </p>
+
+    {% if current_user.is_authenticated and current_user.role == 'farmer' %}
+    <a href="{{ url_for('marketplace.list_product') }}"
+       class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+      + List Product
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- PRODUCT GRID -->
+  {% if products %}
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+
+    {% for product in products %}
+
+    <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+       class="bg-white rounded-xl shadow hover:shadow-lg transition block overflow-hidden">
+
+      <!-- IMAGE -->
+      <div class="relative h-44">
+        <img src="{{ product.image_url }}" class="w-full h-full object-cover">
+
+        {% if product.price_per_kg < 100 %}
+        <span class="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+          🔥 Cheap Seller
+        </span>
+        {% endif %}
+
+      </div>
+
+      <!-- CONTENT -->
+      <div class="p-4">
+
+        <h3 class="font-bold text-gray-800 truncate">{{ product.name }}</h3>
+
+        <p class="text-xs text-gray-500">{{ product.category }}</p>
+
+        <!-- PRICE -->
+        <div class="mt-2">
+          <p class="text-xl font-bold text-green-600">
+            LKR {{ "{:,.0f}".format(product.price_per_kg) }}
+          </p>
+          <p class="text-xs text-gray-400">per kg</p>
+        </div>
+
+        <!-- QUANTITY -->
+        <p class="text-xs text-gray-500 mt-2">
+          {{ product.quantity_kg }} kg available
+        </p>
+
+        <!-- FARMER -->
+        <div class="flex items-center gap-2 mt-3">
+
+          <div class="w-6 h-6 bg-green-100 text-green-700 flex items-center justify-center rounded-full text-xs font-bold">
+            {{ product.farmer.name[0] }}
+          </div>
+
+          <span class="text-xs text-gray-600 truncate">
+            {{ product.farmer.name }}
+          </span>
+
+        </div>
+
+        <!-- CONNECT BUTTONS -->
+        <div class="mt-3 space-y-2">
+
+          <!-- WhatsApp -->
+          {% if product.farmer.phone %}
+          <a href="https://wa.me/{{ product.farmer.phone }}"
+             class="block text-center bg-green-600 text-white py-2 rounded-lg text-sm hover:bg-green-700">
+            💬 WhatsApp Farmer
+          </a>
+          {% endif %}
+
+          <!-- Call -->
+          {% if product.farmer.phone %}
+          <a href="tel:{{ product.farmer.phone }}"
+             class="block text-center bg-blue-600 text-white py-2 rounded-lg text-sm hover:bg-blue-700">
+            📞 Call Farmer
+          </a>
+          {% endif %}
+
+        </div>
+
+      </div>
+
+    </a>
+
+    {% endfor %}
+
+  </div>
+
+  {% else %}
+
+  <!-- EMPTY STATE -->
+  <div class="text-center py-20 text-gray-400">
+    <div class="text-5xl mb-3">🌾</div>
+    <p class="text-lg font-semibold">No products found</p>
+    <p class="text-sm">Try another category or search</p>
+  </div>
+
+  {% endif %}
+
+</div>
+
+{% endblock %}

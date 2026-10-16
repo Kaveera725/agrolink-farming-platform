@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Crop{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <a href="{{ url_for('dashboard.crops') }}" class="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back to crops
+    </a>
+    <h1 class="font-display text-3xl font-bold text-gray-800 mt-3">{{ action }} Crop</h1>
+    <p class="text-gray-500 mt-1 text-sm">Record your crop details for tracking and planning.</p>
+  </div>
+
+  <div class="card p-8">
+    <form method="POST" class="space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="form-label">Crop Name *</label>
+          <input type="text" name="crop_name" required class="form-input"
+            placeholder="e.g. Tomato, Carrot" value="{{ crop.crop_name if crop else '' }}" />
+        </div>
+        <div>
+          <label class="form-label">Crop Type *</label>
+          <select name="crop_type" required class="form-input">
+            <option value="">Select type...</option>
+            {% for t in ['Vegetables','Fruits','Grains & Rice','Spices','Pulses','Roots & Tubers','Other'] %}
+            <option value="{{ t }}" {% if crop and crop.crop_type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Quantity (kg) *</label>
+          <input type="number" name="quantity_kg" required class="form-input" min="0.1" step="0.1"
+            placeholder="e.g. 500" value="{{ crop.quantity_kg if crop else '' }}" />
+        </div>
+        <div>
+          <label class="form-label">Expected Harvest Date *</label>
+          <input type="date" name="expected_harvest_date" required class="form-input"
+            value="{{ crop.expected_harvest_date.isoformat() if crop else '' }}" />
+        </div>
+        <div>
+          <label class="form-label">Field Location</label>
+          <input type="text" name="field_location" class="form-input"
+            placeholder="e.g. North Field, Kandy"
+            value="{{ crop.field_location if crop else '' }}" />
+        </div>
+        <div>
+          <label class="form-label">Status</label>
+          <select name="status" class="form-input">
+            {% for s in ['growing','ready','harvested'] %}
+            <option value="{{ s }}" {% if crop and crop.status == s %}selected{% elif not crop and s == 'growing' %}selected{% endif %}>{{ s|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" rows="3" class="form-input resize-none"
+            placeholder="Any additional notes about this crop...">{{ crop.notes if crop else '' }}</textarea>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-primary flex-1 py-3 flex justify-center">
+          {{ action }} Crop
+        </button>
+        <a href="{{ url_for('dashboard.crops') }}" class="btn-secondary flex-1 py-3 flex justify-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

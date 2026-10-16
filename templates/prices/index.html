@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% block title %}Market Prices{% endblock %}
+
+{% block content %}
+
+<!-- 🔥 HEADER -->
+<div class="bg-gradient-to-br from-green-700 to-green-900 text-white">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <h1 class="text-4xl font-bold">Market Prices</h1>
+    <p class="text-green-100 mt-2">
+      Live agricultural buying & selling prices in Sri Lanka
+    </p>
+  </div>
+</div>
+
+<!-- 📢 NOTICE -->
+<div class="bg-yellow-50 border-b border-yellow-200">
+  <div class="max-w-7xl mx-auto px-4 py-3 text-sm text-yellow-800">
+    ⚠ Prices are indicative and may vary by region & quality
+  </div>
+</div>
+
+<!-- 🔥 BEST DEALS -->
+{% if best_deals %}
+<div class="max-w-7xl mx-auto px-4 mt-8">
+  <h2 class="text-2xl font-bold text-green-700 mb-4">🔥 Best Deals for Buyers</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+    {% for deal in best_deals %}
+    <div class="bg-white border rounded-xl p-4 shadow hover:shadow-md transition">
+
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-gray-800">{{ deal.product.name }}</h3>
+        <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+          SAVE
+        </span>
+      </div>
+
+      <p class="text-xs text-gray-500">{{ deal.product.category }}</p>
+
+      <div class="mt-3">
+        <p class="text-sm text-gray-500 line-through">
+          Market: LKR {{ "{:,.0f}".format(deal.market_price) }}
+        </p>
+
+        <p class="text-xl font-bold text-green-600">
+          LKR {{ "{:,.0f}".format(deal.farmer_price) }}
+        </p>
+
+        <p class="text-sm text-red-500">
+          You save LKR {{ "{:,.0f}".format(deal.saving) }} / kg
+        </p>
+      </div>
+
+      <a href="{{ url_for('marketplace.product_detail', product_id=deal.product.id) }}"
+         class="block mt-4 text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+        View Product
+      </a>
+
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+{% endif %}
+
+<!-- 📊 CATEGORY FILTER -->
+<div class="max-w-7xl mx-auto px-4 mt-10">
+
+  <div class="flex flex-wrap gap-2 mb-6">
+    <button onclick="filterCategory('all')"
+      class="px-4 py-1 rounded-full bg-green-600 text-white text-sm">
+      All
+    </button>
+
+    {% for cat in categories %}
+    <button onclick="filterCategory('{{ cat }}')"
+      class="px-4 py-1 rounded-full bg-white border text-sm hover:bg-green-50">
+      {{ cat }}
+    </button>
+    {% endfor %}
+  </div>
+
+  <!-- 📦 TABLE -->
+  {% for cat, items in grouped.items() %}
+  <div class="category-section mb-10" data-category="{{ cat }}">
+
+    <h2 class="text-xl font-bold mb-3">{{ cat }}</h2>
+
+    <div class="bg-white border rounded-xl overflow-hidden">
+
+      <table class="w-full text-sm">
+
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="text-left p-3">Product</th>
+            <th class="text-right p-3 text-blue-600">Buying</th>
+            <th class="text-right p-3 text-green-600">Selling</th>
+            <th class="text-right p-3">Margin</th>
+            <th class="text-right p-3">Market</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for price in items %}
+          <tr class="border-t hover:bg-gray-50">
+
+            <td class="p-3 font-medium">{{ price.crop_name }}</td>
+
+            <td class="p-3 text-right text-blue-600 font-semibold">
+              LKR {{ "{:,.0f}".format(price.buying_price) }}
+            </td>
+
+            <td class="p-3 text-right text-green-600 font-semibold">
+              LKR {{ "{:,.0f}".format(price.selling_price) }}
+            </td>
+
+            <td class="p-3 text-right">
+
+              {% set margin = ((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1) %}
+
+              <span class="px-2 py-1 rounded-full text-xs font-bold
+                {% if margin > 50 %}
+                  bg-red-100 text-red-600
+                {% elif margin > 30 %}
+                  bg-orange-100 text-orange-600
+                {% else %}
+                  bg-green-100 text-green-600
+                {% endif %}">
+                +{{ margin }}%
+              </span>
+
+              {% set is_best = false %}
+              {% for deal in best_deals %}
+                {% if deal.product.name|lower == price.crop_name|lower %}
+                  {% set is_best = true %}
+                {% endif %}
+              {% endfor %}
+
+              {% if is_best %}
+              <div class="text-[10px] mt-1 text-green-600 font-bold">
+                🔥 Best Deal
+              </div>
+              {% endif %}
+
+            </td>
+
+            <td class="p-3 text-right text-gray-500 text-xs">
+              {{ price.market_location }}
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+
+<!-- 🔥 SELLER BASED LOWEST PRICE LIST -->
+<div class="max-w-7xl mx-auto px-4 mt-10">
+
+  <h2 class="text-2xl font-bold text-green-700 mb-5">
+    👨‍🌾 Cheapest Sellers (Direct from Farmers)
+  </h2>
+
+  {% for cat, products in seller_map.items() %}
+
+  <div class="mb-8">
+
+    <h3 class="text-xl font-bold mb-3">{{ cat }}</h3>
+
+    <div class="bg-white border rounded-xl overflow-hidden">
+
+      <table class="w-full text-sm">
+
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="p-3 text-left">Product</th>
+            <th class="p-3 text-left">Farmer</th>
+            <th class="p-3 text-right">Price</th>
+            <th class="p-3 text-right">Market Price</th>
+            <th class="p-3 text-right">Save</th>
+            <th class="p-3 text-right">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          {% for p in products[:5] %}
+
+          {% set market = grouped[cat]|selectattr("crop_name", "equalto", p.name)|list %}
+          {% set market_price = market[0].selling_price if market else 0 %}
+
+          <tr class="border-t hover:bg-gray-50">
+
+            <td class="p-3 font-medium">{{ p.name }}</td>
+
+            <td class="p-3 text-gray-600">{{ p.farmer.name }}</td>
+
+            <td class="p-3 text-right text-green-600 font-semibold">
+              LKR {{ "{:,.0f}".format(p.price_per_kg) }}
+            </td>
+
+            <td class="p-3 text-right text-gray-500">
+              LKR {{ "{:,.0f}".format(market_price) }}
+            </td>
+
+            <td class="p-3 text-right text-red-500">
+              -{{ "{:,.0f}".format(market_price - p.price_per_kg) }}
+            </td>
+
+            <td class="p-3 text-right">
+
+              <a href="{{ url_for('orders.place_order', product_id=p.id) }}"
+                 class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                Buy
+              </a>
+
+            </td>
+
+          </tr>
+
+          {% endfor %}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  </div>
+
+  {% endfor %}
+
+</div>
+
+<!-- 📊 SUMMARY -->
+<div class="max-w-7xl mx-auto px-4 mb-10">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white border rounded-xl p-5">
+
+    <div>
+      <p class="text-gray-500 text-sm">Categories</p>
+      <p class="text-xl font-bold">{{ categories|length }}</p>
+    </div>
+
+    <div>
+      <p class="text-gray-500 text-sm">Best Deals</p>
+      <p class="text-xl font-bold text-green-600">{{ best_deals|length }}</p>
+    </div>
+
+    <div>
+      <p class="text-gray-500 text-sm">Market Items</p>
+      <p class="text-xl font-bold">{{ grouped|length }}</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- 🔧 JS FILTER -->
+<script>
+function filterCategory(cat) {
+  document.querySelectorAll('.category-section').forEach(el => {
+    el.style.display = (cat === 'all' || el.dataset.category === cat) ? 'block' : 'none';
+  });
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Live Farmer Bids{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="bg-green-700 text-white py-10">
+  <div class="max-w-7xl mx-auto px-4">
+    <h1 class="text-4xl font-bold">Live Farmer Bidding Market</h1>
+    <p class="text-green-100 mt-2">
+      Lowest price farmers ranked first. Buy directly from cheapest seller.
+    </p>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+  {% for category, products in grouped.items() %}
+
+  <div class="mb-10">
+
+    <!-- CATEGORY HEADER -->
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+      {{ category }}
+
+      {% if cheapest_map[category] %}
+      <span class="text-sm text-green-600 ml-2">
+        🔥 Best: {{ cheapest_map[category].name }}
+      </span>
+      {% endif %}
+    </h2>
+
+    <!-- LIST -->
+    <div class="space-y-3">
+
+      {% for product in products %}
+
+      <div class="bg-white border rounded-xl p-4 flex justify-between items-center hover:shadow">
+
+        <!-- LEFT -->
+        <div>
+
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-gray-800">{{ product.name }}</h3>
+
+            {% if loop.first %}
+            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+              CHEAPEST
+            </span>
+            {% endif %}
+
+          </div>
+
+          <p class="text-xs text-gray-500">
+            👨‍🌾 {{ product.farmer.name }} • 📍 {{ product.location or "Sri Lanka" }}
+          </p>
+
+        </div>
+
+        <!-- PRICE -->
+        <!-- PRICE -->
+<div class="text-right min-w-[140px]">
+
+  {% set market = market_dict.get(product.name.lower()) %}
+
+  {% if market %}
+  <p class="text-xs text-gray-400 line-through">
+    Market: LKR {{ "{:,.0f}".format(market.selling_price) }}
+  </p>
+  {% endif %}
+
+  <p class="text-xl font-bold text-green-600">
+    LKR {{ "{:,.0f}".format(product.price_per_kg) }}
+  </p>
+
+  {% if market and product.price_per_kg < market.selling_price %}
+  <p class="text-xs text-red-500 font-semibold">
+    Save LKR {{ "{:,.0f}".format(market.selling_price - product.price_per_kg) }}/kg
+  </p>
+  {% endif %}
+
+  <p class="text-xs text-gray-400">per kg</p>
+
+</div>
+
+        <!-- ACTION -->
+        <div class="flex gap-2">
+
+          <!-- VIEW -->
+          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+             class="bg-gray-200 px-3 py-2 rounded-lg text-sm">
+            View
+          </a>
+
+          <!-- BID -->
+          <a href="{{ url_for('orders.place_order', product_id=product.id) }}"
+             class="bg-green-600 text-white px-3 py-2 rounded-lg text-sm">
+            Place Bid
+          </a>
+
+        </div>
+
+      </div>
+
+      {% endfor %}
+
+    </div>
+  </div>
+
+  {% endfor %}
+
+</div>
+
+{% endblock %}

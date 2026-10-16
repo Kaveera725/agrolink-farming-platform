@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Buyer Dashboard{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="font-display text-3xl font-bold text-gray-800">Hello, {{ current_user.name.split()[0] }} 🛒</h1>
+      <p class="text-gray-500 mt-1">Track your orders and discover fresh produce.</p>
+    </div>
+    <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-sm">Browse Marketplace</a>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Orders</p>
+      <p class="font-display text-3xl font-bold text-sky mt-1">{{ orders|length }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Pending</p>
+      <p class="font-display text-3xl font-bold text-yellow-500 mt-1">{{ orders|selectattr('status','equalto','pending')|list|length }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Delivered</p>
+      <p class="font-display text-3xl font-bold text-leaf mt-1">{{ orders|selectattr('status','equalto','delivered')|list|length }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Spent</p>
+      <p class="font-display text-2xl font-bold text-earth mt-1">LKR {{ "{:,.0f}".format(total_spent) }}</p>
+    </div>
+  </div>
+
+  <!-- Orders list -->
+  <div class="card">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <h2 class="font-display text-lg font-bold text-gray-800">My Orders</h2>
+      <a href="{{ url_for('orders.index') }}" class="text-xs text-leaf font-semibold hover:underline">View all →</a>
+    </div>
+    {% if orders %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Product</th>
+            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Qty</th>
+            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
+            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
+            <th class="px-6 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for order in orders %}
+          <tr class="hover:bg-gray-50 transition">
+            <td class="px-6 py-4 font-medium text-gray-800">{{ order.product.name }}</td>
+            <td class="px-6 py-4 text-gray-500">{{ order.quantity_kg }} kg</td>
+            <td class="px-6 py-4 font-semibold text-leaf">LKR {{ "{:,.0f}".format(order.total_price) }}</td>
+            <td class="px-6 py-4"><span class="badge-{{ order.status }}">{{ order.status }}</span></td>
+            <td class="px-6 py-4 text-gray-400">{{ order.created_at.strftime('%d %b %Y') }}</td>
+            <td class="px-6 py-4">
+              <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="text-leaf text-xs font-semibold hover:underline">View →</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="py-16 text-center text-gray-400">
+      <div class="text-5xl mb-4">📭</div>
+      <p class="font-medium">No orders yet.</p>
+      <a href="{{ url_for('marketplace.index') }}" class="text-leaf text-sm font-semibold hover:underline mt-2 inline-block">Start shopping →</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if product else 'List' }} Product{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <a href="{{ url_for('marketplace.index') }}" class="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back to marketplace
+    </a>
+    <h1 class="font-display text-3xl font-bold text-gray-800 mt-3">
+      {{ 'Edit Product' if product else 'List a Product' }}
+    </h1>
+    <p class="text-gray-500 mt-1 text-sm">Post your agricultural products directly to the marketplace.</p>
+  </div>
+
+  <div class="card p-8">
+    <form method="POST" class="space-y-5">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="sm:col-span-2">
+          <label class="form-label">Product Name *</label>
+          <input type="text" name="name" required class="form-input"
+            placeholder="e.g. Fresh Tomatoes, Organic Rice"
+            value="{{ product.name if product else '' }}" />
+        </div>
+        <div>
+          <label class="form-label">Category *</label>
+          <select name="category" required class="form-input">
+            <option value="">Select category...</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Location</label>
+          <input type="text" name="location" class="form-input"
+            placeholder="e.g. Kandy, Galle"
+            value="{{ product.location if product else current_user.location or '' }}" />
+        </div>
+        <div>
+          <label class="form-label">Quantity Available (kg) *</label>
+          <input type="number" name="quantity_kg" required class="form-input" min="0.1" step="0.1"
+            placeholder="e.g. 200"
+            value="{{ product.quantity_kg if product else '' }}" />
+        </div>
+        <div>
+          <label class="form-label">Price per kg (LKR) *</label>
+          <input type="number" name="price_per_kg" required class="form-input" min="1" step="0.01"
+            placeholder="e.g. 150"
+            value="{{ product.price_per_kg if product else '' }}" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="form-label">Description</label>
+          <textarea name="description" rows="4" class="form-input resize-none"
+            placeholder="Describe the quality, freshness, farming method, etc.">{{ product.description if product else '' }}</textarea>
+        </div>
+        {% if product %}
+        <div class="sm:col-span-2">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" name="is_available" value="on"
+              {% if product.is_available %}checked{% endif %}
+              class="w-4 h-4 accent-leaf rounded" />
+            <span class="text-sm font-semibold text-gray-700">Product is available for sale</span>
+          </label>
+        </div>
+        {% endif %}
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-primary flex-1 py-3 flex justify-center">
+          {{ 'Update Listing' if product else 'List Product' }}
+        </button>
+        <a href="{{ url_for('marketplace.index') }}" class="btn-secondary flex-1 py-3 flex justify-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

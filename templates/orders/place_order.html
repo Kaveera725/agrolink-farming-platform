@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Place Order — {{ product.name }}{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+       class="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      Back to product
+    </a>
+    <h1 class="font-display text-3xl font-bold text-gray-800 mt-3">Place Your Order</h1>
+  </div>
+
+  <!-- Product summary -->
+  <div class="card p-5 flex gap-4 mb-6">
+    <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
+      <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+    </div>
+    <div class="flex-1">
+      <h3 class="font-semibold text-gray-800">{{ product.name }}</h3>
+      <p class="text-sm text-gray-400">Sold by {{ product.farmer.name }} · {{ product.location or product.farmer.location or 'Sri Lanka' }}</p>
+      <div class="flex items-center gap-4 mt-2">
+        <span class="font-bold text-leaf">LKR {{ "{:,.0f}".format(product.price_per_kg) }}/kg</span>
+        <span class="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg">{{ product.quantity_kg }} kg available</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-8">
+    <form method="POST" id="orderForm" data-price="{{ product.price_per_kg }}" class="space-y-5">
+      <div>
+        <label class="form-label">Quantity (kg) *</label>
+        <input type="number" name="quantity_kg" id="qty" required class="form-input"
+          min="0.1" step="0.1" max="{{ product.quantity_kg }}"
+          placeholder="Enter quantity in kg" oninput="calcTotal()" />
+        <p class="text-xs text-gray-400 mt-1">Max available: {{ product.quantity_kg }} kg</p>
+      </div>
+
+      <!-- Live total -->
+      <div class="bg-leaf-pale rounded-xl p-4 flex items-center justify-between">
+        <span class="text-sm font-semibold text-leaf-dark">Estimated Total</span>
+        <span id="totalDisplay" class="font-display text-xl font-bold text-leaf">LKR 0</span>
+      </div>
+
+      <div>
+        <label class="form-label">Delivery Address *</label>
+        <textarea name="delivery_address" required rows="2" class="form-input resize-none"
+          placeholder="Full delivery address..."></textarea>
+      </div>
+      <div>
+        <label class="form-label">Order Notes <span class="text-gray-400 font-normal">(optional)</span></label>
+        <textarea name="notes" rows="2" class="form-input resize-none"
+          placeholder="Any special instructions..."></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-primary flex-1 py-3 flex justify-center text-base">
+          🛒 Confirm Order
+        </button>
+        <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+           class="btn-secondary flex-1 py-3 flex justify-center">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  const pricePerKg = parseFloat(document.getElementById('orderForm').dataset.price) || 0;
+  function calcTotal() {
+    const qty = parseFloat(document.getElementById('qty').value) || 0;
+    const total = qty * pricePerKg;
+    document.getElementById('totalDisplay').textContent =
+      'LKR ' + total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Log In{% endblock %}
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
+  <div class="w-full max-w-md">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 bg-leaf-pale rounded-2xl mb-4">
+        <svg class="w-8 h-8 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+        </svg>
+      </div>
+      <h1 class="font-display text-3xl font-bold text-gray-800">Welcome back</h1>
+      <p class="text-gray-500 mt-1 text-sm">Sign in to your AgroLink account</p>
+    </div>
+
+    <div class="card p-8">
+      <form method="POST">
+        <div class="space-y-5">
+          <div>
+            <label class="form-label">Email Address</label>
+            <input type="email" name="email" required class="form-input" placeholder="you@example.com" />
+          </div>
+          <div>
+            <label class="form-label">Password</label>
+            <input type="password" name="password" required class="form-input" placeholder="••••••••" />
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+              <input type="checkbox" name="remember" class="w-4 h-4 rounded accent-leaf" />
+              Remember me
+            </label>
+          </div>
+          <button type="submit" class="w-full btn-primary py-3 text-base justify-center flex">
+            Sign In
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <p class="text-center mt-5 text-sm text-gray-500">
+      Don't have an account?
+      <a href="{{ url_for('auth.register') }}" class="text-leaf font-semibold hover:underline">Create one</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Farmer Dashboard{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="font-display text-3xl font-bold text-gray-800">Good day, {{ current_user.name.split()[0] }} 👨‍🌾</h1>
+      <p class="text-gray-500 mt-1">Manage your farm, crops, and listings from here.</p>
+    </div>
+    <div class="flex gap-3">
+      <a href="{{ url_for('dashboard.add_crop') }}" class="btn-secondary text-sm">+ Add Crop</a>
+      <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-sm">+ List Product</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Crops</p>
+      <p class="font-display text-3xl font-bold text-leaf mt-1">{{ crops|length }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Active Listings</p>
+      <p class="font-display text-3xl font-bold text-sky mt-1">{{ products|selectattr('is_available')|list|length }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Orders Received</p>
+      <p class="font-display text-3xl font-bold text-earth mt-1">{{ orders|length }}</p>
+    </div>
+    <div class="stat-card">
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Revenue</p>
+      <p class="font-display text-2xl font-bold text-gold mt-1">LKR {{ "{:,.0f}".format(total_revenue) }}</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- My Crops -->
+    <div class="card">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-display text-lg font-bold text-gray-800">My Crops</h2>
+        <a href="{{ url_for('dashboard.crops') }}" class="text-xs text-leaf font-semibold hover:underline">View all →</a>
+      </div>
+      {% if crops %}
+      <div class="divide-y divide-gray-50">
+        {% for crop in crops[:5] %}
+        <div class="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition">
+          <div class="w-10 h-10 rounded-xl bg-leaf-pale flex items-center justify-center text-lg flex-shrink-0">🌱</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">{{ crop.crop_name }}</p>
+            <p class="text-xs text-gray-400">{{ crop.quantity_kg }} kg · Harvest: {{ crop.expected_harvest_date.strftime('%d %b %Y') }}</p>
+          </div>
+          <span class="badge-{{ crop.status }}">{{ crop.status }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="py-12 text-center text-gray-400">
+        <div class="text-4xl mb-3">🌾</div>
+        <p class="text-sm">No crops recorded yet.</p>
+        <a href="{{ url_for('dashboard.add_crop') }}" class="text-leaf text-sm font-semibold hover:underline mt-1 inline-block">Add your first crop →</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-display text-lg font-bold text-gray-800">Recent Orders</h2>
+        <a href="{{ url_for('orders.index') }}" class="text-xs text-leaf font-semibold hover:underline">View all →</a>
+      </div>
+      {% if orders %}
+      <div class="divide-y divide-gray-50">
+        {% for order in orders %}
+        <div class="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition">
+          <div class="w-10 h-10 rounded-xl bg-gold-pale bg-yellow-50 flex items-center justify-center text-lg flex-shrink-0">📦</div>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold text-gray-800 text-sm truncate">{{ order.product.name }}</p>
+            <p class="text-xs text-gray-400">{{ order.quantity_kg }} kg · LKR {{ "{:,.0f}".format(order.total_price) }}</p>
+          </div>
+          <span class="badge-{{ order.status }}">{{ order.status }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="py-12 text-center text-gray-400">
+        <div class="text-4xl mb-3">📭</div>
+        <p class="text-sm">No orders yet.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- My Product Listings -->
+  <div class="mt-8">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-display text-xl font-bold text-gray-800">My Product Listings</h2>
+      <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-sm">+ New Listing</a>
+    </div>
+    {% if products %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {% for product in products %}
+      <div class="card hover:shadow-md transition-shadow duration-200">
+        <div class="relative h-36 overflow-hidden">
+          <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover" />
+          <div class="absolute top-2 right-2">
+            {% if product.is_available %}
+            <span class="badge-ready">Active</span>
+            {% else %}
+            <span class="badge-cancelled">Unlisted</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="p-4">
+          <h3 class="font-semibold text-gray-800 text-sm truncate">{{ product.name }}</h3>
+          <p class="text-xs text-gray-400 mt-0.5">{{ product.quantity_kg }} kg available</p>
+          <p class="font-bold text-leaf mt-1 text-sm">LKR {{ "{:,.0f}".format(product.price_per_kg) }}/kg</p>
+          <div class="flex gap-2 mt-3">
+            <a href="{{ url_for('marketplace.edit_product', product_id=product.id) }}" class="flex-1 text-center text-xs font-semibold text-leaf border border-leaf rounded-lg py-1.5 hover:bg-leaf-pale transition">Edit</a>
+            <form method="POST" action="{{ url_for('marketplace.delete_product', product_id=product.id) }}" class="flex-1">
+              <button type="submit" onclick="return confirm('Remove this listing?')" class="w-full text-xs font-semibold text-red-500 border border-red-200 rounded-lg py-1.5 hover:bg-red-50 transition">Remove</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card py-12 text-center text-gray-400">
+      <div class="text-4xl mb-3">🏪</div>
+      <p class="text-sm">You haven't listed any products yet.</p>
+      <a href="{{ url_for('marketplace.list_product') }}" class="text-leaf text-sm font-semibold hover:underline mt-1 inline-block">List your first product →</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
