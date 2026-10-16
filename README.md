@@ -94,6 +94,7 @@ If you prefer using the pgAdmin graphical interface:
 4. Right-click the newly created `agrolink_db` database $\rightarrow$ select **Query Tool**.
 5. Click the **Open File** icon (folder icon in the toolbar), browse to `agrolink_database_backup_file.sql`, and open it.
 6. Click the **Execute / Run** button (Play icon or `F5`).
+   *(Note: The `\connect` meta-command has been commented out in `agrolink_database_backup_file.sql` so pgAdmin runs standard SQL smoothly without syntax errors).*
 7. Once completed, refresh the database tables under `Schemas` $\rightarrow$ `public` $\rightarrow$ `Tables` to verify:
    - `crops`
    - `market_prices`
