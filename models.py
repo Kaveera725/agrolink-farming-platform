@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), nullable=False)  # 'farmer' or 'buyer'
+    role = db.Column(db.Enum('farmer', 'buyer', name='user_role'), nullable=False)
     phone = db.Column(db.String(20))
     location = db.Column(db.String(120))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -44,7 +44,7 @@ class Crop(db.Model):
     expected_harvest_date = db.Column(db.Date, nullable=False)
     field_location = db.Column(db.String(120))
     notes = db.Column(db.Text)
-    status = db.Column(db.String(30), default='growing')  # growing, ready, harvested
+    status = db.Column(db.Enum('growing', 'ready', 'harvested', name='crop_status'), default='growing')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -78,7 +78,7 @@ class Order(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity_kg = db.Column(db.Float, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(30), default='pending')  # pending, confirmed, delivered, cancelled
+    status = db.Column(db.Enum('pending', 'confirmed', 'delivered', 'cancelled', name='order_status'), default='pending')
     delivery_address = db.Column(db.String(255))
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

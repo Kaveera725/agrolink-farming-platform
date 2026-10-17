@@ -163,6 +163,13 @@ AgroLink features two main user roles:
 - **Farmer**: Manage crops, list products for sale, view market prices and incoming orders.
 - **Buyer**: Browse marketplace listings, place crop orders, view order status and price trends.
 
+### Demo / Default Accounts:
+| Role | Name | Email | Password |
+| :--- | :--- | :--- | :--- |
+| **Farmer** | Nimal Perera | `nimal@agrolink.lk` | `password123` |
+| **Farmer** | Sunil Fernando | `sunil@agrolink.lk` | `password123` |
+| **Buyer** | Kamani Silva | `kamani@agrolink.lk` | `password123` |
+
 ### Key Routes:
 - `/` - Landing page
 - `/auth/login` - User login
