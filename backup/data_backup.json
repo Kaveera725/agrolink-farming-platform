@@ -1,0 +1,571 @@
+{
+  "crops": [
+    {
+      "id": 1,
+      "farmer_id": 1,
+      "crop_name": "Tomato",
+      "crop_type": "Vegetables",
+      "quantity_kg": "500.00",
+      "expected_harvest_date": "2025-03-15",
+      "field_location": "North Field, Kandy",
+      "notes": null,
+      "status": "growing",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 2,
+      "farmer_id": 1,
+      "crop_name": "Carrot",
+      "crop_type": "Vegetables",
+      "quantity_kg": "300.00",
+      "expected_harvest_date": "2025-04-01",
+      "field_location": "East Field, Kandy",
+      "notes": null,
+      "status": "growing",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 3,
+      "farmer_id": 1,
+      "crop_name": "Ginger",
+      "crop_type": "Spices",
+      "quantity_kg": "150.00",
+      "expected_harvest_date": "2025-05-20",
+      "field_location": "South Field, Kandy",
+      "notes": null,
+      "status": "ready",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 4,
+      "farmer_id": 2,
+      "crop_name": "Maize",
+      "crop_type": "Grains & Rice",
+      "quantity_kg": "800.00",
+      "expected_harvest_date": "2025-03-30",
+      "field_location": "Main Field, Matale",
+      "notes": null,
+      "status": "growing",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 5,
+      "farmer_id": 2,
+      "crop_name": "Cabbage",
+      "crop_type": "Vegetables",
+      "quantity_kg": "400.00",
+      "expected_harvest_date": "2025-03-10",
+      "field_location": "Lower Field, Matale",
+      "notes": null,
+      "status": "ready",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 6,
+      "farmer_id": 4,
+      "crop_name": "Tomato",
+      "crop_type": "Vegetables",
+      "quantity_kg": "2.00",
+      "expected_harvest_date": "2026-04-11",
+      "field_location": "kandy",
+      "notes": "fresh food",
+      "status": "ready",
+      "created_at": "2026-04-11T12:24:37.228013"
+    }
+  ],
+  "market_prices": [
+    {
+      "id": 1,
+      "crop_name": "Tomato",
+      "category": "Vegetables",
+      "buying_price": "85.00",
+      "selling_price": "120.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 2,
+      "crop_name": "Carrot",
+      "category": "Vegetables",
+      "buying_price": "60.00",
+      "selling_price": "95.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 3,
+      "crop_name": "Cabbage",
+      "category": "Vegetables",
+      "buying_price": "45.00",
+      "selling_price": "75.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 4,
+      "crop_name": "Beans",
+      "category": "Vegetables",
+      "buying_price": "110.00",
+      "selling_price": "160.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 5,
+      "crop_name": "Brinjal",
+      "category": "Vegetables",
+      "buying_price": "70.00",
+      "selling_price": "105.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 6,
+      "crop_name": "Leeks",
+      "category": "Vegetables",
+      "buying_price": "130.00",
+      "selling_price": "180.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 7,
+      "crop_name": "Pumpkin",
+      "category": "Vegetables",
+      "buying_price": "40.00",
+      "selling_price": "65.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 8,
+      "crop_name": "Cucumber",
+      "category": "Vegetables",
+      "buying_price": "55.00",
+      "selling_price": "85.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 9,
+      "crop_name": "Banana",
+      "category": "Fruits",
+      "buying_price": "65.00",
+      "selling_price": "100.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 10,
+      "crop_name": "Mango",
+      "category": "Fruits",
+      "buying_price": "120.00",
+      "selling_price": "180.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 11,
+      "crop_name": "Pineapple",
+      "category": "Fruits",
+      "buying_price": "80.00",
+      "selling_price": "130.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 12,
+      "crop_name": "Papaya",
+      "category": "Fruits",
+      "buying_price": "55.00",
+      "selling_price": "90.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 13,
+      "crop_name": "Avocado",
+      "category": "Fruits",
+      "buying_price": "150.00",
+      "selling_price": "220.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 14,
+      "crop_name": "Rice (Samba)",
+      "category": "Grains & Rice",
+      "buying_price": "95.00",
+      "selling_price": "135.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 15,
+      "crop_name": "Rice (Nadu)",
+      "category": "Grains & Rice",
+      "buying_price": "85.00",
+      "selling_price": "120.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 16,
+      "crop_name": "Maize",
+      "category": "Grains & Rice",
+      "buying_price": "55.00",
+      "selling_price": "80.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 17,
+      "crop_name": "Red Chilli",
+      "category": "Spices",
+      "buying_price": "700.00",
+      "selling_price": "950.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 18,
+      "crop_name": "Turmeric",
+      "category": "Spices",
+      "buying_price": "450.00",
+      "selling_price": "650.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 19,
+      "crop_name": "Ginger",
+      "category": "Spices",
+      "buying_price": "300.00",
+      "selling_price": "480.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 20,
+      "crop_name": "Garlic",
+      "category": "Spices",
+      "buying_price": "350.00",
+      "selling_price": "520.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 21,
+      "crop_name": "Lentils",
+      "category": "Pulses",
+      "buying_price": "170.00",
+      "selling_price": "240.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 22,
+      "crop_name": "Chickpeas",
+      "category": "Pulses",
+      "buying_price": "190.00",
+      "selling_price": "270.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 23,
+      "crop_name": "Sweet Potato",
+      "category": "Roots & Tubers",
+      "buying_price": "70.00",
+      "selling_price": "110.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 24,
+      "crop_name": "Cassava",
+      "category": "Roots & Tubers",
+      "buying_price": "40.00",
+      "selling_price": "65.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 25,
+      "crop_name": "Potato",
+      "category": "Roots & Tubers",
+      "buying_price": "80.00",
+      "selling_price": "120.00",
+      "unit": "per kg",
+      "market_location": "Colombo",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "buyer_id": 3,
+      "product_id": 1,
+      "quantity_kg": "10.00",
+      "total_price": "1150.00",
+      "status": "pending",
+      "delivery_address": "No. 45, Galle Road, Colombo 03",
+      "notes": null,
+      "created_at": "2026-04-11T17:25:04.493704",
+      "updated_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 2,
+      "buyer_id": 5,
+      "product_id": 3,
+      "quantity_kg": "1.00",
+      "total_price": "60.00",
+      "status": "pending",
+      "delivery_address": "MOratuwa",
+      "notes": "Hoda ewa ewanna",
+      "created_at": "2026-04-11T13:00:08.075652",
+      "updated_at": "2026-04-11T13:00:08.075662"
+    },
+    {
+      "id": 3,
+      "buyer_id": 5,
+      "product_id": 4,
+      "quantity_kg": "1.00",
+      "total_price": "450.00",
+      "status": "delivered",
+      "delivery_address": "mnnnm",
+      "notes": "hjgjhbkjhb",
+      "created_at": "2026-04-11T13:02:55.507835",
+      "updated_at": "2026-04-11T18:33:40.141054"
+    },
+    {
+      "id": 4,
+      "buyer_id": 7,
+      "product_id": 3,
+      "quantity_kg": "3.00",
+      "total_price": "180.00",
+      "status": "pending",
+      "delivery_address": "123 asdfgj",
+      "notes": "good vegitebel need",
+      "created_at": "2026-05-16T12:01:42.943583",
+      "updated_at": "2026-05-16T12:01:42.943592"
+    },
+    {
+      "id": 5,
+      "buyer_id": 8,
+      "product_id": 3,
+      "quantity_kg": "2.00",
+      "total_price": "120.00",
+      "status": "pending",
+      "delivery_address": "shoun123",
+      "notes": "good vegitabel",
+      "created_at": "2026-05-16T12:05:12.063102",
+      "updated_at": "2026-05-16T12:05:12.063111"
+    },
+    {
+      "id": 6,
+      "buyer_id": 8,
+      "product_id": 5,
+      "quantity_kg": "20.00",
+      "total_price": "3800.00",
+      "status": "delivered",
+      "delivery_address": "123 apanadura",
+      "notes": "thank you",
+      "created_at": "2026-05-16T12:10:44.357296",
+      "updated_at": "2026-05-16T17:41:58.616373"
+    }
+  ],
+  "products": [
+    {
+      "id": 2,
+      "farmer_id": 1,
+      "name": "Fresh Ginger",
+      "category": "Spices",
+      "description": "Sun-dried premium quality ginger from hill country farms.",
+      "quantity_kg": "80.00",
+      "price_per_kg": "420.00",
+      "location": "Kandy",
+      "image_url": "https://images.unsplash.com/photo-1506368249639-73a05d6f6488?w=400&q=80",
+      "is_available": true,
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 4,
+      "farmer_id": 4,
+      "name": "Tomatoes adfh",
+      "category": "Vegetables",
+      "description": "Apen witharai hoda badu",
+      "quantity_kg": "1.00",
+      "price_per_kg": "450.00",
+      "location": "nuwar eliya",
+      "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80",
+      "is_available": true,
+      "created_at": "2026-04-11T12:26:42.570777"
+    },
+    {
+      "id": 3,
+      "farmer_id": 2,
+      "name": "Fresh Cabbage",
+      "category": "Vegetables",
+      "description": "Crisp and fresh cabbages, harvested this week.",
+      "quantity_kg": "144.00",
+      "price_per_kg": "60.00",
+      "location": "Matale",
+      "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80",
+      "is_available": true,
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 5,
+      "farmer_id": 9,
+      "name": "carret",
+      "category": "Vegetables",
+      "description": "good",
+      "quantity_kg": "180.00",
+      "price_per_kg": "190.00",
+      "location": "panadura",
+      "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80",
+      "is_available": true,
+      "created_at": "2026-05-16T12:08:28.050677"
+    },
+    {
+      "id": 1,
+      "farmer_id": 1,
+      "name": "Fresh Tomatoes",
+      "category": "Vegetables",
+      "description": "Organically grown, vine-ripened tomatoes. No pesticides used.",
+      "quantity_kg": "200.00",
+      "price_per_kg": "115.00",
+      "location": "Kandy",
+      "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80",
+      "is_available": false,
+      "created_at": "2026-04-11T17:25:04.493704"
+    }
+  ],
+  "users": [
+    {
+      "id": 4,
+      "name": "hashan mart",
+      "email": "hashanmart123@gmail.com",
+      "password_hash": "scrypt:32768:8:1$GBl14xf08jZxjqZF$a6c9ad063246d58a8dc6ff0e16c019eb4755b77f3e9e928f90ce1cec20b72ab5b87262ce850ac3cc02beb08531364041f30f110e0d4c950185edf2fd2424ec6e",
+      "role": "farmer",
+      "phone": "94766720164",
+      "location": "nuwar eliya",
+      "created_at": "2026-04-11T12:13:53.467061"
+    },
+    {
+      "id": 5,
+      "name": "jiwantha pvt ltd",
+      "email": "jiwanthapvt@gmail.com",
+      "password_hash": "scrypt:32768:8:1$uAcu6aldB0ooMK4H$80f349aefef64ccdd714fc03c7bff6513c0799495c225ce8b40444172e257eb93ea1e294303828c2b7f115f7a255b753a2ae464df30c54d29cbc5391c0470c64",
+      "role": "buyer",
+      "phone": "0112365365",
+      "location": "colombo",
+      "created_at": "2026-04-11T12:19:51.141194"
+    },
+    {
+      "id": 6,
+      "name": "Sahasra Kesara",
+      "email": "sahasrakesara@gmail.com",
+      "password_hash": "scrypt:32768:8:1$9DOLlUc9TF19kim5$90af6faabc30cf5c06f28fd4c6ceae8180759bb75ffab6b2e76222de615bc32b1467137c0d72fb34d659b8d1e4796e785478a5c2c2ae24915008a0310e41a6da",
+      "role": "farmer",
+      "phone": "",
+      "location": "",
+      "created_at": "2026-05-16T11:37:00.388377"
+    },
+    {
+      "id": 7,
+      "name": "Kesara",
+      "email": "kesara@gmail.com",
+      "password_hash": "scrypt:32768:8:1$xNM3B2SmuqProimQ$a6a26414b2e0473aa99cd136bf3a1b334839227f0c81c494a5cac95fd7fcb99fd9c3ff6b0e585ee1b9f8d4b1876daf9746886379b40afb47e2e84fefad67b3bf",
+      "role": "buyer",
+      "phone": "+94770568688",
+      "location": "",
+      "created_at": "2026-05-16T11:48:13.976254"
+    },
+    {
+      "id": 8,
+      "name": "shoun",
+      "email": "shoun@sdnf",
+      "password_hash": "scrypt:32768:8:1$XQ8W9bGsFEkZZSlZ$651a1ec5e863aef00910b00b976af84a917b3110bf15847589d99013f3363a3acb2096c819df9564e9c6b61ffaf84638af08f0684f0bfe85e2e4e3bd1c0b1f25",
+      "role": "buyer",
+      "phone": "",
+      "location": "",
+      "created_at": "2026-05-16T12:04:12.610011"
+    },
+    {
+      "id": 9,
+      "name": "shoun",
+      "email": "shoun@fas",
+      "password_hash": "scrypt:32768:8:1$rtFCJR5HqRH8nVTn$80044a27e5454c1c5985d1c5169dfb28d80d09b5861e5c9cd87d86344db05fe4a1d2bd3399485efc9a66f62566b8ad114551d31e9951f0c8cce4dede2488c66a",
+      "role": "farmer",
+      "phone": "",
+      "location": "",
+      "created_at": "2026-05-16T12:06:13.461462"
+    },
+    {
+      "id": 1,
+      "name": "Nimal Perera",
+      "email": "nimal@agrolink.lk",
+      "password_hash": "scrypt:32768:8:1$MM7Zro3n5QopH1ns$8dfd7a4932f1c2949f2baffc50da1c1384db59b0fbea04bd1b9e3f8b463559f355e53a67db7a24257d9284680899ffaa8a361170b3bbb9b4e7606adbcc1d272b",
+      "role": "farmer",
+      "phone": "+94771234567",
+      "location": "Kandy",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 3,
+      "name": "Kamani Silva",
+      "email": "kamani@agrolink.lk",
+      "password_hash": "scrypt:32768:8:1$j7BQPzNcuvLFsrnY$1b32cf4501ffd0e217491127fd4a7f9c5a03a6a00a04336b8c57dd47b755239000a862fd802aac50005f53bb32058fc2fb4f14886e355ebdb60a21cb8b8cc9af",
+      "role": "buyer",
+      "phone": "+94712345678",
+      "location": "Colombo",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 2,
+      "name": "Sunil Fernando",
+      "email": "sunil@agrolink.lk",
+      "password_hash": "scrypt:32768:8:1$1Gl1w2BOveQ3UleP$42e4decdabc6321568527f5e1799ca40a3e016ee884a5b299512655ca009b21078951e3eb2233f23c721a946a792cb99e619416d88fa2cd4871ef8ab75d25816",
+      "role": "farmer",
+      "phone": "+94779876543",
+      "location": "Matale",
+      "created_at": "2026-04-11T17:25:04.493704"
+    },
+    {
+      "id": 15,
+      "name": "Anushad Kaveera",
+      "email": "farmer@test.com",
+      "password_hash": "scrypt:32768:8:1$w8HNA4AeZFGWV7Cb$080f1dfc1bef1a1c5f42154d3cab2cfffac4b8444a2f54aec1942384cbdbabff5a2e577e45ea124e02dd194ef233c64b428c0dc8c444080884e67c2a8be5752d",
+      "role": "farmer",
+      "phone": "+94774887617",
+      "location": "colombo",
+      "created_at": "2026-10-17T14:38:00.361186"
+    }
+  ]
+}
