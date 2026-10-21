@@ -51,7 +51,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
-        <a href="{{ url_for('marketplace.index') }}" class="flex items-center gap-2.5">
+        <a href="{{ url_for('main.home') }}" class="flex items-center gap-2.5">
           <div class="w-9 h-9 bg-leaf rounded-xl flex items-center justify-center shadow-sm">
             <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
           </div>
@@ -60,6 +60,7 @@
 
         <!-- Nav links -->
         <div class="hidden md:flex items-center gap-6">
+          <a href="{{ url_for('main.home') }}" class="nav-link {% if request.blueprint == 'main' %}text-leaf font-semibold{% endif %}">Home</a>
           <a href="{{ url_for('marketplace.index') }}" class="nav-link {% if request.blueprint == 'marketplace' %}text-leaf font-semibold{% endif %}">Marketplace</a>
           <a href="{{ url_for('prices.index') }}" class="nav-link {% if request.blueprint == 'prices' %}text-leaf font-semibold{% endif %}">Market Prices</a>
           {% if current_user.is_authenticated %}
@@ -130,6 +131,7 @@
         <div>
           <h4 class="font-semibold mb-3 text-green-100">Quick Links</h4>
           <ul class="space-y-1.5 text-sm text-green-200">
+            <li><a href="{{ url_for('main.home') }}" class="hover:text-white transition">Home</a></li>
             <li><a href="{{ url_for('marketplace.index') }}" class="hover:text-white transition">Marketplace</a></li>
             <li><a href="{{ url_for('prices.index') }}" class="hover:text-white transition">Market Prices</a></li>
             {% if current_user.is_authenticated %}

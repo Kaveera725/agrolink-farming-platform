@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}Home — Connecting Sri Lankan Agriculture{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="relative bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white py-20 lg:py-28 overflow-hidden">
+  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="max-w-3xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs font-semibold mb-6 text-green-100">
+        <span>🌾</span> Direct Farm-to-Buyer Trading Platform in Sri Lanka
+      </div>
+      <h1 class="font-display text-4xl sm:text-6xl font-bold leading-tight mb-6">
+        Fair Prices for Farmers.<br />
+        Fresh Harvests for Buyers.
+      </h1>
+      <p class="text-lg sm:text-xl text-green-100 mb-8 leading-relaxed font-light">
+        AgroLink eliminates exploitative middlemen by connecting local farmers directly with wholesale and retail buyers. Gain complete price transparency, track crop cycles, and trade with confidence.
+      </p>
+      <div class="flex flex-wrap items-center gap-4">
+        <a href="{{ url_for('marketplace.index') }}" class="bg-yellow-500 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:bg-yellow-600 transition duration-200 text-sm">
+          Browse Marketplace →
+        </a>
+        <a href="{{ url_for('prices.index') }}" class="bg-white/15 backdrop-blur-sm text-white border border-white/30 font-semibold px-6 py-3.5 rounded-xl hover:bg-white/25 transition duration-200 text-sm">
+          📊 Check Live Market Prices
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<section class="bg-white border-b border-gray-100 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <div>
+        <p class="font-display text-3xl font-bold text-leaf">100%</p>
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Direct Farm Trade</p>
+      </div>
+      <div>
+        <p class="font-display text-3xl font-bold text-sky">0%</p>
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Broker Commissions</p>
+      </div>
+      <div>
+        <p class="font-display text-3xl font-bold text-earth">25+</p>
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Tracked Crops</p>
+      </div>
+      <div>
+        <p class="font-display text-3xl font-bold text-gold">LKR</p>
+        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Fair Local Currency</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="py-16 bg-[#F7FAF5]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <h2 class="font-display text-3xl font-bold text-gray-800">How AgroLink Works</h2>
+      <p class="text-gray-500 text-sm mt-2">A fair, transparent ecosystem designed for both agricultural producers and commercial buyers.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- For Farmers -->
+      <div class="card p-8 border-t-4 border-leaf">
+        <div class="w-12 h-12 rounded-2xl bg-leaf-pale flex items-center justify-center text-2xl mb-5">👨‍🌾</div>
+        <h3 class="font-display text-xl font-bold text-gray-800 mb-3">For Farmers</h3>
+        <ul class="space-y-3 text-sm text-gray-600">
+          <li class="flex items-start gap-2.5">
+            <span class="text-leaf font-bold">✓</span>
+            <span><strong>Crop Management:</strong> Log field records, harvest dates, and expected yields privately.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="text-leaf font-bold">✓</span>
+            <span><strong>Marketplace Listings:</strong> List your ready produce with transparent per-kg pricing.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="text-leaf font-bold">✓</span>
+            <span><strong>Direct Orders:</strong> Receive purchasing orders from buyers with delivery requirements and fulfillment tracking.</span>
+          </li>
+        </ul>
+        <div class="mt-6">
+          <a href="{{ url_for('auth.register') }}" class="text-leaf font-semibold text-sm hover:underline">Join as Farmer →</a>
+        </div>
+      </div>
+
+      <!-- For Buyers -->
+      <div class="card p-8 border-t-4 border-sky">
+        <div class="w-12 h-12 rounded-2xl bg-sky-pale flex items-center justify-center text-2xl mb-5">🛒</div>
+        <h3 class="font-display text-xl font-bold text-gray-800 mb-3">For Buyers</h3>
+        <ul class="space-y-3 text-sm text-gray-600">
+          <li class="flex items-start gap-2.5">
+            <span class="text-sky font-bold">✓</span>
+            <span><strong>Fresh Local Produce:</strong> Search fresh vegetables, fruits, grains, and spices directly from growers.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="text-sky font-bold">✓</span>
+            <span><strong>Price Intelligence:</strong> Compare farmer asking prices against Colombo wholesale benchmarks.</span>
+          </li>
+          <li class="flex items-start gap-2.5">
+            <span class="text-sky font-bold">✓</span>
+            <span><strong>Instant Communication:</strong> Connect with growers immediately via integrated WhatsApp and phone dialing.</span>
+          </li>
+        </ul>
+        <div class="mt-6">
+          <a href="{{ url_for('auth.register') }}" class="text-sky font-semibold text-sm hover:underline">Join as Buyer →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED PRODUCE -->
+<section class="py-16 bg-white">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
+      <div>
+        <h2 class="font-display text-3xl font-bold text-gray-800">Fresh Produce on the Marketplace</h2>
+        <p class="text-gray-500 text-sm mt-1">Directly listed by registered Sri Lankan farmers.</p>
+      </div>
+      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary text-sm">View All Marketplace Produce →</a>
+    </div>
+
+    {% if featured_products %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {% for product in featured_products %}
+      <div class="card hover:shadow-md transition flex flex-col justify-between overflow-hidden">
+        <div>
+          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="block relative h-44 overflow-hidden">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
+            <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-leaf-dark text-xs px-2.5 py-0.5 rounded-full font-semibold">
+              {{ product.category }}
+            </span>
+          </a>
+          <div class="p-4">
+            <h3 class="font-semibold text-gray-800 text-base truncate">
+              <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="hover:text-leaf transition">
+                {{ product.name }}
+              </a>
+            </h3>
+            <p class="text-xs text-gray-400 mt-1">📍 {{ product.location or product.farmer.location or 'Sri Lanka' }}</p>
+            <div class="mt-3 flex items-baseline justify-between">
+              <span class="font-bold text-leaf text-lg">LKR {{ "{:,.0f}".format(product.price_per_kg) }}<span class="text-xs font-normal text-gray-400">/kg</span></span>
+              <span class="text-xs text-gray-500">{{ product.quantity_kg }} kg in stock</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-4 pt-0">
+          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="block text-center w-full btn-secondary text-xs py-2">
+            View Details
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card p-12 text-center text-gray-400">
+      <p class="text-base font-medium">No produce currently listed.</p>
+      <a href="{{ url_for('marketplace.index') }}" class="text-leaf text-sm font-semibold hover:underline mt-2 inline-block">Explore the marketplace →</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- LIVE MARKET PRICES SPOTLIGHT -->
+<section class="py-16 bg-[#F7FAF5]">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h2 class="font-display text-3xl font-bold text-gray-800">Colombo Market Price Highlights</h2>
+        <p class="text-gray-500 text-sm mt-1">Benchmark prices to help you negotiate and buy at fair market rates.</p>
+      </div>
+      <a href="{{ url_for('prices.index') }}" class="btn-primary text-sm">View Full Price Board & Deals →</a>
+    </div>
+
+    {% if sample_prices %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {% for mp in sample_prices %}
+      <div class="card p-5 hover:shadow-sm transition">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="font-semibold text-gray-800">{{ mp.crop_name }}</h4>
+          <span class="text-xs bg-leaf-pale text-leaf px-2 py-0.5 rounded-full font-medium">{{ mp.category }}</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-50 text-sm">
+          <div>
+            <span class="text-xs text-gray-400 block">Farmer Buying Price</span>
+            <span class="font-semibold text-sky">LKR {{ "{:,.0f}".format(mp.buying_price) }}/kg</span>
+          </div>
+          <div>
+            <span class="text-xs text-gray-400 block">Retail Selling Price</span>
+            <span class="font-semibold text-leaf">LKR {{ "{:,.0f}".format(mp.selling_price) }}/kg</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- CALL TO ACTION -->
+<section class="py-16 bg-leaf-dark text-white text-center">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="font-display text-3xl sm:text-4xl font-bold mb-4">Ready to Transform Agricultural Trade?</h2>
+    <p class="text-green-200 text-base mb-8 max-w-2xl mx-auto">
+      Whether you are cultivating crops or sourcing fresh supplies for commercial markets, AgroLink gives you fair access.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="{{ url_for('auth.register') }}" class="btn-primary bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3.5 text-base shadow-md">
+        Create Your Free Account
+      </a>
+      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary bg-white/10 hover:bg-white/20 text-white border-white/30 px-8 py-3.5 text-base">
+        Browse as Guest
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

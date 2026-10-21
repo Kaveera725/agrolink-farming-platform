@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 from extensions import db
 from models import MarketPrice, Product
 
-prices_bp = Blueprint('prices', __name__, url_prefix='/')
+prices_bp = Blueprint('prices', __name__, url_prefix='/prices')
 
 
 def seed_market_prices():
