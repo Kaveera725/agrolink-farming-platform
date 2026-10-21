@@ -42,6 +42,16 @@ def seed_market_prices():
     db.session.commit()
 
 
+def find_market_price(product_name, market_dict):
+    name = product_name.lower().strip()
+    if name in market_dict:
+        return market_dict[name]
+    for crop_name, mp in market_dict.items():
+        if crop_name in name or name in crop_name:
+            return mp
+    return None
+
+
 @prices_bp.route('/')
 def index():
     prices = MarketPrice.query.all()
@@ -54,36 +64,51 @@ def index():
     # Market lookup
     market_dict = {p.crop_name.lower(): p for p in prices}
 
-    # 🔥 SELLER MAP (group products by name)
-    seller_map = {}
+    # 🔥 SELLER MAP (group products by category, sorted cheapest first)
+    raw_seller_map = {}
     for product in products:
-        key = product.name.lower()
-        if key not in seller_map:
-            seller_map[key] = []
-        seller_map[key].append(product)
+        cat = product.category
+        if cat not in raw_seller_map:
+            raw_seller_map[cat] = []
+        raw_seller_map[cat].append(product)
 
-    # Sort sellers by price (cheapest first)
-    for key in seller_map:
-        seller_map[key].sort(key=lambda x: x.price_per_kg)
+    seller_map = {}
+    for cat in sorted(raw_seller_map.keys()):
+        raw_seller_map[cat].sort(key=lambda x: x.price_per_kg)
+        seller_map[cat] = []
+        for p in raw_seller_map[cat]:
+            market = find_market_price(p.name, market_dict)
+            if market:
+                market_price = market.selling_price
+                diff = round(market_price - p.price_per_kg, 2)
+            else:
+                market_price = None
+                diff = None
+
+            seller_map[cat].append({
+                "product": p,
+                "market_price": market_price,
+                "diff": diff
+            })
 
     best_deals = []
+    seen_products = set()
 
     # Build best deals (cheapest seller vs market)
     for product in products:
-        market = market_dict.get(product.name.lower())
+        market = find_market_price(product.name, market_dict)
 
-        if market:
-            best_seller = seller_map[product.name.lower()][0]
-
-            if best_seller.price_per_kg < market.selling_price:
+        if market and product.price_per_kg < market.selling_price:
+            if product.id not in seen_products:
+                seen_products.add(product.id)
                 best_deals.append({
                     "product_name": product.name,
                     "category": product.category,
-                    "seller": best_seller.farmer.name,
-                    "price": best_seller.price_per_kg,
+                    "seller": product.farmer.name,
+                    "price": product.price_per_kg,
                     "market_price": market.selling_price,
-                    "saving": round(market.selling_price - best_seller.price_per_kg, 2),
-                    "product_id": best_seller.id
+                    "saving": round(market.selling_price - product.price_per_kg, 2),
+                    "product_id": product.id
                 })
 
     best_deals.sort(key=lambda x: x['saving'], reverse=True)

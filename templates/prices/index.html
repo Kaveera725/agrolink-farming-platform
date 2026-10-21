@@ -169,7 +169,7 @@
     👨‍🌾 Cheapest Sellers (Direct from Farmers)
   </h2>
 
-  {% for cat, products in seller_map.items() %}
+  {% for cat, items in seller_map.items() %}
 
   <div class="mb-8">
 
@@ -192,32 +192,43 @@
 
         <tbody>
 
-          {% for p in products[:5] %}
-
-          {% set market = grouped[cat]|selectattr("crop_name", "equalto", p.name)|list %}
-          {% set market_price = market[0].selling_price if market else 0 %}
+          {% for item in items[:5] %}
 
           <tr class="border-t hover:bg-gray-50">
 
-            <td class="p-3 font-medium">{{ p.name }}</td>
+            <td class="p-3 font-medium">{{ item.product.name }}</td>
 
-            <td class="p-3 text-gray-600">{{ p.farmer.name }}</td>
+            <td class="p-3 text-gray-600">{{ item.product.farmer.name }}</td>
 
             <td class="p-3 text-right text-green-600 font-semibold">
-              LKR {{ "{:,.0f}".format(p.price_per_kg) }}
+              LKR {{ "{:,.0f}".format(item.product.price_per_kg) }}
             </td>
 
             <td class="p-3 text-right text-gray-500">
-              LKR {{ "{:,.0f}".format(market_price) }}
+              {% if item.market_price %}
+                LKR {{ "{:,.0f}".format(item.market_price) }}
+              {% else %}
+                <span class="text-xs text-gray-400">N/A</span>
+              {% endif %}
             </td>
 
-            <td class="p-3 text-right text-red-500">
-              -{{ "{:,.0f}".format(market_price - p.price_per_kg) }}
+            <td class="p-3 text-right">
+              {% if item.diff is not none %}
+                {% if item.diff > 0 %}
+                  <span class="text-green-600 font-semibold">Save LKR {{ "{:,.0f}".format(item.diff) }}</span>
+                {% elif item.diff == 0 %}
+                  <span class="text-gray-500 text-xs">Market rate</span>
+                {% else %}
+                  <span class="text-orange-600 text-xs font-medium">Above market (+LKR {{ "{:,.0f}".format(item.diff|abs) }})</span>
+                {% endif %}
+              {% else %}
+                <span class="text-xs text-gray-400">—</span>
+              {% endif %}
             </td>
 
             <td class="p-3 text-right">
 
-              <a href="{{ url_for('orders.place_order', product_id=p.id) }}"
+              <a href="{{ url_for('orders.place_order', product_id=item.product.id) }}"
                  class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
                 Buy
               </a>
