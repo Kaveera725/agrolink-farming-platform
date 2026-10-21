@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from app import db
+from extensions import db
 from models import MarketPrice, Product
 
 prices_bp = Blueprint('prices', __name__, url_prefix='/')
