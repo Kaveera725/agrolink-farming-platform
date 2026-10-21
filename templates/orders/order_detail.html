@@ -82,6 +82,7 @@
   <div class="card p-6 mt-2">
     <p class="font-semibold text-gray-800 mb-3">Update Order Status</p>
     <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex gap-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <select name="status" class="form-input flex-1">
         {% for s in ['pending','confirmed','delivered','cancelled'] %}
         <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s|capitalize }}</option>
@@ -96,6 +97,7 @@
   {% if current_user.role == 'buyer' and order.status == 'pending' %}
   <div class="mt-4">
     <form method="POST" action="{{ url_for('orders.cancel_order', order_id=order.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <button type="submit" onclick="return confirm('Cancel this order?')"
         class="w-full py-3 btn-danger rounded-xl">Cancel Order</button>
     </form>

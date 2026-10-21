@@ -16,6 +16,7 @@
 
     <div class="card p-8">
       <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="space-y-5">
           <div>
             <label class="form-label">Email Address</label>

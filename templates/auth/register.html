@@ -15,6 +15,7 @@
 
     <div class="card p-8">
       <form method="POST" class="space-y-5">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <!-- Role selection -->
         <div>
           <label class="form-label">I am a</label>
