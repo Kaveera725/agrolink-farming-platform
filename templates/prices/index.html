@@ -5,11 +5,18 @@
 
 <!-- 🔥 HEADER -->
 <div class="bg-gradient-to-br from-green-700 to-green-900 text-white">
-  <div class="max-w-7xl mx-auto px-4 py-12">
-    <h1 class="text-4xl font-bold">Market Prices</h1>
-    <p class="text-green-100 mt-2">
-      Live agricultural buying & selling prices in Sri Lanka
-    </p>
+  <div class="max-w-7xl mx-auto px-4 py-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-4xl font-bold">Market Prices</h1>
+      <p class="text-green-100 mt-2">
+        Live agricultural buying & selling prices in Sri Lanka
+      </p>
+    </div>
+    <div>
+      <a href="{{ url_for('prices.bids') }}" class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-sm text-sm">
+        📊 Best Price Comparison →
+      </a>
+    </div>
   </div>
 </div>
 

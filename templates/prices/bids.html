@@ -1,12 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Live Farmer Bids{% endblock %}
+{% block title %}Best Price Comparison{% endblock %}
 
 {% block content %}
 
 <!-- HEADER -->
 <div class="bg-green-700 text-white py-10">
   <div class="max-w-7xl mx-auto px-4">
-    <h1 class="text-4xl font-bold">Live Farmer Bidding Market</h1>
+    <div class="mb-3">
+      <a href="{{ url_for('prices.index') }}" class="text-green-200 hover:text-white text-sm flex items-center gap-1 transition">
+        ← Back to Full Market Prices
+      </a>
+    </div>
+    <h1 class="text-4xl font-bold">Best Price Comparison</h1>
     <p class="text-green-100 mt-2">
       Lowest price farmers ranked first. Buy directly from cheapest seller.
     </p>
@@ -93,10 +98,10 @@
             View
           </a>
 
-          <!-- BID -->
+          <!-- ORDER NOW -->
           <a href="{{ url_for('orders.place_order', product_id=product.id) }}"
-             class="bg-green-600 text-white px-3 py-2 rounded-lg text-sm">
-            Place Bid
+             class="bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700 transition">
+            Order Now
           </a>
 
         </div>
