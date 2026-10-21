@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db
 from models import Product
+from utils.decorators import roles_required
 
 marketplace_bp = Blueprint('marketplace', __name__, url_prefix='/marketplace')
 
@@ -55,11 +56,8 @@ def product_detail(product_id):
 
 
 @marketplace_bp.route('/list', methods=['GET', 'POST'])
-@login_required
+@roles_required('farmer')
 def list_product():
-    if current_user.role != 'farmer':
-        flash('Only farmers can list products.', 'error')
-        return redirect(url_for('marketplace.index'))
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         category = request.form.get('category', '').strip()
@@ -88,7 +86,7 @@ def list_product():
 
 
 @marketplace_bp.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
-@login_required
+@roles_required('farmer')
 def edit_product(product_id):
     product = Product.query.filter_by(id=product_id, farmer_id=current_user.id).first_or_404()
     if request.method == 'POST':
@@ -111,7 +109,7 @@ def edit_product(product_id):
 
 
 @marketplace_bp.route('/product/<int:product_id>/delete', methods=['POST'])
-@login_required
+@roles_required('farmer')
 def delete_product(product_id):
     product = Product.query.filter_by(id=product_id, farmer_id=current_user.id).first_or_404()
     product.is_available = False

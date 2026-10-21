@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db
 from models import Order, Product
+from utils.decorators import roles_required
 
 orders_bp = Blueprint('orders', __name__, url_prefix='/orders')
 
@@ -19,11 +20,8 @@ def index():
 
 
 @orders_bp.route('/place/<int:product_id>', methods=['GET', 'POST'])
-@login_required
+@roles_required('buyer')
 def place_order(product_id):
-    if current_user.role != 'buyer':
-        flash('Only buyers can place orders.', 'error')
-        return redirect(url_for('marketplace.index'))
     product = Product.query.filter_by(id=product_id, is_available=True).first_or_404()
     if product.farmer_id == current_user.id:
         flash("You can't order your own product.", 'error')
@@ -72,7 +70,7 @@ def order_detail(order_id):
 
 
 @orders_bp.route('/<int:order_id>/update-status', methods=['POST'])
-@login_required
+@roles_required('farmer')
 def update_status(order_id):
     order = Order.query.get_or_404(order_id)
     if order.product.farmer_id != current_user.id:
@@ -90,7 +88,7 @@ def update_status(order_id):
 
 
 @orders_bp.route('/<int:order_id>/cancel', methods=['POST'])
-@login_required
+@roles_required('buyer')
 def cancel_order(order_id):
     order = Order.query.filter_by(id=order_id, buyer_id=current_user.id).first_or_404()
     if order.status not in ('pending',):

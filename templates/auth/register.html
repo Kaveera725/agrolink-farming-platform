@@ -56,6 +56,11 @@
             <label class="form-label">Confirm Password</label>
             <input type="password" name="confirm_password" required class="form-input" placeholder="Repeat password" minlength="8" />
           </div>
+          <div class="sm:col-span-2">
+            <label class="form-label">WhatsApp Number *</label>
+            <input type="tel" name="whatsapp_number" required class="form-input" placeholder="077 123 4567 or +94771234567" value="{{ form_data.whatsapp_number if form_data else '' }}" />
+            <p class="text-xs text-gray-500 mt-1">Order and payment alerts are sent to this WhatsApp number</p>
+          </div>
           <div>
             <label class="form-label">Phone <span class="text-gray-400 font-normal">(optional)</span></label>
             <input type="tel" name="phone" class="form-input" placeholder="+94 77 123 4567" value="{{ form_data.phone if form_data else '' }}" />
