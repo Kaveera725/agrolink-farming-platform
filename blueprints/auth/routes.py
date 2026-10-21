@@ -1,9 +1,21 @@
+from urllib.parse import urlsplit
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db
 from models import User
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+
+
+def is_safe_url(target):
+    if not target or not isinstance(target, str):
+        return False
+    if target.startswith('//') or target.startswith('\\\\'):
+        return False
+    parsed = urlsplit(target)
+    if parsed.scheme or parsed.netloc:
+        return False
+    return target.startswith('/')
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -54,8 +66,10 @@ def login():
         if user and user.check_password(password):
             login_user(user, remember=remember)
             next_page = request.args.get('next')
+            if not is_safe_url(next_page):
+                next_page = url_for('dashboard.index')
             flash(f'Welcome back, {user.name}!', 'success')
-            return redirect(next_page or url_for('dashboard.index'))
+            return redirect(next_page)
         flash('Invalid email or password.', 'error')
     return render_template('auth/login.html')
 
