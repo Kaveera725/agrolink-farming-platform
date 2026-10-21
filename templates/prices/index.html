@@ -31,13 +31,13 @@
     <div class="bg-white border rounded-xl p-4 shadow hover:shadow-md transition">
 
       <div class="flex justify-between items-center">
-        <h3 class="font-bold text-gray-800">{{ deal.product.name }}</h3>
+        <h3 class="font-bold text-gray-800">{{ deal.product_name }}</h3>
         <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
           SAVE
         </span>
       </div>
 
-      <p class="text-xs text-gray-500">{{ deal.product.category }}</p>
+      <p class="text-xs text-gray-500">{{ deal.category }}</p>
 
       <div class="mt-3">
         <p class="text-sm text-gray-500 line-through">
@@ -45,7 +45,7 @@
         </p>
 
         <p class="text-xl font-bold text-green-600">
-          LKR {{ "{:,.0f}".format(deal.farmer_price) }}
+          LKR {{ "{:,.0f}".format(deal.price) }}
         </p>
 
         <p class="text-sm text-red-500">
@@ -53,7 +53,7 @@
         </p>
       </div>
 
-      <a href="{{ url_for('marketplace.product_detail', product_id=deal.product.id) }}"
+      <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}"
          class="block mt-4 text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
         View Product
       </a>
@@ -133,7 +133,7 @@
 
               {% set is_best = false %}
               {% for deal in best_deals %}
-                {% if deal.product.name|lower == price.crop_name|lower %}
+                {% if deal.product_name|lower == price.crop_name|lower %}
                   {% set is_best = true %}
                 {% endif %}
               {% endfor %}
