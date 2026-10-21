@@ -13,7 +13,7 @@ dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 def index():
     if current_user.role == 'farmer':
         crops = Crop.query.filter_by(farmer_id=current_user.id).order_by(Crop.created_at.desc()).all()
-        products = Product.query.filter_by(farmer_id=current_user.id).order_by(Product.created_at.desc()).all()
+        products = Product.query.filter_by(farmer_id=current_user.id, is_deleted=False).order_by(Product.created_at.desc()).all()
         orders_received = Order.query.join(Product).filter(
             Product.farmer_id == current_user.id
         ).order_by(Order.created_at.desc()).limit(5).all()

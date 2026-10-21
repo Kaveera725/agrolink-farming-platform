@@ -68,6 +68,7 @@ class Product(db.Model):
     location = db.Column(db.String(120))
     image_url = db.Column(db.String(255))
     is_available = db.Column(db.Boolean, default=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     orders = db.relationship('Order', backref='product', lazy=True)
