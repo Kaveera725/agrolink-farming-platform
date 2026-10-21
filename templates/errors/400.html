@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Bad Request (400){% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-16 px-4">
+  <div class="max-w-md w-full text-center">
+    <div class="w-20 h-20 bg-amber-100 text-amber-700 rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-sm">
+      <span class="text-3xl font-display font-bold">400</span>
+    </div>
+    <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Invalid Request</h1>
+    <p class="text-gray-500 mb-8 leading-relaxed">
+      {{ error_description or "The request could not be processed, or your session security token expired. Please refresh the page and try again." }}
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="{{ url_for('main.home') }}" class="btn-primary">
+        Return Home
+      </a>
+      <a href="javascript:history.back()" class="btn-secondary">
+        Go Back
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,10 +1,10 @@
-from flask import Flask
+from flask import Flask, render_template
 from dotenv import load_dotenv
 import os
 import secrets
 import warnings
 
-from extensions import db, login_manager, csrf
+from extensions import db, login_manager, csrf, limiter
 
 load_dotenv()
 
@@ -38,10 +38,29 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+    limiter.init_app(app)
 
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'warning'
+
+    # Error handlers
+    @app.errorhandler(400)
+    def bad_request_error(e):
+        return render_template('errors/400.html', error_description=getattr(e, 'description', None)), 400
+
+    @app.errorhandler(404)
+    def not_found_error(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(429)
+    def ratelimit_error(e):
+        return render_template('errors/429.html'), 429
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
 
     # Import Blueprints
     from blueprints.auth.routes import auth_bp
