@@ -21,7 +21,7 @@
           <label class="form-label">I am a</label>
           <div class="grid grid-cols-2 gap-3">
             <label class="relative cursor-pointer">
-              <input type="radio" name="role" value="farmer" class="peer sr-only" checked />
+              <input type="radio" name="role" value="farmer" class="peer sr-only" {% if not form_data or form_data.role == 'farmer' %}checked{% endif %} />
               <div class="border-2 border-gray-200 peer-checked:border-leaf peer-checked:bg-leaf-pale rounded-xl p-4 text-center transition-all">
                 <div class="text-2xl mb-1">🌾</div>
                 <div class="font-semibold text-sm text-gray-700 peer-checked:text-leaf">Farmer</div>
@@ -29,7 +29,7 @@
               </div>
             </label>
             <label class="relative cursor-pointer">
-              <input type="radio" name="role" value="buyer" class="peer sr-only" />
+              <input type="radio" name="role" value="buyer" class="peer sr-only" {% if form_data and form_data.role == 'buyer' %}checked{% endif %} />
               <div class="border-2 border-gray-200 peer-checked:border-sky peer-checked:bg-sky-pale rounded-xl p-4 text-center transition-all">
                 <div class="text-2xl mb-1">🛒</div>
                 <div class="font-semibold text-sm text-gray-700">Buyer</div>
@@ -42,27 +42,27 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="sm:col-span-2">
             <label class="form-label">Full Name</label>
-            <input type="text" name="name" required class="form-input" placeholder="Your full name" />
+            <input type="text" name="name" required class="form-input" placeholder="Your full name" value="{{ form_data.name if form_data else '' }}" />
           </div>
           <div class="sm:col-span-2">
             <label class="form-label">Email Address</label>
-            <input type="email" name="email" required class="form-input" placeholder="you@example.com" />
+            <input type="email" name="email" required class="form-input" placeholder="you@example.com" value="{{ form_data.email if form_data else '' }}" />
           </div>
           <div>
             <label class="form-label">Password</label>
-            <input type="password" name="password" required class="form-input" placeholder="Min 6 characters" minlength="6" />
+            <input type="password" name="password" required class="form-input" placeholder="Min 8 characters" minlength="8" />
           </div>
           <div>
             <label class="form-label">Confirm Password</label>
-            <input type="password" name="confirm_password" required class="form-input" placeholder="Repeat password" />
+            <input type="password" name="confirm_password" required class="form-input" placeholder="Repeat password" minlength="8" />
           </div>
           <div>
             <label class="form-label">Phone <span class="text-gray-400 font-normal">(optional)</span></label>
-            <input type="tel" name="phone" class="form-input" placeholder="+94 77 123 4567" />
+            <input type="tel" name="phone" class="form-input" placeholder="+94 77 123 4567" value="{{ form_data.phone if form_data else '' }}" />
           </div>
           <div>
             <label class="form-label">Location <span class="text-gray-400 font-normal">(optional)</span></label>
-            <input type="text" name="location" class="form-input" placeholder="e.g. Kandy, Sri Lanka" />
+            <input type="text" name="location" class="form-input" placeholder="e.g. Kandy, Sri Lanka" value="{{ form_data.location if form_data else '' }}" />
           </div>
         </div>
 
