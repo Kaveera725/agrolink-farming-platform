@@ -29,6 +29,9 @@ class User(UserMixin, db.Model):
     products = db.relationship('Product', backref='farmer', lazy=True, foreign_keys='Product.farmer_id')
     orders_placed = db.relationship('Order', backref='buyer', lazy=True, foreign_keys='Order.buyer_id')
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
@@ -52,6 +55,9 @@ class Crop(db.Model):
     status = db.Column(db.Enum('growing', 'ready', 'harvested', name='crop_status'), default='growing')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Crop {self.crop_name}>'
 
@@ -73,6 +79,9 @@ class Product(db.Model):
 
     orders = db.relationship('Order', backref='product', lazy=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Product {self.name}>'
 
@@ -90,6 +99,9 @@ class Order(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<Order {self.id}>'
 
@@ -104,6 +116,9 @@ class MarketPrice(db.Model):
     unit = db.Column(db.String(20), default='per kg')
     market_location = db.Column(db.String(100), default='Colombo')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f'<MarketPrice {self.crop_name}>'
