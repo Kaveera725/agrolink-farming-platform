@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db, limiter
 from models import User
+from utils.phone import validate_sl_phone, normalize_phone_number
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -28,6 +29,7 @@ def register():
         'name': '',
         'email': '',
         'role': 'farmer',
+        'whatsapp_number': '',
         'phone': '',
         'location': ''
     }
@@ -38,6 +40,7 @@ def register():
         password = request.form.get('password', '')
         confirm = request.form.get('confirm_password', '')
         role = request.form.get('role', 'farmer')
+        whatsapp_number = request.form.get('whatsapp_number', '').strip()
         phone = request.form.get('phone', '').strip()
         location = request.form.get('location', '').strip()
 
@@ -45,11 +48,12 @@ def register():
             'name': name,
             'email': email,
             'role': role,
+            'whatsapp_number': whatsapp_number,
             'phone': phone,
             'location': location
         }
 
-        if not name or not email or not password:
+        if not name or not email or not password or not whatsapp_number:
             flash('All required fields must be filled.', 'error')
             return render_template('auth/register.html', form_data=form_data)
 
@@ -61,6 +65,13 @@ def register():
         except EmailNotValidError:
             flash('Please enter a valid email address.', 'error')
             return render_template('auth/register.html', form_data=form_data)
+
+        # Validate WhatsApp number (required, Sri Lankan E.164)
+        is_valid_wa, normalized_wa, wa_err = validate_sl_phone(whatsapp_number)
+        if not is_valid_wa:
+            flash(wa_err or 'Please enter a valid Sri Lankan WhatsApp number.', 'error')
+            return render_template('auth/register.html', form_data=form_data)
+        form_data['whatsapp_number'] = normalized_wa
 
         # Enforce minimum 8-character password server-side
         if len(password) < 8:
@@ -79,7 +90,18 @@ def register():
             flash('Invalid role selected.', 'error')
             return render_template('auth/register.html', form_data=form_data)
 
-        user = User(name=name, email=email, role=role, phone=phone, location=location)
+        # Normalize optional phone if provided
+        normalized_ph = normalize_phone_number(phone) if phone else None
+
+        user = User(
+            name=name,
+            email=email,
+            role=role,
+            phone=normalized_ph or phone or None,
+            whatsapp_number=normalized_wa,
+            location=location or None,
+            is_active=True
+        )
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
@@ -100,6 +122,9 @@ def login():
         remember = request.form.get('remember') == 'on'
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
+            if not getattr(user, 'is_active', True):
+                flash('Your account has been deactivated. Please contact support.', 'error')
+                return render_template('auth/login.html')
             login_user(user, remember=remember)
             next_page = request.args.get('next')
             if not is_safe_url(next_page):

@@ -55,7 +55,7 @@ def find_market_price(product_name, market_dict):
 @prices_bp.route('/')
 def index():
     prices = MarketPrice.query.all()
-    products = Product.query.filter_by(is_available=True).all()
+    products = Product.query.filter_by(is_available=True, is_deleted=False).all()
 
     # Group market prices
     categories = sorted(set(p.category for p in prices))
@@ -137,7 +137,7 @@ def get_price_suggestion(product_name):
 
 @prices_bp.route('/bids')
 def bids():
-    products = Product.query.filter_by(is_available=True)\
+    products = Product.query.filter_by(is_available=True, is_deleted=False)\
         .order_by(Product.category, Product.price_per_kg.asc())\
         .all()
 

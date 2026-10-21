@@ -20,7 +20,12 @@
       <img src="{{ order.product.image_url }}" alt="{{ order.product.name }}" class="w-full h-full object-cover" />
     </div>
     <div class="flex-1">
-      <h3 class="font-semibold text-gray-800 text-lg">{{ order.product.name }}</h3>
+      <h3 class="font-semibold text-gray-800 text-lg flex items-center gap-2">
+        {{ order.product.name }}
+        {% if order.product.is_deleted %}
+        <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Archived Listing</span>
+        {% endif %}
+      </h3>
       <p class="text-sm text-gray-400">{{ order.product.category }}</p>
       <div class="grid grid-cols-3 gap-3 mt-3">
         <div>

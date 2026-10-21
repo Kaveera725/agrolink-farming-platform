@@ -1,7 +1,9 @@
+import math
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db
 from models import Product
+from utils.decorators import roles_required
 
 marketplace_bp = Blueprint('marketplace', __name__, url_prefix='/marketplace')
 
@@ -23,7 +25,8 @@ def index():
     category = request.args.get('category', '')
     search = request.args.get('search', '').strip()
 
-    query = Product.query.filter_by(is_available=True)
+    # BUG-008: Hide deleted products from marketplace
+    query = Product.query.filter_by(is_available=True, is_deleted=False)
 
     if category:
         query = query.filter_by(category=category)
@@ -45,21 +48,20 @@ def index():
 
 @marketplace_bp.route('/product/<int:product_id>')
 def product_detail(product_id):
-    product = Product.query.get_or_404(product_id)
+    # BUG-008: Hide deleted products from product detail view
+    product = Product.query.filter_by(id=product_id, is_deleted=False).first_or_404()
     related = Product.query.filter(
         Product.category == product.category,
         Product.id != product.id,
-        Product.is_available == True
+        Product.is_available == True,
+        Product.is_deleted == False
     ).limit(4).all()
     return render_template('marketplace/product_detail.html', product=product, related=related)
 
 
 @marketplace_bp.route('/list', methods=['GET', 'POST'])
-@login_required
+@roles_required('farmer')
 def list_product():
-    if current_user.role != 'farmer':
-        flash('Only farmers can list products.', 'error')
-        return redirect(url_for('marketplace.index'))
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         category = request.form.get('category', '').strip()
@@ -68,18 +70,21 @@ def list_product():
         try:
             quantity_kg = float(request.form.get('quantity_kg', 0))
             price_per_kg = float(request.form.get('price_per_kg', 0))
+            if math.isnan(quantity_kg) or math.isinf(quantity_kg) or math.isnan(price_per_kg) or math.isinf(price_per_kg):
+                raise ValueError("Non-finite quantity or price")
         except (ValueError, TypeError):
             flash('Invalid quantity or price.', 'error')
             return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
 
         if not name or not category or quantity_kg <= 0 or price_per_kg <= 0:
-            flash('All required fields must be filled correctly.', 'error')
+            flash('All required fields must be filled correctly. Quantity and price must be greater than zero.', 'error')
             return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
 
         image_url = PRODUCT_IMAGES.get(category, PRODUCT_IMAGES['Other'])
         product = Product(farmer_id=current_user.id, name=name, category=category,
                           description=description, quantity_kg=quantity_kg,
-                          price_per_kg=price_per_kg, location=location, image_url=image_url)
+                          price_per_kg=price_per_kg, location=location, image_url=image_url,
+                          is_available=True, is_deleted=False)
         db.session.add(product)
         db.session.commit()
         flash('Product listed successfully!', 'success')
@@ -88,22 +93,47 @@ def list_product():
 
 
 @marketplace_bp.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
-@login_required
+@roles_required('farmer')
 def edit_product(product_id):
-    product = Product.query.filter_by(id=product_id, farmer_id=current_user.id).first_or_404()
+    product = Product.query.filter_by(id=product_id, farmer_id=current_user.id, is_deleted=False).first_or_404()
     if request.method == 'POST':
-        product.name = request.form.get('name', product.name).strip()
-        product.category = request.form.get('category', product.category).strip()
-        product.description = request.form.get('description', '').strip()
-        product.location = request.form.get('location', '').strip()
-        product.is_available = request.form.get('is_available') == 'on'
+        old_category = product.category
+        new_category = request.form.get('category', product.category).strip()
+        name = request.form.get('name', product.name).strip()
+        description = request.form.get('description', '').strip()
+        location = request.form.get('location', '').strip()
+        is_available = request.form.get('is_available') == 'on'
         try:
-            product.quantity_kg = float(request.form.get('quantity_kg', product.quantity_kg))
-            product.price_per_kg = float(request.form.get('price_per_kg', product.price_per_kg))
+            quantity_kg = float(request.form.get('quantity_kg', product.quantity_kg))
+            price_per_kg = float(request.form.get('price_per_kg', product.price_per_kg))
+            if math.isnan(quantity_kg) or math.isinf(quantity_kg) or math.isnan(price_per_kg) or math.isinf(price_per_kg):
+                raise ValueError("Non-finite quantity or price")
         except (ValueError, TypeError):
             flash('Invalid quantity or price.', 'error')
             return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
-        product.image_url = PRODUCT_IMAGES.get(product.category, PRODUCT_IMAGES['Other'])
+
+        if not name or not new_category or quantity_kg < 0 or price_per_kg <= 0:
+            flash('Invalid input. Quantity cannot be negative and price must be greater than zero.', 'error')
+            return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
+
+        product.name = name
+        product.description = description
+        product.location = location
+        product.quantity_kg = quantity_kg
+        product.price_per_kg = price_per_kg
+
+        # Separate out-of-stock from deleted/disabled: quantity 0 cannot be active
+        if quantity_kg == 0:
+            product.is_available = False
+        else:
+            product.is_available = is_available
+
+        # BUG-010: Do not overwrite product.image_url on edit unless it is empty or the category changed.
+        if not product.image_url or old_category != new_category:
+            product.image_url = PRODUCT_IMAGES.get(new_category, PRODUCT_IMAGES.get('Other'))
+
+        product.category = new_category
+
         db.session.commit()
         flash('Product updated!', 'success')
         return redirect(url_for('dashboard.index'))
@@ -111,9 +141,11 @@ def edit_product(product_id):
 
 
 @marketplace_bp.route('/product/<int:product_id>/delete', methods=['POST'])
-@login_required
+@roles_required('farmer')
 def delete_product(product_id):
-    product = Product.query.filter_by(id=product_id, farmer_id=current_user.id).first_or_404()
+    # BUG-008: Farmer "delete" sets is_deleted = True and is_available = False
+    product = Product.query.filter_by(id=product_id, farmer_id=current_user.id, is_deleted=False).first_or_404()
+    product.is_deleted = True
     product.is_available = False
     db.session.commit()
     flash('Product removed from listing.', 'info')

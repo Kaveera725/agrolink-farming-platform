@@ -134,7 +134,32 @@ DATABASE_URL=postgresql://postgres:<YOUR_POSTGRES_PASSWORD>@localhost:5432/agrol
 
 ---
 
-## 4. Run the Application
+## 4. Database Migrations & CLI Management
+
+AgroLink uses **Flask-Migrate** (Alembic) for structured schema migrations and CLI commands for administrative maintenance.
+
+### Apply Migrations
+To bring the database schema up to the latest revision (tables, enum types, columns):
+```powershell
+flask db upgrade
+```
+
+### Seed Market Benchmark Prices
+Market prices are decoupled from application startup. To populate initial reference prices:
+```powershell
+flask seed-prices
+```
+
+### Create an Administrator User
+Create an admin account interactively without storing passwords in code or scripts:
+```powershell
+flask create-admin
+```
+*(Prompts securely for Admin Email, Name, WhatsApp/Phone, and Password).*
+
+---
+
+## 5. Run the Application
 
 With your virtual environment activated and database running:
 
@@ -157,11 +182,12 @@ http://127.0.0.1:5000/
 
 ---
 
-## 5. Application Structure & Roles
+## 6. Application Structure & Roles
 
-AgroLink features two main user roles:
+AgroLink features three primary user roles:
 - **Farmer**: Manage crops, list products for sale, view market prices and incoming orders.
 - **Buyer**: Browse marketplace listings, place crop orders, view order status and price trends.
+- **Admin**: System management and administrative access.
 
 ### Demo / Default Accounts:
 | Role | Name | Email | Password |
@@ -182,7 +208,7 @@ AgroLink features two main user roles:
 
 ---
 
-## 6. Common Troubleshooting
+## 7. Common Troubleshooting
 
 | Issue | Cause | Solution |
 | :--- | :--- | :--- |
@@ -193,7 +219,7 @@ AgroLink features two main user roles:
 
 ---
 
-## 7. Version Control & Development
+## 8. Version Control & Development
 
 ```powershell
 # Check modified files

@@ -6,7 +6,10 @@ from datetime import datetime
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    user = User.query.get(int(user_id))
+    if user and not getattr(user, 'is_active', True):
+        return None
+    return user
 
 
 class User(UserMixin, db.Model):
@@ -15,9 +18,11 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.Enum('farmer', 'buyer', name='user_role'), nullable=False)
+    role = db.Column(db.Enum('farmer', 'buyer', 'admin', name='user_role'), nullable=False)
     phone = db.Column(db.String(20))
+    whatsapp_number = db.Column(db.String(20), nullable=True)
     location = db.Column(db.String(120))
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     crops = db.relationship('Crop', backref='farmer', lazy=True)
@@ -63,6 +68,7 @@ class Product(db.Model):
     location = db.Column(db.String(120))
     image_url = db.Column(db.String(255))
     is_available = db.Column(db.Boolean, default=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     orders = db.relationship('Order', backref='product', lazy=True)

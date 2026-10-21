@@ -3,8 +3,9 @@ from dotenv import load_dotenv
 import os
 import secrets
 import warnings
+import click
 
-from extensions import db, login_manager, csrf, limiter
+from extensions import db, login_manager, csrf, limiter, migrate
 
 load_dotenv()
 
@@ -39,6 +40,7 @@ def create_app():
     login_manager.init_app(app)
     csrf.init_app(app)
     limiter.init_app(app)
+    migrate.init_app(app, db)
 
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
@@ -78,12 +80,63 @@ def create_app():
     app.register_blueprint(prices_bp)
     app.register_blueprint(main_bp)
 
-    # Create DB & Seed
-    with app.app_context():
-        db.create_all()
-
+    # CLI Commands
+    @app.cli.command('seed-prices')
+    def seed_prices_command():
+        """Seed market price reference records into the database."""
+        from models import MarketPrice
         from blueprints.prices.routes import seed_market_prices
+        before_count = MarketPrice.query.count()
         seed_market_prices()
+        after_count = MarketPrice.query.count()
+        if after_count > before_count:
+            click.echo(f"Successfully seeded {after_count - before_count} market prices.")
+        else:
+            click.echo("Market prices already seeded.")
+
+    @app.cli.command('create-admin')
+    def create_admin_command():
+        """Create an administrator user interactively."""
+        from models import User
+        from email_validator import validate_email, EmailNotValidError
+        from utils.phone import normalize_phone_number
+
+        email = click.prompt("Admin Email", type=str).strip().lower()
+        try:
+            valid_info = validate_email(email, check_deliverability=False)
+            email = valid_info.normalized
+        except EmailNotValidError:
+            click.echo("Error: Invalid email format.", err=True)
+            return
+
+        existing = User.query.filter_by(email=email).first()
+        if existing:
+            click.echo(f"Error: User with email '{email}' already exists.", err=True)
+            return
+
+        name = click.prompt("Admin Name", default="Administrator", type=str).strip()
+        phone_input = click.prompt("WhatsApp / Phone (e.g. 0771234567, optional)", default="", type=str).strip()
+        whatsapp = None
+        if phone_input:
+            whatsapp = normalize_phone_number(phone_input) or phone_input
+
+        password = click.prompt("Password (min 8 chars)", hide_input=True, confirmation_prompt=True)
+        if len(password) < 8:
+            click.echo("Error: Password must be at least 8 characters long.", err=True)
+            return
+
+        admin = User(
+            name=name,
+            email=email,
+            role='admin',
+            phone=phone_input or None,
+            whatsapp_number=whatsapp,
+            is_active=True
+        )
+        admin.set_password(password)
+        db.session.add(admin)
+        db.session.commit()
+        click.echo(f"Admin user '{email}' created successfully.")
 
     return app
 

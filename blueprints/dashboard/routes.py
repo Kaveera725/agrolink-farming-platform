@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from extensions import db
 from models import Crop, Product, Order, User
 from datetime import date
+from utils.decorators import roles_required
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
@@ -12,7 +13,7 @@ dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 def index():
     if current_user.role == 'farmer':
         crops = Crop.query.filter_by(farmer_id=current_user.id).order_by(Crop.created_at.desc()).all()
-        products = Product.query.filter_by(farmer_id=current_user.id).order_by(Product.created_at.desc()).all()
+        products = Product.query.filter_by(farmer_id=current_user.id, is_deleted=False).order_by(Product.created_at.desc()).all()
         orders_received = Order.query.join(Product).filter(
             Product.farmer_id == current_user.id
         ).order_by(Order.created_at.desc()).limit(5).all()
@@ -32,21 +33,15 @@ def index():
 # ── CROP MANAGEMENT ──────────────────────────────────────────────────────────
 
 @dashboard_bp.route('/crops')
-@login_required
+@roles_required('farmer')
 def crops():
-    if current_user.role != 'farmer':
-        flash('Access denied.', 'error')
-        return redirect(url_for('dashboard.index'))
     crops = Crop.query.filter_by(farmer_id=current_user.id).order_by(Crop.created_at.desc()).all()
     return render_template('dashboard/crops.html', crops=crops)
 
 
 @dashboard_bp.route('/crops/add', methods=['GET', 'POST'])
-@login_required
+@roles_required('farmer')
 def add_crop():
-    if current_user.role != 'farmer':
-        flash('Access denied.', 'error')
-        return redirect(url_for('dashboard.index'))
     if request.method == 'POST':
         crop_name = request.form.get('crop_name', '').strip()
         crop_type = request.form.get('crop_type', '').strip()
@@ -77,7 +72,7 @@ def add_crop():
 
 
 @dashboard_bp.route('/crops/<int:crop_id>/edit', methods=['GET', 'POST'])
-@login_required
+@roles_required('farmer')
 def edit_crop(crop_id):
     crop = Crop.query.filter_by(id=crop_id, farmer_id=current_user.id).first_or_404()
     if request.method == 'POST':
@@ -99,7 +94,7 @@ def edit_crop(crop_id):
 
 
 @dashboard_bp.route('/crops/<int:crop_id>/delete', methods=['POST'])
-@login_required
+@roles_required('farmer')
 def delete_crop(crop_id):
     crop = Crop.query.filter_by(id=crop_id, farmer_id=current_user.id).first_or_404()
     db.session.delete(crop)
