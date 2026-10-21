@@ -1,15 +1,33 @@
-from flask import Flask
+from flask import Flask, render_template
 from dotenv import load_dotenv
 import os
+import secrets
+import warnings
 
-from extensions import db, login_manager
+from extensions import db, login_manager, csrf, limiter
 
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
 
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-fallback-key')
+    env = os.getenv('FLASK_ENV', os.getenv('ENV', 'development')).lower()
+    secret_key = os.getenv('SECRET_KEY')
+    if not secret_key:
+        if env == 'production':
+            raise RuntimeError(
+                "CRITICAL SECURITY CONFIGURATION ERROR: SECRET_KEY environment variable is required in production mode."
+            )
+        secret_key = secrets.token_hex(32)
+        warnings.warn(
+            "Insecure configuration: SECRET_KEY is not set. Generated a temporary random key for development.",
+            UserWarning,
+            stacklevel=2
+        )
+
+    app.config['SECRET_KEY'] = secret_key
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
         'DATABASE_URL',
         'postgresql://agrolink_db_user:agrolink_db_user_password@localhost:5432/agrolink_db'
@@ -19,10 +37,30 @@ def create_app():
     # Init extensions
     db.init_app(app)
     login_manager.init_app(app)
+    csrf.init_app(app)
+    limiter.init_app(app)
 
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'warning'
+
+    # Error handlers
+    @app.errorhandler(400)
+    def bad_request_error(e):
+        return render_template('errors/400.html', error_description=getattr(e, 'description', None)), 400
+
+    @app.errorhandler(404)
+    def not_found_error(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(429)
+    def ratelimit_error(e):
+        return render_template('errors/429.html'), 429
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
 
     # Import Blueprints
     from blueprints.auth.routes import auth_bp

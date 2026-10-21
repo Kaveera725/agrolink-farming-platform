@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found (404){% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-16 px-4">
+  <div class="max-w-md w-full text-center">
+    <div class="w-20 h-20 bg-leaf-pale text-leaf rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-sm">
+      <span class="text-3xl font-display font-bold">404</span>
+    </div>
+    <h1 class="font-display text-3xl font-bold text-gray-800 mb-3">Harvest Not Found</h1>
+    <p class="text-gray-500 mb-8 leading-relaxed">
+      The page you're looking for doesn't exist, has been moved, or is temporarily unavailable.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="{{ url_for('main.home') }}" class="btn-primary">
+        Return Home
+      </a>
+      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary">
+        Browse Marketplace
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

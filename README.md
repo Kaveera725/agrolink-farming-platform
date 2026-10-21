@@ -171,13 +171,13 @@ AgroLink features two main user roles:
 | **Buyer** | Kamani Silva | `kamani@agrolink.lk` | `password123` |
 
 ### Key Routes:
-- `/` - Landing page
+- `/` - Landing home page
 - `/auth/login` - User login
 - `/auth/register` - New user registration (choose Farmer or Buyer)
-- `/dashboard/farmer` - Farmer dashboard
-- `/dashboard/buyer` - Buyer dashboard
+- `/dashboard/` - User dashboard (Farmer or Buyer)
 - `/marketplace/` - Crop marketplace listings
-- `/prices/` - Live market prices and bidding trends
+- `/prices/` - Live market benchmark prices and best deals
+- `/prices/bids` - Best price comparison
 - `/orders/` - Order history & tracking
 
 ---

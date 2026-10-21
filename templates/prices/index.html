@@ -5,11 +5,18 @@
 
 <!-- 🔥 HEADER -->
 <div class="bg-gradient-to-br from-green-700 to-green-900 text-white">
-  <div class="max-w-7xl mx-auto px-4 py-12">
-    <h1 class="text-4xl font-bold">Market Prices</h1>
-    <p class="text-green-100 mt-2">
-      Live agricultural buying & selling prices in Sri Lanka
-    </p>
+  <div class="max-w-7xl mx-auto px-4 py-12 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-4xl font-bold">Market Prices</h1>
+      <p class="text-green-100 mt-2">
+        Live agricultural buying & selling prices in Sri Lanka
+      </p>
+    </div>
+    <div>
+      <a href="{{ url_for('prices.bids') }}" class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-sm text-sm">
+        📊 Best Price Comparison →
+      </a>
+    </div>
   </div>
 </div>
 
@@ -31,13 +38,13 @@
     <div class="bg-white border rounded-xl p-4 shadow hover:shadow-md transition">
 
       <div class="flex justify-between items-center">
-        <h3 class="font-bold text-gray-800">{{ deal.product.name }}</h3>
+        <h3 class="font-bold text-gray-800">{{ deal.product_name }}</h3>
         <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
           SAVE
         </span>
       </div>
 
-      <p class="text-xs text-gray-500">{{ deal.product.category }}</p>
+      <p class="text-xs text-gray-500">{{ deal.category }}</p>
 
       <div class="mt-3">
         <p class="text-sm text-gray-500 line-through">
@@ -45,7 +52,7 @@
         </p>
 
         <p class="text-xl font-bold text-green-600">
-          LKR {{ "{:,.0f}".format(deal.farmer_price) }}
+          LKR {{ "{:,.0f}".format(deal.price) }}
         </p>
 
         <p class="text-sm text-red-500">
@@ -53,7 +60,7 @@
         </p>
       </div>
 
-      <a href="{{ url_for('marketplace.product_detail', product_id=deal.product.id) }}"
+      <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}"
          class="block mt-4 text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
         View Product
       </a>
@@ -133,7 +140,7 @@
 
               {% set is_best = false %}
               {% for deal in best_deals %}
-                {% if deal.product.name|lower == price.crop_name|lower %}
+                {% if deal.product_name|lower == price.crop_name|lower %}
                   {% set is_best = true %}
                 {% endif %}
               {% endfor %}
@@ -169,7 +176,7 @@
     👨‍🌾 Cheapest Sellers (Direct from Farmers)
   </h2>
 
-  {% for cat, products in seller_map.items() %}
+  {% for cat, items in seller_map.items() %}
 
   <div class="mb-8">
 
@@ -192,32 +199,43 @@
 
         <tbody>
 
-          {% for p in products[:5] %}
-
-          {% set market = grouped[cat]|selectattr("crop_name", "equalto", p.name)|list %}
-          {% set market_price = market[0].selling_price if market else 0 %}
+          {% for item in items[:5] %}
 
           <tr class="border-t hover:bg-gray-50">
 
-            <td class="p-3 font-medium">{{ p.name }}</td>
+            <td class="p-3 font-medium">{{ item.product.name }}</td>
 
-            <td class="p-3 text-gray-600">{{ p.farmer.name }}</td>
+            <td class="p-3 text-gray-600">{{ item.product.farmer.name }}</td>
 
             <td class="p-3 text-right text-green-600 font-semibold">
-              LKR {{ "{:,.0f}".format(p.price_per_kg) }}
+              LKR {{ "{:,.0f}".format(item.product.price_per_kg) }}
             </td>
 
             <td class="p-3 text-right text-gray-500">
-              LKR {{ "{:,.0f}".format(market_price) }}
+              {% if item.market_price %}
+                LKR {{ "{:,.0f}".format(item.market_price) }}
+              {% else %}
+                <span class="text-xs text-gray-400">N/A</span>
+              {% endif %}
             </td>
 
-            <td class="p-3 text-right text-red-500">
-              -{{ "{:,.0f}".format(market_price - p.price_per_kg) }}
+            <td class="p-3 text-right">
+              {% if item.diff is not none %}
+                {% if item.diff > 0 %}
+                  <span class="text-green-600 font-semibold">Save LKR {{ "{:,.0f}".format(item.diff) }}</span>
+                {% elif item.diff == 0 %}
+                  <span class="text-gray-500 text-xs">Market rate</span>
+                {% else %}
+                  <span class="text-orange-600 text-xs font-medium">Above market (+LKR {{ "{:,.0f}".format(item.diff|abs) }})</span>
+                {% endif %}
+              {% else %}
+                <span class="text-xs text-gray-400">—</span>
+              {% endif %}
             </td>
 
             <td class="p-3 text-right">
 
-              <a href="{{ url_for('orders.place_order', product_id=p.id) }}"
+              <a href="{{ url_for('orders.place_order', product_id=item.product.id) }}"
                  class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
                 Buy
               </a>

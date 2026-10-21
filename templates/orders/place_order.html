@@ -28,6 +28,7 @@
 
   <div class="card p-8">
     <form method="POST" id="orderForm" data-price="{{ product.price_per_kg }}" class="space-y-5">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div>
         <label class="form-label">Quantity (kg) *</label>
         <input type="number" name="quantity_kg" id="qty" required class="form-input"
