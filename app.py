@@ -9,8 +9,13 @@ from extensions import db, login_manager, csrf, limiter, migrate
 
 load_dotenv()
 
-def create_app():
+def create_app(debug=None):
     app = Flask(__name__)
+    if debug is not None:
+        app.debug = debug
+    else:
+        app.debug = os.getenv('FLASK_DEBUG', '1' if os.getenv('FLASK_ENV') == 'development' else '0') in ('1', 'true', 'True')
+
 
     env = os.getenv('FLASK_ENV', os.getenv('ENV', 'development')).lower()
     secret_key = os.getenv('SECRET_KEY')
@@ -91,6 +96,11 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(profile_bp)
 
+    # Dev-only: design system styleguide (only available when debug=True)
+    if app.debug:
+        from blueprints.styleguide.routes import styleguide_bp
+        app.register_blueprint(styleguide_bp)
+
     # CLI Commands
     @app.cli.command('seed-prices')
     def seed_prices_command():
@@ -153,5 +163,5 @@ def create_app():
 
 
 if __name__ == '__main__':
-    app = create_app()
+    app = create_app(debug=True)
     app.run(debug=True)

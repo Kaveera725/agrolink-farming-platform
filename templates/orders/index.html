@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/ui.html" import page_header %}
 {% import "components/badges.html" as badges with context %}
 {% import "components/buttons.html" as buttons with context %}
 
@@ -9,33 +10,23 @@
 {% block content %}
 <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
 
-  <!-- HEADER -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
-    <div class="space-y-1">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full {% if current_user.role == 'buyer' %}bg-sky-pale text-sky{% else %}bg-earth-pale text-earth{% endif %} text-xs font-semibold">
-        <span>📦</span> Transaction Log
-      </div>
-      <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
-        {% if current_user.role == 'buyer' %}My Purchase Orders{% else %}Orders Received from Buyers{% endif %}
-      </h1>
-      <p class="text-xs sm:text-sm text-gray-600">
-        {% if current_user.role == 'buyer' %}
-          Track fulfillment status, delivery addresses, and order receipts.
-        {% else %}
-          Manage order fulfillment, change statuses, and review buyer requirements.
-        {% endif %}
-      </p>
-    </div>
-
+  {% call page_header(
+      title=('My Purchase Orders' if current_user.role == 'buyer' else 'Orders Received from Buyers'),
+      subtitle=('Track fulfillment status, delivery addresses, and order receipts.' if current_user.role == 'buyer' else 'Manage order fulfillment, change statuses, and review buyer requirements.'),
+      breadcrumbs=[
+          {'text': 'Home', 'url': url_for('main.home')},
+          {'text': 'Orders'}
+      ]
+  ) %}
     {% if current_user.role == 'buyer' %}
-      <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-sm shadow-xs self-start sm:self-auto">
+      <a href="{{ url_for('marketplace.index') }}" class="btn-primary btn-sm shadow-xs self-start sm:self-auto">
         <span>Browse Marketplace</span>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
         </svg>
       </a>
     {% endif %}
-  </div>
+  {% endcall %}
 
   <!-- ORDERS LIST -->
   {% if orders %}

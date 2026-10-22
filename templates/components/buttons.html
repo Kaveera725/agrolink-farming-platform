@@ -1,46 +1,146 @@
-{# AgroLink Reusable Button Macros with Text Flexibility & Focus Rings #}
+{#
+  AgroLink Button Macros
+  ─────────────────────────────────────────────────────────────────────────
+  Usage: {% from 'components/buttons.html' import button, link_button with context %}
 
-{% macro btn_primary(text, href=none, icon=none, type='button', extra_classes='') %}
-  {% set base_classes = "inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl font-semibold text-white bg-leaf hover:bg-leaf-light active:bg-leaf-dark shadow-sm hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none " ~ extra_classes %}
-  {% if href %}
-    <a href="{{ href }}" class="{{ base_classes }}">
-      {% if icon %}{{ icon|safe }}{% endif %}
-      <span>{{ text }}</span>
-    </a>
+  button(text, type='button', variant='primary', size='md', icon_name=none,
+         icon_right=none, extra_cls='', disabled=false, loading=false,
+         data_attrs={})
+
+  link_button(text, href, variant='primary', size='md', icon_name=none,
+              icon_right=none, extra_cls='', new_tab=false)
+
+  Variants: primary | secondary | soft | ghost | danger | danger-soft | accent | link
+  Sizes:    sm (36px) | md (44px, default) | lg (52px)
+#}
+{% from 'components/icons.html' import icon %}
+
+{# ─── Internal: resolve CSS class from variant + size ───────────────────── #}
+{% macro _btn_cls(variant, size, extra_cls) %}
+  {%- set variant_map = {
+    'primary':      'btn-primary',
+    'secondary':    'btn-secondary',
+    'soft':         'btn-soft',
+    'ghost':        'btn-ghost',
+    'danger':       'btn-danger',
+    'danger-soft':  'btn-danger-soft',
+    'accent':       'btn-accent',
+    'link':         'btn-link',
+  } -%}
+  {%- set size_map = {
+    'sm': 'btn-sm',
+    'md': '',
+    'lg': 'btn-lg',
+  } -%}
+  {{- (variant_map.get(variant, 'btn-primary') ~ ' ' ~ size_map.get(size, '') ~ ' ' ~ extra_cls)|trim -}}
+{% endmacro %}
+
+{# ─── Spinner SVG ────────────────────────────────────────────────────────── #}
+{% macro _spinner() %}<svg class="btn-spinner" aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>{% endmacro %}
+
+{# ─── button() ──────────────────────────────────────────────────────────── #}
+{# For <button> elements (form submits, JS actions) #}
+{% macro button(
+    text,
+    type='button',
+    variant='primary',
+    size='md',
+    icon_name=none,
+    icon_right=none,
+    extra_cls='',
+    disabled=false,
+    loading=false,
+    id=none
+  ) -%}
+{%- set cls = _btn_cls(variant, size, extra_cls) -%}
+<button
+  type="{{ type }}"
+  class="{{ cls }}"
+  {% if id %}id="{{ id }}"{% endif %}
+  {% if disabled or loading %}disabled aria-disabled="true"{% endif %}
+  {% if loading %}data-loading="true" aria-busy="true"{% endif %}
+>
+  {% if loading %}
+    {{ _spinner() }}
+    <span>{{ text }}</span>
   {% else %}
-    <button type="{{ type }}" class="{{ base_classes }}">
-      {% if icon %}{{ icon|safe }}{% endif %}
-      <span>{{ text }}</span>
-    </button>
+    {% if icon_name %}{{ icon(icon_name, size=18 if size=='sm' else (20 if size=='md' else 22)) }}{% endif %}
+    <span>{{ text }}</span>
+    {% if icon_right %}{{ icon(icon_right, size=18 if size=='sm' else (20 if size=='md' else 22)) }}{% endif %}
+  {% endif %}
+</button>
+{%- endmacro %}
+
+{# ─── link_button() ─────────────────────────────────────────────────────── #}
+{# For <a> elements that look like buttons (navigation links) #}
+{% macro link_button(
+    text,
+    href,
+    variant='primary',
+    size='md',
+    icon_name=none,
+    icon_right=none,
+    extra_cls='',
+    new_tab=false
+  ) -%}
+{%- set cls = _btn_cls(variant, size, extra_cls) -%}
+<a
+  href="{{ href }}"
+  class="{{ cls }}"
+  {% if new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}
+>
+  {% if icon_name %}{{ icon(icon_name, size=18 if size=='sm' else (20 if size=='md' else 22)) }}{% endif %}
+  <span>{{ text }}</span>
+  {% if icon_right %}{{ icon(icon_right, size=18 if size=='sm' else (20 if size=='md' else 22)) }}{% endif %}
+</a>
+{%- endmacro %}
+
+{# ─── icon_button() ─────────────────────────────────────────────────────── #}
+{# Icon-only button — always provides 44px touch target via padding #}
+{% macro icon_button(
+    icon_name,
+    label,
+    type='button',
+    variant='ghost',
+    size='md',
+    extra_cls='',
+    disabled=false,
+    id=none
+  ) -%}
+{%- set cls = _btn_cls(variant, size, 'aspect-square ' ~ extra_cls) -%}
+<button
+  type="{{ type }}"
+  class="{{ cls }}"
+  {% if id %}id="{{ id }}"{% endif %}
+  aria-label="{{ label }}"
+  {% if disabled %}disabled aria-disabled="true"{% endif %}
+>
+  {{ icon(icon_name, size=18 if size=='sm' else (20 if size=='md' else 22)) }}
+</button>
+{%- endmacro %}
+
+{# ─── Backward-compatible aliases (used in existing templates) ──────────── #}
+{# Keep old macro names so existing templates don't break #}
+{% macro btn_primary(text, href=none, icon=none, type='button', extra_classes='') %}
+  {% if href %}
+    {{ link_button(text, href, variant='primary', extra_cls=extra_classes) }}
+  {% else %}
+    {{ button(text, type=type, variant='primary', extra_cls=extra_classes) }}
   {% endif %}
 {% endmacro %}
 
 {% macro btn_secondary(text, href=none, icon=none, type='button', extra_classes='') %}
-  {% set base_classes = "inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl font-semibold text-leaf bg-white border border-leaf/40 hover:bg-leaf-pale hover:border-leaf active:bg-leaf-pale/80 shadow-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none " ~ extra_classes %}
   {% if href %}
-    <a href="{{ href }}" class="{{ base_classes }}">
-      {% if icon %}{{ icon|safe }}{% endif %}
-      <span>{{ text }}</span>
-    </a>
+    {{ link_button(text, href, variant='secondary', extra_cls=extra_classes) }}
   {% else %}
-    <button type="{{ type }}" class="{{ base_classes }}">
-      {% if icon %}{{ icon|safe }}{% endif %}
-      <span>{{ text }}</span>
-    </button>
+    {{ button(text, type=type, variant='secondary', extra_cls=extra_classes) }}
   {% endif %}
 {% endmacro %}
 
 {% macro btn_danger(text, href=none, icon=none, type='button', extra_classes='') %}
-  {% set base_classes = "inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] rounded-xl font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 shadow-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none text-sm " ~ extra_classes %}
   {% if href %}
-    <a href="{{ href }}" class="{{ base_classes }}">
-      {% if icon %}{{ icon|safe }}{% endif %}
-      <span>{{ text }}</span>
-    </a>
+    {{ link_button(text, href, variant='danger', extra_cls=extra_classes) }}
   {% else %}
-    <button type="{{ type }}" class="{{ base_classes }}">
-      {% if icon %}{{ icon|safe }}{% endif %}
-      <span>{{ text }}</span>
-    </button>
+    {{ button(text, type=type, variant='danger', extra_cls=extra_classes) }}
   {% endif %}
 {% endmacro %}

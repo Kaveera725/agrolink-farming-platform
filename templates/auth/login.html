@@ -1,93 +1,339 @@
 {% extends "base.html" %}
-{% block title %}Sign In — AgroLink{% endblock %}
+{% from 'components/icons.html' import icon %}
+
+{% block title %}Sign In — AgroLink Sri Lanka{% endblock %}
 
 {% block content %}
-<div class="min-h-[75vh] flex items-center justify-center py-10 sm:py-16 px-4">
-  <div class="w-full max-w-md space-y-6">
+<div class="min-h-[calc(100vh-4.5rem)] flex items-center justify-center py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-5xl bg-white rounded-3xl shadow-xl border border-bdr overflow-hidden lg:grid lg:grid-cols-12 min-h-[580px]">
     
-    <!-- Header -->
-    <div class="text-center space-y-2">
-      <div class="inline-flex items-center justify-center w-14 h-14 bg-leaf-pale text-leaf-dark rounded-2xl shadow-xs mx-auto">
-        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-        </svg>
+    {# ── LEFT BRAND PANEL (Desktop Split Screen) ───────────────────────── #}
+    <div class="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-leaf-900 via-leaf-800 to-leaf text-white p-8 xl:p-10 flex-col justify-between relative overflow-hidden">
+      {# Geometric subtle pattern overlay #}
+      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1.25px,transparent_1.25px)] [background-size:20px_20px]" aria-hidden="true"></div>
+      
+      {# Top Brand Logo & Pill #}
+      <div class="relative z-10 space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-semibold text-leaf-100">
+          <span class="w-2 h-2 rounded-full bg-leaf-300 animate-pulse"></span>
+          Direct Agricultural Trade
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-xs">
+            {{ icon('leaf', size=22, cls='text-white') }}
+          </div>
+          <div>
+            <span class="font-display font-black text-2xl tracking-tight text-white block">Agro<span class="text-leaf-200">Link</span></span>
+            <span class="text-[11px] font-medium text-leaf-200 tracking-wider uppercase block">Sri Lanka</span>
+          </div>
+        </div>
       </div>
-      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-        Sign in to AgroLink
-      </h1>
-      <p class="text-xs sm:text-sm text-gray-600">
-        Access your direct agricultural trading account
-      </p>
+
+      {# Value Proposition & Benefits #}
+      <div class="relative z-10 py-6 space-y-6">
+        <div class="space-y-2">
+          <h2 class="font-display text-2xl xl:text-3xl font-extrabold tracking-tight leading-snug text-white">
+            Direct Trade.<br>Fair Prices.
+          </h2>
+          <p class="text-sm text-leaf-100/90 leading-relaxed font-normal">
+            Bypass middlemen, check real-time wholesale benchmarks, and trade directly with local growers and buyers.
+          </p>
+        </div>
+
+        <div class="space-y-4 pt-2">
+          {# Benefit 1 #}
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-xs flex items-center justify-center shrink-0 mt-0.5 border border-white/20 text-leaf-200">
+              {{ icon('shield-check', size=18) }}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">No Middlemen</h3>
+              <p class="text-xs text-leaf-200 leading-relaxed">Direct connection between verified growers and commercial buyers.</p>
+            </div>
+          </div>
+
+          {# Benefit 2 #}
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-xs flex items-center justify-center shrink-0 mt-0.5 border border-white/20 text-leaf-200">
+              {{ icon('trending-up', size=18) }}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Fair Market Prices</h3>
+              <p class="text-xs text-leaf-200 leading-relaxed">Transparent daily wholesale benchmarks from Pettah and regional centres.</p>
+            </div>
+          </div>
+
+          {# Benefit 3 #}
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-xs flex items-center justify-center shrink-0 mt-0.5 border border-white/20 text-leaf-200">
+              {{ icon('tractor', size=18) }}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Order Direct From the Farm</h3>
+              <p class="text-xs text-leaf-200 leading-relaxed">Fresh produce harvested on-demand and delivered across 25 districts.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# Footer Academic Note #}
+      <div class="relative z-10 pt-4 border-t border-white/15 text-[11px] text-leaf-200/90 flex items-center justify-between">
+        <span>BSc (Hons) Software Engineering</span>
+        <span class="font-semibold text-white/90">AgroLink 2024</span>
+      </div>
     </div>
 
-    <!-- Login Card -->
-    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200/80">
-      <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5" novalidate>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {# ── RIGHT FORM CONTAINER ───────────────────────────────────────────── #}
+    <div class="lg:col-span-7 flex flex-col justify-center p-6 sm:p-10 lg:p-12 bg-white">
+      <div class="w-full max-w-md mx-auto space-y-6">
 
-        <!-- Email -->
-        <div class="space-y-1.5">
-          <label for="login-email" class="block text-sm font-semibold text-gray-800">
-            Email Address <span class="text-red-600 font-bold">*</span>
-          </label>
-          <input
-            type="email"
-            id="login-email"
-            name="email"
-            required
-            autocomplete="email"
-            placeholder="you@domain.lk"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
+        {# Mobile Compact Brand Header #}
+        <div class="lg:hidden flex items-center gap-2 mb-2">
+          <div class="w-9 h-9 rounded-xl bg-leaf flex items-center justify-center shadow-xs">
+            {{ icon('leaf', size=20, cls='text-white') }}
+          </div>
+          <span class="font-display font-black text-xl text-leaf-dark">Agro<span class="text-leaf">Link</span></span>
         </div>
 
-        <!-- Password -->
-        <div class="space-y-1.5">
-          <label for="login-password" class="block text-sm font-semibold text-gray-800">
-            Password <span class="text-red-600 font-bold">*</span>
-          </label>
-          <input
-            type="password"
-            id="login-password"
-            name="password"
-            required
-            autocomplete="current-password"
-            placeholder="••••••••"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
+        {# Heading #}
+        <div class="space-y-1">
+          <h1 class="font-display text-2xl sm:text-3xl font-bold text-ink tracking-tight">
+            Sign in to your account
+          </h1>
+          <p class="text-xs sm:text-sm text-muted">
+            Enter your email and password to access your agricultural dashboard.
+          </p>
         </div>
 
-        <!-- Remember Me -->
-        <div class="flex items-center justify-between">
-          <label class="flex items-center gap-2.5 text-xs sm:text-sm text-gray-700 cursor-pointer">
-            <input
-              type="checkbox"
-              id="remember_me"
-              name="remember"
-              class="w-4 h-4 rounded accent-leaf text-leaf"
-            />
-            <span>Remember my session</span>
-          </label>
+        {# Login Form #}
+        <form method="POST" action="{{ url_for('auth.login') }}" id="login-form" class="space-y-5" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {# Email Field #}
+          <div class="space-y-1 w-full">
+            <div class="flex items-baseline justify-between gap-2">
+              <label for="login-email" class="field-label">
+                Email Address <span class="text-danger font-bold" aria-hidden="true">*</span>
+                <span class="sr-only">(required)</span>
+              </label>
+            </div>
+            <div class="relative">
+              <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted">
+                {{ icon('mail', size=18) }}
+              </div>
+              <input
+                type="email"
+                id="login-email"
+                name="email"
+                required
+                autocomplete="email"
+                inputmode="email"
+                placeholder="you@domain.lk"
+                class="input pl-11"
+              />
+            </div>
+            <p id="email-error" class="field-error hidden" role="alert">
+              {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+              <span class="error-text">Please enter a valid email address.</span>
+            </p>
+          </div>
+
+          {# Password Field with Show/Hide Toggle #}
+          <div class="space-y-1 w-full">
+            <div class="flex items-baseline justify-between gap-2">
+              <label for="login-password" class="field-label">
+                Password <span class="text-danger font-bold" aria-hidden="true">*</span>
+                <span class="sr-only">(required)</span>
+              </label>
+            </div>
+            <div class="relative">
+              <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted">
+                {{ icon('lock', size=18) }}
+              </div>
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="••••••••"
+                class="input pl-11 pr-11"
+              />
+              <button
+                type="button"
+                id="toggle-password-btn"
+                class="absolute right-0 inset-y-0 flex items-center pr-3.5 text-muted hover:text-ink transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded"
+                aria-label="Show password"
+                aria-pressed="false"
+              >
+                <span id="eye-icon-show">{{ icon('eye', size=18) }}</span>
+                <span id="eye-icon-hide" class="hidden">{{ icon('eye-off', size=18) }}</span>
+              </button>
+            </div>
+            <p id="password-error" class="field-error hidden" role="alert">
+              {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+              <span class="error-text">Password is required.</span>
+            </p>
+          </div>
+
+          {# Remember Me Checkbox #}
+          <div class="flex items-center justify-between pt-0.5">
+            <label class="checkbox-wrapper cursor-pointer select-none" for="remember-me">
+              <input
+                type="checkbox"
+                id="remember-me"
+                name="remember"
+                class="checkbox"
+              />
+              <span class="text-xs sm:text-sm font-medium text-inksoft">Keep me signed in</span>
+            </label>
+          </div>
+
+          {# Submit Button (lg, full-width, spinner loading state) #}
+          <div class="pt-1">
+            <button
+              type="submit"
+              id="login-submit-btn"
+              class="btn-primary btn-lg w-full min-h-[48px] justify-center text-base font-semibold shadow-sm flex items-center gap-2"
+            >
+              <span id="submit-spinner" class="hidden">{{ icon('loader', size=18, cls='animate-spin') }}</span>
+              <span id="submit-label">Sign In</span>
+            </button>
+          </div>
+        </form>
+
+        {# Switch to Register #}
+        <div class="pt-4 border-t border-bdr text-center">
+          <p class="text-xs sm:text-sm text-muted">
+            Don't have an AgroLink account?
+            <a href="{{ url_for('auth.register') }}" class="text-leaf hover:text-leaf-dark font-bold hover:underline transition ml-1 inline-flex items-center gap-1">
+              <span>Create free account</span>
+              {{ icon('arrow-right', size=14) }}
+            </a>
+          </p>
         </div>
 
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          class="w-full btn-primary py-3 text-base shadow-sm justify-center flex"
-        >
-          Sign In
-        </button>
-      </form>
+      </div>
     </div>
-
-    <!-- Registration Link -->
-    <p class="text-center text-xs sm:text-sm text-gray-600">
-      Don't have an AgroLink account?
-      <a href="{{ url_for('auth.register') }}" class="text-leaf font-bold hover:underline">
-        Create free account
-      </a>
-    </p>
 
   </div>
 </div>
+
+{# ── CLIENT-SIDE INTERACTIVITY & VALIDATION ──────────────────────────────── #}
+<script>
+  (function() {
+    const form = document.getElementById('login-form');
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const toggleBtn = document.getElementById('toggle-password-btn');
+    const eyeShow = document.getElementById('eye-icon-show');
+    const eyeHide = document.getElementById('eye-icon-hide');
+    const submitBtn = document.getElementById('login-submit-btn');
+    const submitSpinner = document.getElementById('submit-spinner');
+    const submitLabel = document.getElementById('submit-label');
+
+    // 1. Password show/hide toggle
+    if (toggleBtn && passwordInput) {
+      toggleBtn.addEventListener('click', function() {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        toggleBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+        toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        if (eyeShow && eyeHide) {
+          eyeShow.classList.toggle('hidden', isPassword);
+          eyeHide.classList.toggle('hidden', !isPassword);
+        }
+      });
+    }
+
+    // 2. Inline validation helpers
+    function showError(input, errorId, message) {
+      const errEl = document.getElementById(errorId);
+      if (errEl) {
+        if (message) {
+          const txt = errEl.querySelector('.error-text');
+          if (txt) txt.textContent = message;
+        }
+        errEl.classList.remove('hidden');
+      }
+      input.classList.add('input-error');
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', errorId);
+    }
+
+    function clearError(input, errorId) {
+      const errEl = document.getElementById(errorId);
+      if (errEl) errEl.classList.add('hidden');
+      input.classList.remove('input-error');
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+
+    function validateEmail() {
+      const val = emailInput.value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!val) {
+        showError(emailInput, 'email-error', 'Email address is required.');
+        return false;
+      } else if (!emailRegex.test(val)) {
+        showError(emailInput, 'email-error', 'Please enter a valid email address (e.g. name@domain.lk).');
+        return false;
+      }
+      clearError(emailInput, 'email-error');
+      return true;
+    }
+
+    function validatePassword() {
+      const val = passwordInput.value;
+      if (!val) {
+        showError(passwordInput, 'password-error', 'Password is required.');
+        return false;
+      }
+      clearError(passwordInput, 'password-error');
+      return true;
+    }
+
+    // Validate on blur
+    if (emailInput) {
+      emailInput.addEventListener('blur', validateEmail);
+      emailInput.addEventListener('input', function() {
+        if (emailInput.classList.contains('input-error')) validateEmail();
+      });
+    }
+
+    if (passwordInput) {
+      passwordInput.addEventListener('blur', validatePassword);
+      passwordInput.addEventListener('input', function() {
+        if (passwordInput.classList.contains('input-error')) validatePassword();
+      });
+    }
+
+    // 3. Form submission with loading spinner
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        const isEmailValid = validateEmail();
+        const isPasswordValid = validatePassword();
+
+        if (!isEmailValid || !isPasswordValid) {
+          e.preventDefault();
+          if (!isEmailValid) {
+            emailInput.focus();
+          } else {
+            passwordInput.focus();
+          }
+          return;
+        }
+
+        // Show spinner and disable button
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-75', 'pointer-events-none');
+          if (submitSpinner) submitSpinner.classList.remove('hidden');
+          if (submitLabel) submitLabel.textContent = 'Signing in...';
+        }
+      });
+    }
+  })();
+</script>
 {% endblock %}

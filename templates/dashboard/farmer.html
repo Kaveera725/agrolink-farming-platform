@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/ui.html" import page_header %}
 {% import "components/badges.html" as badges with context %}
 {% import "components/buttons.html" as buttons with context %}
 {% import "components/cards.html" as cards with context %}
@@ -8,36 +9,27 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
 
-  <!-- DASHBOARD HEADER -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
-    <div class="space-y-1">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-earth-pale text-earth text-xs font-semibold">
-        <span>👨‍🌾</span> Farmer Control Center
-      </div>
-      <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
-        Ayubowan, {{ current_user.name.split()[0] }}
-      </h1>
-      <p class="text-sm text-gray-600">
-        Monitor your active harvest, update crop records, and fulfill incoming buyer orders.
-      </p>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="flex flex-wrap items-center gap-3">
-      <a href="{{ url_for('dashboard.add_crop') }}" class="btn-secondary text-sm">
-        <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        <span>+ Log Crop</span>
-      </a>
-      <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-sm shadow-xs">
-        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        <span>+ List Produce</span>
-      </a>
-    </div>
-  </div>
+  {% call page_header(
+      title='Ayubowan, ' ~ current_user.name.split()[0],
+      subtitle='Farmer Control Center · Monitor your active harvest, update crop records, and fulfill incoming buyer orders.',
+      breadcrumbs=[
+          {'text': 'Home', 'url': url_for('main.home')},
+          {'text': 'Farmer Dashboard'}
+      ]
+  ) %}
+    <a href="{{ url_for('dashboard.add_crop') }}" class="btn-secondary btn-sm">
+      <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      <span>+ Log Crop</span>
+    </a>
+    <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary btn-sm shadow-xs">
+      <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      <span>+ List Produce</span>
+    </a>
+  {% endcall %}
 
   <!-- STATS / METRIC CARDS -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -250,7 +242,8 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button
                   type="submit"
-                  onclick="return confirm('Remove this produce listing?')"
+                  data-confirm="Remove this produce listing?"
+                  data-confirm-danger
                   class="w-full btn-danger text-xs py-2 text-center"
                 >
                   Remove

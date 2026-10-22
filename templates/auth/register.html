@@ -1,209 +1,817 @@
 {% extends "base.html" %}
-{% block title %}Create Account — AgroLink{% endblock %}
+{% from 'components/icons.html' import icon %}
+
+{% block title %}Create Account — AgroLink Sri Lanka{% endblock %}
 
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center py-10 sm:py-16 px-4">
-  <div class="w-full max-w-xl space-y-6">
+<div class="min-h-[calc(100vh-4.5rem)] flex items-center justify-center py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+  <div class="w-full max-w-6xl bg-white rounded-3xl shadow-xl border border-bdr overflow-hidden lg:grid lg:grid-cols-12 min-h-[750px]">
     
-    <!-- Header -->
-    <div class="text-center space-y-2">
-      <div class="inline-flex items-center justify-center w-14 h-14 bg-leaf-pale text-leaf-dark rounded-2xl shadow-xs mx-auto">
-        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-        </svg>
+    {# ── LEFT BRAND PANEL (Desktop Split Screen) ───────────────────────── #}
+    <div class="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-leaf-900 via-leaf-800 to-leaf text-white p-8 xl:p-10 flex-col justify-between relative overflow-hidden">
+      {# Geometric subtle pattern overlay #}
+      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1.25px,transparent_1.25px)] [background-size:20px_20px]" aria-hidden="true"></div>
+      
+      {# Top Brand Logo & Pill #}
+      <div class="relative z-10 space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xs border border-white/15 text-xs font-semibold text-leaf-100">
+          <span class="w-2 h-2 rounded-full bg-leaf-300 animate-pulse"></span>
+          Direct Agricultural Trade
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-xs">
+            {{ icon('leaf', size=22, cls='text-white') }}
+          </div>
+          <div>
+            <span class="font-display font-black text-2xl tracking-tight text-white block">Agro<span class="text-leaf-200">Link</span></span>
+            <span class="text-[11px] font-medium text-leaf-200 tracking-wider uppercase block">Sri Lanka</span>
+          </div>
+        </div>
       </div>
-      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-        Join AgroLink Sri Lanka
-      </h1>
-      <p class="text-xs sm:text-sm text-gray-600">
-        Choose your persona to begin direct agricultural trade
-      </p>
-    </div>
 
-    <!-- Registration Card -->
-    <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
-      <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-6" novalidate>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-        <!-- Role Selection Radios -->
+      {# Value Proposition & Benefits #}
+      <div class="relative z-10 py-6 space-y-6">
         <div class="space-y-2">
-          <label class="block text-sm font-semibold text-gray-800">
-            Account Type <span class="text-red-600 font-bold">*</span>
-          </label>
-          <div class="grid grid-cols-2 gap-3.5">
-            <!-- Farmer Option -->
-            <label class="relative cursor-pointer">
-              <input
-                type="radio"
-                name="role"
-                value="farmer"
-                class="peer sr-only"
-                {% if not form_data or form_data.role == 'farmer' %}checked{% endif %}
-              />
-              <div class="border-2 border-gray-200 peer-checked:border-leaf peer-checked:bg-leaf-pale/50 peer-focus-visible:ring-2 peer-focus-visible:ring-leaf rounded-2xl p-4 text-center transition-all">
-                <span class="text-2xl block mb-1">👨‍🌾</span>
-                <span class="font-bold text-sm text-gray-800 peer-checked:text-leaf-dark block">Farmer</span>
-                <span class="text-xs text-gray-500 block">List &amp; sell crops</span>
-              </div>
-            </label>
-
-            <!-- Buyer Option -->
-            <label class="relative cursor-pointer">
-              <input
-                type="radio"
-                name="role"
-                value="buyer"
-                class="peer sr-only"
-                {% if form_data and form_data.role == 'buyer' %}checked{% endif %}
-              />
-              <div class="border-2 border-gray-200 peer-checked:border-sky peer-checked:bg-sky-pale/50 peer-focus-visible:ring-2 peer-focus-visible:ring-sky rounded-2xl p-4 text-center transition-all">
-                <span class="text-2xl block mb-1">🛒</span>
-                <span class="font-bold text-sm text-gray-800 peer-checked:text-sky block">Buyer</span>
-                <span class="text-xs text-gray-500 block">Browse &amp; order</span>
-              </div>
-            </label>
-          </div>
+          <h2 class="font-display text-2xl xl:text-3xl font-extrabold tracking-tight leading-snug text-white">
+            Join Sri Lanka's Direct Farm Network
+          </h2>
+          <p class="text-sm text-leaf-100/90 leading-relaxed font-normal">
+            Whether you are harvesting fresh crops or sourcing produce for your wholesale store or family table, AgroLink makes direct trade transparent and fair.
+          </p>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <!-- Full Name -->
-          <div class="sm:col-span-2 space-y-1.5">
-            <label for="reg-name" class="block text-sm font-semibold text-gray-800">
-              Full Name <span class="text-red-600 font-bold">*</span>
-            </label>
-            <input
-              type="text"
-              id="reg-name"
-              name="name"
-              required
-              autocomplete="name"
-              placeholder="e.g. Bandara Jayasuriya"
-              value="{{ form_data.name if form_data else '' }}"
-              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-            />
-          </div>
-
-          <!-- Email Address -->
-          <div class="sm:col-span-2 space-y-1.5">
-            <label for="reg-email" class="block text-sm font-semibold text-gray-800">
-              Email Address <span class="text-red-600 font-bold">*</span>
-            </label>
-            <input
-              type="email"
-              id="reg-email"
-              name="email"
-              required
-              autocomplete="email"
-              placeholder="you@domain.lk"
-              value="{{ form_data.email if form_data else '' }}"
-              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-            />
-          </div>
-
-          <!-- Password -->
-          <div class="space-y-1.5">
-            <label for="reg-password" class="block text-sm font-semibold text-gray-800">
-              Password <span class="text-red-600 font-bold">*</span>
-            </label>
-            <input
-              type="password"
-              id="reg-password"
-              name="password"
-              required
-              minlength="8"
-              autocomplete="new-password"
-              placeholder="Min 8 characters"
-              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-            />
-          </div>
-
-          <!-- Confirm Password -->
-          <div class="space-y-1.5">
-            <label for="reg-confirm-password" class="block text-sm font-semibold text-gray-800">
-              Confirm Password <span class="text-red-600 font-bold">*</span>
-            </label>
-            <input
-              type="password"
-              id="reg-confirm-password"
-              name="confirm_password"
-              required
-              minlength="8"
-              autocomplete="new-password"
-              placeholder="Repeat password"
-              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-            />
-          </div>
-
-          <!-- WhatsApp Number -->
-          <div class="sm:col-span-2 space-y-1.5">
-            <div class="flex items-center justify-between">
-              <label for="reg-whatsapp" class="block text-sm font-semibold text-gray-800">
-                WhatsApp Contact Number <span class="text-red-600 font-bold">*</span>
-              </label>
-              <span class="text-xs text-gray-500">Order Alerts</span>
+        <div class="space-y-4 pt-2">
+          {# Benefit 1 #}
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-xs flex items-center justify-center shrink-0 mt-0.5 border border-white/20 text-leaf-200">
+              {{ icon('shield-check', size=18) }}
             </div>
-            <input
-              type="tel"
-              id="reg-whatsapp"
-              name="whatsapp_number"
-              required
-              autocomplete="tel"
-              placeholder="077 123 4567 or +94771234567"
-              value="{{ form_data.whatsapp_number if form_data else '' }}"
-              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-            />
-            <p class="text-xs text-gray-500">Used for direct buyer-farmer trade communication</p>
+            <div>
+              <h3 class="text-sm font-bold text-white">No Middlemen</h3>
+              <p class="text-xs text-leaf-200 leading-relaxed">Keep full crop value as a grower or avoid distributor markups as a buyer.</p>
+            </div>
           </div>
 
-          <!-- Phone -->
-          <div class="space-y-1.5">
-            <label for="reg-phone" class="block text-sm font-semibold text-gray-800">
-              Direct Phone <span class="text-xs text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="tel"
-              id="reg-phone"
-              name="phone"
-              autocomplete="tel"
-              placeholder="+94 77 123 4567"
-              value="{{ form_data.phone if form_data else '' }}"
-              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-            />
+          {# Benefit 2 #}
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-xs flex items-center justify-center shrink-0 mt-0.5 border border-white/20 text-leaf-200">
+              {{ icon('trending-up', size=18) }}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Fair Market Prices</h3>
+              <p class="text-xs text-leaf-200 leading-relaxed">Daily wholesale intelligence from Pettah and regional economic centres.</p>
+            </div>
           </div>
 
-          <!-- Location -->
-          <div class="space-y-1.5">
-            <label for="reg-location" class="block text-sm font-semibold text-gray-800">
-              District / Location <span class="text-xs text-gray-400 font-normal">(optional)</span>
-            </label>
-            <input
-              type="text"
-              id="reg-location"
-              name="location"
-              placeholder="e.g. Kandy, Badulla, Jaffna"
-              value="{{ form_data.location if form_data else '' }}"
-              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-            />
+          {# Benefit 3 #}
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white/15 backdrop-blur-xs flex items-center justify-center shrink-0 mt-0.5 border border-white/20 text-leaf-200">
+              {{ icon('tractor', size=18) }}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Order Direct From the Farm</h3>
+              <p class="text-xs text-leaf-200 leading-relaxed">Fresh produce harvested on-demand and delivered across all 25 districts.</p>
+            </div>
           </div>
         </div>
+      </div>
 
-        <button
-          type="submit"
-          class="w-full btn-primary py-3.5 text-base shadow-sm justify-center flex"
-        >
-          Create AgroLink Account
-        </button>
-      </form>
+      {# Footer Academic Note #}
+      <div class="relative z-10 pt-4 border-t border-white/15 text-[11px] text-leaf-200/90 flex items-center justify-between">
+        <span>BSc (Hons) Software Engineering</span>
+        <span class="font-semibold text-white/90">AgroLink 2024</span>
+      </div>
     </div>
 
-    <!-- Sign In Link -->
-    <p class="text-center text-xs sm:text-sm text-gray-600">
-      Already have an account?
-      <a href="{{ url_for('auth.login') }}" class="text-leaf font-bold hover:underline">
-        Sign in here
-      </a>
-    </p>
+    {# ── RIGHT FORM CONTAINER ───────────────────────────────────────────── #}
+    <div class="lg:col-span-7 flex flex-col justify-center p-6 sm:p-10 lg:p-12 bg-white overflow-y-auto">
+      <div class="w-full max-w-xl mx-auto space-y-8">
+
+        {# Mobile Compact Brand Header #}
+        <div class="lg:hidden flex items-center gap-2 mb-2">
+          <div class="w-9 h-9 rounded-xl bg-leaf flex items-center justify-center shadow-xs">
+            {{ icon('leaf', size=20, cls='text-white') }}
+          </div>
+          <span class="font-display font-black text-xl text-leaf-dark">Agro<span class="text-leaf">Link</span></span>
+        </div>
+
+        {# Heading #}
+        <div class="space-y-1">
+          <h1 class="font-display text-2xl sm:text-3xl font-bold text-ink tracking-tight">
+            Create your account
+          </h1>
+          <p class="text-xs sm:text-sm text-muted">
+            Choose your persona and set up your direct agricultural trading profile.
+          </p>
+        </div>
+
+        {# Registration Form #}
+        <form method="POST" action="{{ url_for('auth.register') }}" id="register-form" class="space-y-8" novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {# ── STEP 1: ROLE SELECTION (Large Radio Cards) ───────────────── #}
+          <fieldset class="space-y-3">
+            <legend class="text-sm font-semibold text-ink flex items-center gap-2">
+              <span>Account Type</span>
+              <span class="text-danger font-bold" aria-hidden="true">*</span>
+              <span class="text-xs text-muted font-normal">(Select whether you sell or buy)</span>
+            </legend>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {# Farmer Radio Card #}
+              <label for="role-farmer"
+                     class="role-card relative flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200
+                            hover:border-leaf/60 hover:bg-leaf-50/40
+                            has-[:checked]:border-leaf has-[:checked]:bg-leaf-50/60 has-[:checked]:ring-2 has-[:checked]:ring-leaf/20 shadow-xs">
+                <input
+                  type="radio"
+                  id="role-farmer"
+                  name="role"
+                  value="farmer"
+                  class="sr-only peer"
+                  {% if not form_data or form_data.role == 'farmer' %}checked{% endif %}
+                />
+                <div class="w-11 h-11 rounded-xl bg-earth-pale text-earth flex items-center justify-center shrink-0 border border-earth/20 transition-colors peer-checked:bg-leaf peer-checked:text-white">
+                  {{ icon('sprout', size=24) }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-display font-bold text-base text-ink block">Farmer</span>
+                    <span class="w-4 h-4 rounded-full border-2 border-bdr flex items-center justify-center peer-checked:border-leaf peer-checked:bg-leaf transition-colors">
+                      <span class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></span>
+                    </span>
+                  </div>
+                  <span class="text-xs font-semibold text-leaf-dark block mt-0.5">I grow and sell produce</span>
+                  <p class="text-xs text-muted leading-relaxed mt-1">List harvest crops, set farm-gate rates, and receive orders directly.</p>
+                </div>
+              </label>
+
+              {# Buyer Radio Card #}
+              <label for="role-buyer"
+                     class="role-card relative flex items-start gap-3.5 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200
+                            hover:border-sky/60 hover:bg-sky-50/40
+                            has-[:checked]:border-sky has-[:checked]:bg-sky-50/60 has-[:checked]:ring-2 has-[:checked]:ring-sky/20 shadow-xs">
+                <input
+                  type="radio"
+                  id="role-buyer"
+                  name="role"
+                  value="buyer"
+                  class="sr-only peer"
+                  {% if form_data and form_data.role == 'buyer' %}checked{% endif %}
+                />
+                <div class="w-11 h-11 rounded-xl bg-sky-pale text-sky flex items-center justify-center shrink-0 border border-sky/20 transition-colors peer-checked:bg-sky peer-checked:text-white">
+                  {{ icon('shopping-basket', size=24) }}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-display font-bold text-base text-ink block">Buyer</span>
+                    <span class="w-4 h-4 rounded-full border-2 border-bdr flex items-center justify-center peer-checked:border-sky peer-checked:bg-sky transition-colors">
+                      <span class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></span>
+                    </span>
+                  </div>
+                  <span class="text-xs font-semibold text-sky-dark block mt-0.5">I want to buy fresh produce</span>
+                  <p class="text-xs text-muted leading-relaxed mt-1">Browse verified farm harvests, compare prices, and order direct.</p>
+                </div>
+              </label>
+            </div>
+          </fieldset>
+
+          {# ── STEP 2: ACCOUNT INFORMATION ─────────────────────────────── #}
+          <div class="space-y-4 pt-2 border-t border-bdr">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-leaf text-white text-xs flex items-center justify-center font-bold">1</span>
+                Account Details
+              </h2>
+              <span class="text-xs text-muted font-normal">All fields required</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {# Full Name #}
+              <div class="sm:col-span-2 space-y-1">
+                <label for="reg-name" class="field-label">
+                  Full Name <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <div class="relative">
+                  <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted">
+                    {{ icon('user', size=18) }}
+                  </div>
+                  <input
+                    type="text"
+                    id="reg-name"
+                    name="name"
+                    required
+                    autocomplete="name"
+                    placeholder="e.g. Bandara Jayasuriya"
+                    value="{{ form_data.name if form_data else '' }}"
+                    class="input pl-11"
+                  />
+                </div>
+                <p id="name-error" class="field-error hidden" role="alert">
+                  {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+                  <span class="error-text">Please enter your full name.</span>
+                </p>
+              </div>
+
+              {# Email Address #}
+              <div class="sm:col-span-2 space-y-1">
+                <label for="reg-email" class="field-label">
+                  Email Address <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <div class="relative">
+                  <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted">
+                    {{ icon('mail', size=18) }}
+                  </div>
+                  <input
+                    type="email"
+                    id="reg-email"
+                    name="email"
+                    required
+                    autocomplete="email"
+                    inputmode="email"
+                    placeholder="you@domain.lk"
+                    value="{{ form_data.email if form_data else '' }}"
+                    class="input pl-11"
+                  />
+                </div>
+                <p id="email-error" class="field-error hidden" role="alert">
+                  {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+                  <span class="error-text">Please enter a valid email address.</span>
+                </p>
+              </div>
+
+              {# Password Field #}
+              <div class="space-y-1">
+                <label for="reg-password" class="field-label">
+                  Password <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <div class="relative">
+                  <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted">
+                    {{ icon('lock', size=18) }}
+                  </div>
+                  <input
+                    type="password"
+                    id="reg-password"
+                    name="password"
+                    required
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="At least 8 characters"
+                    class="input pl-11 pr-11"
+                  />
+                  <button
+                    type="button"
+                    id="toggle-reg-password-btn"
+                    class="absolute right-0 inset-y-0 flex items-center pr-3.5 text-muted hover:text-ink transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                  >
+                    <span id="reg-eye-show">{{ icon('eye', size=18) }}</span>
+                    <span id="reg-eye-hide" class="hidden">{{ icon('eye-off', size=18) }}</span>
+                  </button>
+                </div>
+                <p id="password-error" class="field-error hidden" role="alert">
+                  {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+                  <span class="error-text">Password must be at least 8 characters.</span>
+                </p>
+              </div>
+
+              {# Confirm Password Field #}
+              <div class="space-y-1">
+                <label for="reg-confirm-password" class="field-label">
+                  Confirm Password <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <div class="relative">
+                  <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted">
+                    {{ icon('lock', size=18) }}
+                  </div>
+                  <input
+                    type="password"
+                    id="reg-confirm-password"
+                    name="confirm_password"
+                    required
+                    minlength="8"
+                    autocomplete="new-password"
+                    placeholder="Repeat password"
+                    class="input pl-11 pr-11"
+                  />
+                  <button
+                    type="button"
+                    id="toggle-reg-confirm-btn"
+                    class="absolute right-0 inset-y-0 flex items-center pr-3.5 text-muted hover:text-ink transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded"
+                    aria-label="Show confirm password"
+                    aria-pressed="false"
+                  >
+                    <span id="reg-confirm-eye-show">{{ icon('eye', size=18) }}</span>
+                    <span id="reg-confirm-eye-hide" class="hidden">{{ icon('eye-off', size=18) }}</span>
+                  </button>
+                </div>
+                <p id="confirm-error" class="field-error hidden" role="alert">
+                  {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+                  <span class="error-text">Passwords do not match.</span>
+                </p>
+              </div>
+
+              {# Password Strength Meter & Rules Checklist #}
+              <div class="sm:col-span-2 p-3.5 bg-canvas/70 rounded-xl border border-bdr space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-inksoft">Password Strength:</span>
+                  <span id="strength-label" class="font-bold text-muted">Enter password</span>
+                </div>
+                {# 4-bar strength meter #}
+                <div class="grid grid-cols-4 gap-1.5 h-1.5">
+                  <div id="bar-1" class="rounded-full bg-bdr transition-all duration-200"></div>
+                  <div id="bar-2" class="rounded-full bg-bdr transition-all duration-200"></div>
+                  <div id="bar-3" class="rounded-full bg-bdr transition-all duration-200"></div>
+                  <div id="bar-4" class="rounded-full bg-bdr transition-all duration-200"></div>
+                </div>
+                {# Rules Checklist #}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-[11px] text-muted font-medium">
+                  <div id="rule-len" class="flex items-center gap-1.5">
+                    <span class="rule-icon w-3.5 h-3.5 rounded-full border border-bdr flex items-center justify-center text-[9px] shrink-0">○</span>
+                    <span>8+ characters</span>
+                  </div>
+                  <div id="rule-combo" class="flex items-center gap-1.5">
+                    <span class="rule-icon w-3.5 h-3.5 rounded-full border border-bdr flex items-center justify-center text-[9px] shrink-0">○</span>
+                    <span>Letters &amp; numbers</span>
+                  </div>
+                  <div id="rule-match" class="flex items-center gap-1.5">
+                    <span class="rule-icon w-3.5 h-3.5 rounded-full border border-bdr flex items-center justify-center text-[9px] shrink-0">○</span>
+                    <span>Passwords match</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {# ── STEP 3: CONTACT INFORMATION ──────────────────────────────── #}
+          <div class="space-y-4 pt-2 border-t border-bdr">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-leaf text-white text-xs flex items-center justify-center font-bold">2</span>
+                Contact Information
+              </h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {# WhatsApp Number (Required) #}
+              <div class="sm:col-span-2 space-y-1">
+                <div class="flex items-baseline justify-between gap-2">
+                  <label for="reg-whatsapp" class="field-label">
+                    WhatsApp Contact Number <span class="text-danger font-bold" aria-hidden="true">*</span>
+                  </label>
+                  <span class="text-xs font-semibold text-leaf">Order &amp; Payment Alerts</span>
+                </div>
+                <div class="relative">
+                  <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted font-medium text-xs select-none">
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-leaf-pale text-leaf font-bold">
+                      🇱🇰 +94
+                    </span>
+                  </div>
+                  <input
+                    type="tel"
+                    id="reg-whatsapp"
+                    name="whatsapp_number"
+                    required
+                    autocomplete="tel"
+                    inputmode="tel"
+                    placeholder="077 123 4567 or 771234567"
+                    value="{{ form_data.whatsapp_number if form_data else '' }}"
+                    class="input pl-24"
+                  />
+                </div>
+                <p class="field-hint text-xs text-muted">
+                  Order and payment alerts are sent to this WhatsApp number. Must be a valid Sri Lankan phone number.
+                </p>
+                <p id="whatsapp-error" class="field-error hidden" role="alert">
+                  {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+                  <span class="error-text">Please enter a valid Sri Lankan WhatsApp number (e.g. 077 123 4567).</span>
+                </p>
+              </div>
+
+              {# Direct Phone (Optional) #}
+              <div class="sm:col-span-2 space-y-1">
+                <div class="flex items-baseline justify-between gap-2">
+                  <label for="reg-phone" class="field-label">
+                    Direct Phone Number
+                  </label>
+                  <span class="text-xs text-muted font-normal">Optional</span>
+                </div>
+                <div class="relative">
+                  <div class="absolute left-0 inset-y-0 flex items-center pl-3.5 pointer-events-none text-muted">
+                    {{ icon('phone', size=18) }}
+                  </div>
+                  <input
+                    type="tel"
+                    id="reg-phone"
+                    name="phone"
+                    autocomplete="tel"
+                    inputmode="tel"
+                    placeholder="e.g. 011 234 5678 (Optional)"
+                    value="{{ form_data.phone if form_data else '' }}"
+                    class="input pl-11"
+                  />
+                </div>
+                <p class="field-hint text-xs text-muted">
+                  Secondary voice call contact number for transport dispatch.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {# ── STEP 4: LOCATION & FARM DETAILS ──────────────────────────── #}
+          <div class="space-y-4 pt-2 border-t border-bdr">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-leaf text-white text-xs flex items-center justify-center font-bold">3</span>
+                Location &amp; District
+              </h2>
+            </div>
+
+            <div class="space-y-4">
+              {# District Select #}
+              <div class="space-y-1">
+                <label for="reg-location" class="field-label">
+                  Primary District <span class="text-xs text-muted font-normal">(Select your region)</span>
+                </label>
+                <div class="select-wrapper">
+                  <select
+                    id="reg-location"
+                    name="location"
+                    class="select w-full"
+                  >
+                    <option value="" {% if not form_data or not form_data.location %}selected{% endif %}>Select your district...</option>
+                    {% set districts = [
+                      'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo',
+                      'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara',
+                      'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar',
+                      'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya',
+                      'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
+                    ] %}
+                    {% for dist in districts %}
+                    <option value="{{ dist }}" {% if form_data and form_data.location == dist %}selected{% endif %}>
+                      {{ dist }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <p class="field-hint text-xs text-muted">
+                  Used by buyers and transporters to calculate delivery distance and direct collection.
+                </p>
+              </div>
+
+              {# Clearly marked slot where the map picker will go later #}
+              <div class="p-4 sm:p-5 rounded-2xl border-2 border-dashed border-bdr bg-canvas/40 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf flex items-center justify-center shrink-0">
+                      {{ icon('map-pin', size=18) }}
+                    </div>
+                    <div>
+                      <span class="text-sm font-bold text-ink block">Interactive GPS Map Location</span>
+                      <span class="text-xs text-muted block">Direct farm-gate and store pinpointing</span>
+                    </div>
+                  </div>
+                  <span class="badge-sm bg-gold-pale text-gold-text border-gold/30 shrink-0">
+                    Coming in Phase 2
+                  </span>
+                </div>
+                <p class="text-xs text-muted leading-relaxed pl-10">
+                  Exact GPS map coordinates will let verified transport trucks calculate direct farm-to-door mileage and travel time automatically.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {# ── TERMS & CONDITIONS NOTE ──────────────────────────────────── #}
+          <div class="p-3.5 bg-canvas/60 rounded-xl border border-bdr text-xs text-muted leading-relaxed">
+            By creating an account, you agree to AgroLink's
+            <a href="#" class="text-leaf font-semibold hover:underline">Terms of Service</a>
+            and acknowledge our
+            <a href="#" class="text-leaf font-semibold hover:underline">Privacy Policy</a>.
+            Your phone and location will only be shared with verified trade partners.
+          </div>
+
+          {# ── SUBMIT BUTTON ────────────────────────────────────────────── #}
+          <div class="pt-1">
+            <button
+              type="submit"
+              id="register-submit-btn"
+              class="btn-primary btn-lg w-full min-h-[48px] justify-center text-base font-semibold shadow-sm flex items-center gap-2"
+            >
+              <span id="reg-submit-spinner" class="hidden">{{ icon('loader', size=18, cls='animate-spin') }}</span>
+              <span id="reg-submit-label">Create AgroLink Account</span>
+            </button>
+          </div>
+        </form>
+
+        {# Switch to Login #}
+        <div class="pt-4 border-t border-bdr text-center">
+          <p class="text-xs sm:text-sm text-muted">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}" class="text-leaf hover:text-leaf-dark font-bold hover:underline transition ml-1 inline-flex items-center gap-1">
+              <span>Sign in here</span>
+              {{ icon('arrow-right', size=14) }}
+            </a>
+          </p>
+        </div>
+
+      </div>
+    </div>
 
   </div>
 </div>
+
+{# ── CLIENT-SIDE INTERACTIVITY & VALIDATION ──────────────────────────────── #}
+<script>
+  (function() {
+    const form = document.getElementById('register-form');
+    const nameInput = document.getElementById('reg-name');
+    const emailInput = document.getElementById('reg-email');
+    const passwordInput = document.getElementById('reg-password');
+    const confirmInput = document.getElementById('reg-confirm-password');
+    const whatsappInput = document.getElementById('reg-whatsapp');
+
+    const togglePassBtn = document.getElementById('toggle-reg-password-btn');
+    const eyeShow = document.getElementById('reg-eye-show');
+    const eyeHide = document.getElementById('reg-eye-hide');
+
+    const toggleConfirmBtn = document.getElementById('toggle-reg-confirm-btn');
+    const confirmEyeShow = document.getElementById('reg-confirm-eye-show');
+    const confirmEyeHide = document.getElementById('reg-confirm-eye-hide');
+
+    const submitBtn = document.getElementById('register-submit-btn');
+    const submitSpinner = document.getElementById('reg-submit-spinner');
+    const submitLabel = document.getElementById('reg-submit-label');
+
+    // 1. Password Visibility Toggles
+    if (togglePassBtn && passwordInput) {
+      togglePassBtn.addEventListener('click', function() {
+        const isPass = passwordInput.type === 'password';
+        passwordInput.type = isPass ? 'text' : 'password';
+        togglePassBtn.setAttribute('aria-pressed', isPass ? 'true' : 'false');
+        togglePassBtn.setAttribute('aria-label', isPass ? 'Hide password' : 'Show password');
+        if (eyeShow && eyeHide) {
+          eyeShow.classList.toggle('hidden', isPass);
+          eyeHide.classList.toggle('hidden', !isPass);
+        }
+      });
+    }
+
+    if (toggleConfirmBtn && confirmInput) {
+      toggleConfirmBtn.addEventListener('click', function() {
+        const isPass = confirmInput.type === 'password';
+        confirmInput.type = isPass ? 'text' : 'password';
+        toggleConfirmBtn.setAttribute('aria-pressed', isPass ? 'true' : 'false');
+        toggleConfirmBtn.setAttribute('aria-label', isPass ? 'Hide password' : 'Show password');
+        if (confirmEyeShow && confirmEyeHide) {
+          confirmEyeShow.classList.toggle('hidden', isPass);
+          confirmEyeHide.classList.toggle('hidden', !isPass);
+        }
+      });
+    }
+
+    // 2. Error Display Helpers
+    function showError(input, errorId, msg) {
+      const errEl = document.getElementById(errorId);
+      if (errEl) {
+        if (msg) {
+          const txt = errEl.querySelector('.error-text');
+          if (txt) txt.textContent = msg;
+        }
+        errEl.classList.remove('hidden');
+      }
+      input.classList.add('input-error');
+      input.setAttribute('aria-invalid', 'true');
+      input.setAttribute('aria-describedby', errorId);
+    }
+
+    function clearError(input, errorId) {
+      const errEl = document.getElementById(errorId);
+      if (errEl) errEl.classList.add('hidden');
+      input.classList.remove('input-error');
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
+    }
+
+    // 3. Live Password Strength Meter & Rules
+    const bar1 = document.getElementById('bar-1');
+    const bar2 = document.getElementById('bar-2');
+    const bar3 = document.getElementById('bar-3');
+    const bar4 = document.getElementById('bar-4');
+    const strengthLabel = document.getElementById('strength-label');
+    const ruleLen = document.getElementById('rule-len');
+    const ruleCombo = document.getElementById('rule-combo');
+    const ruleMatch = document.getElementById('rule-match');
+
+    function updateCheckmark(el, passed) {
+      if (!el) return;
+      const icon = el.querySelector('.rule-icon');
+      if (passed) {
+        el.classList.add('text-leaf-dark', 'font-semibold');
+        el.classList.remove('text-muted');
+        if (icon) {
+          icon.textContent = '✓';
+          icon.className = 'rule-icon w-3.5 h-3.5 rounded-full bg-leaf text-white flex items-center justify-center text-[9px] shrink-0 font-bold';
+        }
+      } else {
+        el.classList.remove('text-leaf-dark', 'font-semibold');
+        el.classList.add('text-muted');
+        if (icon) {
+          icon.textContent = '○';
+          icon.className = 'rule-icon w-3.5 h-3.5 rounded-full border border-bdr flex items-center justify-center text-[9px] shrink-0';
+        }
+      }
+    }
+
+    function evaluatePassword() {
+      const p = passwordInput.value;
+      const c = confirmInput.value;
+
+      const hasMinLen = p.length >= 8;
+      const hasCombo = /[a-zA-Z]/.test(p) && /\d/.test(p);
+      const isMatch = p.length > 0 && p === c;
+
+      updateCheckmark(ruleLen, hasMinLen);
+      updateCheckmark(ruleCombo, hasCombo);
+      updateCheckmark(ruleMatch, isMatch);
+
+      let score = 0;
+      if (p.length >= 8) score++;
+      if (p.length >= 12) score++;
+      if (hasCombo) score++;
+      if (/[^a-zA-Z0-9]/.test(p)) score++;
+
+      const bars = [bar1, bar2, bar3, bar4];
+      bars.forEach(b => {
+        b.className = 'rounded-full bg-bdr transition-all duration-200';
+      });
+
+      if (!p) {
+        strengthLabel.textContent = 'Enter password';
+        strengthLabel.className = 'font-bold text-muted';
+      } else if (score <= 1) {
+        bar1.classList.add('bg-danger');
+        strengthLabel.textContent = 'Weak';
+        strengthLabel.className = 'font-bold text-danger';
+      } else if (score === 2) {
+        bar1.classList.add('bg-gold');
+        bar2.classList.add('bg-gold');
+        strengthLabel.textContent = 'Fair';
+        strengthLabel.className = 'font-bold text-amber-600';
+      } else if (score === 3) {
+        bar1.classList.add('bg-sky');
+        bar2.classList.add('bg-sky');
+        bar3.classList.add('bg-sky');
+        strengthLabel.textContent = 'Good';
+        strengthLabel.className = 'font-bold text-sky';
+      } else {
+        bars.forEach(b => b.classList.add('bg-leaf'));
+        strengthLabel.textContent = 'Strong';
+        strengthLabel.className = 'font-bold text-leaf';
+      }
+    }
+
+    if (passwordInput) {
+      passwordInput.addEventListener('input', evaluatePassword);
+    }
+    if (confirmInput) {
+      confirmInput.addEventListener('input', evaluatePassword);
+    }
+
+    // 4. Live WhatsApp phone number formatting
+    if (whatsappInput) {
+      whatsappInput.addEventListener('input', function(e) {
+        let v = e.target.value.replace(/[^\d+]/g, '');
+        // Auto-clean multiple pluses
+        if (v.indexOf('+') > 0) v = v.replace(/\+/g, '');
+        // Optional spacing format for 10-digit numbers: 077 123 4567
+        if (v.startsWith('0') && v.length > 3 && v.length <= 10) {
+          if (v.length > 6) {
+            v = v.slice(0, 3) + ' ' + v.slice(3, 6) + ' ' + v.slice(6);
+          } else {
+            v = v.slice(0, 3) + ' ' + v.slice(3);
+          }
+        }
+        e.target.value = v;
+      });
+    }
+
+    // 5. Validation Handlers
+    function validateName() {
+      const val = nameInput.value.trim();
+      if (!val) {
+        showError(nameInput, 'name-error', 'Full name is required.');
+        return false;
+      }
+      clearError(nameInput, 'name-error');
+      return true;
+    }
+
+    function validateEmail() {
+      const val = emailInput.value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!val) {
+        showError(emailInput, 'email-error', 'Email address is required.');
+        return false;
+      } else if (!emailRegex.test(val)) {
+        showError(emailInput, 'email-error', 'Please enter a valid email address (e.g. name@domain.lk).');
+        return false;
+      }
+      clearError(emailInput, 'email-error');
+      return true;
+    }
+
+    function validatePassword() {
+      const val = passwordInput.value;
+      if (!val) {
+        showError(passwordInput, 'password-error', 'Password is required.');
+        return false;
+      } else if (val.length < 8) {
+        showError(passwordInput, 'password-error', 'Password must be at least 8 characters long.');
+        return false;
+      }
+      clearError(passwordInput, 'password-error');
+      return true;
+    }
+
+    function validateConfirm() {
+      const p = passwordInput.value;
+      const c = confirmInput.value;
+      if (!c) {
+        showError(confirmInput, 'confirm-error', 'Please confirm your password.');
+        return false;
+      } else if (p !== c) {
+        showError(confirmInput, 'confirm-error', 'Passwords do not match.');
+        return false;
+      }
+      clearError(confirmInput, 'confirm-error');
+      return true;
+    }
+
+    function validateWhatsApp() {
+      const raw = whatsappInput.value.trim().replace(/[\s\-\(\)\.]+/g, '');
+      if (!raw) {
+        showError(whatsappInput, 'whatsapp-error', 'WhatsApp contact number is required.');
+        return false;
+      }
+      // Sri Lankan phone validation: starts with 07X (10 digits) or +947X (12 chars) or 7X (9 digits)
+      const isLocal10 = /^07\d{8}$/.test(raw);
+      const isIntl12 = /^\+947\d{8}$/.test(raw) || /^947\d{8}$/.test(raw) || /^00947\d{8}$/.test(raw);
+      const is9Digit = /^7\d{8}$/.test(raw);
+
+      if (!isLocal10 && !isIntl12 && !is9Digit) {
+        showError(whatsappInput, 'whatsapp-error', 'Please enter a valid Sri Lankan WhatsApp number (e.g. 077 123 4567).');
+        return false;
+      }
+      clearError(whatsappInput, 'whatsapp-error');
+      return true;
+    }
+
+    // Attach blur events
+    nameInput.addEventListener('blur', validateName);
+    nameInput.addEventListener('input', function() { if (nameInput.classList.contains('input-error')) validateName(); });
+
+    emailInput.addEventListener('blur', validateEmail);
+    emailInput.addEventListener('input', function() { if (emailInput.classList.contains('input-error')) validateEmail(); });
+
+    passwordInput.addEventListener('blur', validatePassword);
+    confirmInput.addEventListener('blur', validateConfirm);
+
+    whatsappInput.addEventListener('blur', validateWhatsApp);
+    whatsappInput.addEventListener('input', function() { if (whatsappInput.classList.contains('input-error')) validateWhatsApp(); });
+
+    // 6. Form Submission
+    form.addEventListener('submit', function(e) {
+      const isNameOk = validateName();
+      const isEmailOk = validateEmail();
+      const isPassOk = validatePassword();
+      const isConfOk = validateConfirm();
+      const isWaOk = validateWhatsApp();
+
+      if (!isNameOk || !isEmailOk || !isPassOk || !isConfOk || !isWaOk) {
+        e.preventDefault();
+        // Focus first invalid input
+        if (!isNameOk) nameInput.focus();
+        else if (!isEmailOk) emailInput.focus();
+        else if (!isPassOk) passwordInput.focus();
+        else if (!isConfOk) confirmInput.focus();
+        else if (!isWaOk) whatsappInput.focus();
+        return;
+      }
+
+      // Show spinner and disable button
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-75', 'pointer-events-none');
+        if (submitSpinner) submitSpinner.classList.remove('hidden');
+        if (submitLabel) submitLabel.textContent = 'Creating account...';
+      }
+    });
+
+    // Run initial evaluation if form re-rendered with errors
+    evaluatePassword();
+  })();
+</script>
 {% endblock %}

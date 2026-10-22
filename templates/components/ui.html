@@ -1,0 +1,374 @@
+{#
+  AgroLink UI Component Macros
+  ─────────────────────────────────────────────────────────────────────────
+  Contains: alert, toast, empty_state, page_header, modal, confirm_dialog,
+            skeleton, tabs, pagination, avatar, price_breakdown,
+            stepper/timeline, map_container
+
+  Usage: {% from 'components/ui.html' import empty_state, page_header,
+                  alert, price_breakdown, timeline, map_container,
+                  skeleton, tabs, pagination, avatar with context %}
+#}
+{% from 'components/icons.html' import icon %}
+
+{# ─── alert() — inline banner (not flash) ────────────────────────────────── #}
+{% macro alert(message, variant='info', title=none, dismissible=false, icon_name=none, extra_cls='') %}
+{%- set v_map = {
+  'success': ('alert-success', 'check-circle'),
+  'error':   ('alert-error',   'x-circle'),
+  'warning': ('alert-warning', 'alert-triangle'),
+  'info':    ('alert-info',    'info'),
+} -%}
+{%- set cls, default_icon = v_map.get(variant, ('alert-info', 'info')) -%}
+{%- set icn = icon_name or default_icon -%}
+{%- set role_attr = 'alert' if variant in ['error','warning'] else 'status' -%}
+<div class="{{ cls }} {{ extra_cls }}" role="{{ role_attr }}">
+  {{ icon(icn, size=18, cls='shrink-0 mt-0.5') }}
+  <div class="flex-1 min-w-0">
+    {% if title %}
+    <p class="font-semibold text-sm">{{ title }}</p>
+    {% endif %}
+    <p class="text-sm {% if title %}text-opacity-90 mt-0.5{% endif %}">{{ message }}</p>
+  </div>
+  {% if dismissible %}
+  <button
+    type="button"
+    class="shrink-0 hover:opacity-70 transition-opacity focus-visible:outline-none
+           focus-visible:ring-2 focus-visible:ring-current rounded"
+    onclick="this.closest('[role]').remove()"
+    aria-label="Dismiss alert"
+  >
+    {{ icon('x', size=16) }}
+  </button>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ─── empty_state() ──────────────────────────────────────────────────────── #}
+{% macro empty_state(
+    title,
+    description='',
+    icon_name='package',
+    action_url=none,
+    action_text=none,
+    action_variant='primary',
+    secondary_url=none,
+    secondary_text=none,
+    extra_cls=''
+  ) %}
+<div class="empty-state {{ extra_cls }}">
+  <div class="empty-state-icon">
+    {{ icon(icon_name, size=64, cls='text-muted/40') }}
+  </div>
+  <h3 class="text-lg font-bold text-ink mb-2">{{ title }}</h3>
+  {% if description %}
+  <p class="text-sm text-muted max-w-xs mx-auto mb-6">{{ description }}</p>
+  {% else %}
+  <div class="mb-6"></div>
+  {% endif %}
+  {% if action_url and action_text %}
+  <div class="flex items-center gap-3 flex-wrap justify-center">
+    <a href="{{ action_url }}"
+       class="btn-{{ action_variant }}">
+      {{ action_text }}
+    </a>
+    {% if secondary_url and secondary_text %}
+    <a href="{{ secondary_url }}" class="btn-ghost btn-sm text-muted">{{ secondary_text }}</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ─── page_header() ──────────────────────────────────────────────────────── #}
+{# Standardized page title area with breadcrumbs, subtitle, and action slot   #}
+{% macro page_header(
+    title,
+    subtitle=none,
+    breadcrumbs=none,
+    back_url=none,
+    back_text='Back',
+    extra_cls=''
+  ) %}
+{# breadcrumbs: list of {text, url} dicts; last one is current page (no url) #}
+<div class="{{ extra_cls }} mb-6 sm:mb-8">
+  {# Breadcrumbs + Back Link #}
+  {% if back_url or breadcrumbs %}
+  <nav class="flex items-center gap-1.5 text-xs sm:text-sm text-muted mb-3 flex-wrap" aria-label="Breadcrumb">
+    {% if back_url %}
+    <a href="{{ back_url }}"
+       class="inline-flex items-center gap-1 text-muted hover:text-leaf transition-colors
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded px-1 py-0.5">
+      {{ icon('chevron-left', size=14) }}
+      <span>{{ back_text }}</span>
+    </a>
+    {% if breadcrumbs %}<span class="text-bdr">|</span>{% endif %}
+    {% endif %}
+    {% if breadcrumbs %}
+    <ol class="flex items-center gap-1.5 flex-wrap" itemscope itemtype="https://schema.org/BreadcrumbList">
+      {% for crumb in breadcrumbs %}
+      <li class="flex items-center gap-1.5" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+        {% if not loop.first %}
+        {{ icon('chevron-right', size=12, cls='text-muted/50') }}
+        {% endif %}
+        {% if crumb.url %}
+        <a href="{{ crumb.url }}" class="hover:text-leaf transition-colors" itemprop="item">
+          <span itemprop="name">{{ crumb.text }}</span>
+        </a>
+        {% else %}
+        <span class="text-ink font-semibold" itemprop="name" aria-current="page">{{ crumb.text }}</span>
+        {% endif %}
+        <meta itemprop="position" content="{{ loop.index }}">
+      </li>
+      {% endfor %}
+    </ol>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-h1 text-ink">{{ title }}</h1>
+      {% if subtitle %}
+      <p class="text-sm text-muted mt-1.5 max-w-2xl">{{ subtitle }}</p>
+      {% endif %}
+    </div>
+    {% if caller %}
+    <div class="flex items-center gap-3 flex-wrap shrink-0">
+      {{ caller() }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+
+{# ─── skeleton() — loading placeholder ───────────────────────────────────── #}
+{% macro skeleton(width='w-full', height='h-4', rounded='rounded', extra_cls='') %}
+<div class="skeleton {{ width }} {{ height }} {{ rounded }} {{ extra_cls }}" aria-hidden="true"></div>
+{% endmacro %}
+
+{# ─── avatar() ───────────────────────────────────────────────────────────── #}
+{% macro avatar(name, image_url=none, size='md', extra_cls='') %}
+{%- set sz = {
+  'sm': 'avatar-sm',
+  'md': 'avatar-md',
+  'lg': 'avatar-lg',
+  'xl': 'avatar-xl',
+}.get(size, 'avatar-md') -%}
+{%- set initial = name[0].upper() if name else '?' -%}
+<div class="{{ sz }} {{ extra_cls }}">
+  {% if image_url %}
+  <img src="{{ image_url }}" alt="{{ name }}" class="w-full h-full object-cover rounded-full" />
+  {% else %}
+  <span aria-hidden="true">{{ initial }}</span>
+  <span class="sr-only">{{ name }}</span>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ─── price_breakdown() — labeled row list with total ────────────────────── #}
+{% macro price_breakdown(rows, total_label='Total', total_value='', currency='LKR', extra_cls='') %}
+{# rows: list of {label, value, muted?} dicts. value can be string like '1,250.00' #}
+<div class="space-y-0 {{ extra_cls }}">
+  {% for row in rows %}
+  <div class="price-row">
+    <span class="price-label text-muted {% if row.muted %}text-muted{% endif %}">{{ row.label }}</span>
+    <span class="price-val font-medium text-inksoft tabular-nums">{{ currency }} {{ row.value }}</span>
+  </div>
+  {% endfor %}
+  {% if total_value %}
+  <div class="price-row-total">
+    <span class="price-label">{{ total_label }}</span>
+    <span class="price-val price-value text-leaf-dark">{{ currency }} {{ total_value }}</span>
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ─── timeline() — order progress stepper ────────────────────────────────── #}
+{#
+  steps: list of {label, description?, status} dicts
+  status: 'done' | 'active' | 'pending'
+#}
+{% macro timeline(steps, extra_cls='') %}
+<ol class="timeline {{ extra_cls }}" aria-label="Progress">
+  {% for step in steps %}
+  <li class="timeline-item">
+    {# Dot #}
+    <div
+      class="timeline-dot {% if step.status == 'done' %}timeline-dot-done{% elif step.status == 'active' %}timeline-dot-active{% else %}timeline-dot-pending{% endif %}"
+      aria-hidden="true"
+    >
+      {% if step.status == 'done' %}
+        {{ icon('check', size=16) }}
+      {% elif step.status == 'active' %}
+        <span class="w-3 h-3 rounded-full bg-leaf"></span>
+      {% else %}
+        <span class="w-2.5 h-2.5 rounded-full bg-bdr"></span>
+      {% endif %}
+    </div>
+
+    {# Content #}
+    <div class="timeline-content">
+      <p class="text-sm font-semibold {% if step.status == 'active' %}text-ink{% elif step.status == 'done' %}text-inksoft{% else %}text-muted{% endif %}"
+         {% if step.status == 'active' %}aria-current="step"{% endif %}>
+        {{ step.label }}
+      </p>
+      {% if step.description %}
+      <p class="text-xs text-muted mt-0.5">{{ step.description }}</p>
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ol>
+{% endmacro %}
+
+{# ─── map_container() — styled map frame (for Google Maps integration) ─────── #}
+{# Map JS content goes inside the caller block or is injected separately. #}
+{% macro map_container(
+    id='map',
+    ratio='16/9',
+    placeholder_text='Map loading…',
+    extra_cls=''
+  ) %}
+<div class="map-container {{ extra_cls }}" id="{{ id }}-wrapper" style="aspect-ratio: {{ ratio }};">
+  {# Placeholder shown until map JS loads #}
+  <div id="{{ id }}-placeholder" class="map-placeholder">
+    {{ icon('map-pin', size=32, cls='text-muted/50') }}
+    <span class="text-sm text-muted">{{ placeholder_text }}</span>
+  </div>
+  {# Map target div — Google Maps will mount here #}
+  <div id="{{ id }}" class="absolute inset-0 w-full h-full"></div>
+</div>
+{% endmacro %}
+
+{# ─── tabs() / segmented control ─────────────────────────────────────────── #}
+{#
+  items: list of {label, id, active?} dicts
+  Usage: wrap each tab's content in a div with data-tab="{{ item.id }}"
+#}
+{% macro tabs(items, extra_cls='') %}
+<div
+  class="tabs {{ extra_cls }}"
+  role="tablist"
+  aria-label="Navigation tabs"
+>
+  {% for item in items %}
+  <button
+    type="button"
+    role="tab"
+    id="tab-{{ item.id }}"
+    aria-selected="{{ 'true' if item.get('active') else 'false' }}"
+    aria-controls="panel-{{ item.id }}"
+    class="tab {{ 'tab-active' if item.get('active') }}"
+    data-tab="{{ item.id }}"
+    onclick="(function(btn){
+      var parent = btn.closest('[role=tablist]');
+      parent.querySelectorAll('[role=tab]').forEach(function(t) {
+        t.setAttribute('aria-selected','false');
+        t.classList.remove('tab-active');
+      });
+      btn.setAttribute('aria-selected','true');
+      btn.classList.add('tab-active');
+      var panelContainer = parent.closest('[data-tabs-container]') || document;
+      panelContainer.querySelectorAll('[role=tabpanel]').forEach(function(p){
+        p.hidden = true;
+      });
+      var panel = panelContainer.querySelector('#panel-' + btn.dataset.tab);
+      if (panel) panel.hidden = false;
+    })(this)"
+  >
+    {{ item.label }}
+  </button>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{# ─── pagination() ───────────────────────────────────────────────────────── #}
+{# pages: total pages, current: current page, build_url: callable or url prefix #}
+{% macro pagination(current, total, base_url, extra_cls='') %}
+{% if total > 1 %}
+<nav class="flex items-center justify-center gap-1.5 {{ extra_cls }}" aria-label="Page navigation">
+  {# Previous #}
+  {% if current > 1 %}
+  <a href="{{ base_url }}{{ current - 1 }}" class="page-item" aria-label="Previous page">
+    {{ icon('chevron-left', size=16) }}
+  </a>
+  {% else %}
+  <span class="page-item page-item-disabled" aria-label="Previous page" aria-disabled="true">
+    {{ icon('chevron-left', size=16) }}
+  </span>
+  {% endif %}
+
+  {# Page numbers #}
+  {% for p in range(1, total + 1) %}
+    {% if p == current %}
+      <span class="page-item page-item-active" aria-current="page" aria-label="Page {{ p }}">{{ p }}</span>
+    {% elif p == 1 or p == total or (p >= current - 2 and p <= current + 2) %}
+      <a href="{{ base_url }}{{ p }}" class="page-item" aria-label="Page {{ p }}">{{ p }}</a>
+    {% elif p == current - 3 or p == current + 3 %}
+      <span class="page-item page-item-disabled">…</span>
+    {% endif %}
+  {% endfor %}
+
+  {# Next #}
+  {% if current < total %}
+  <a href="{{ base_url }}{{ current + 1 }}" class="page-item" aria-label="Next page">
+    {{ icon('chevron-right', size=16) }}
+  </a>
+  {% else %}
+  <span class="page-item page-item-disabled" aria-label="Next page" aria-disabled="true">
+    {{ icon('chevron-right', size=16) }}
+  </span>
+  {% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+{# ─── stat_card() ────────────────────────────────────────────────────────── #}
+{% macro stat_card(title, value, subtitle=none, icon_name=none, trend=none, extra_cls='') %}
+<div class="stat-card {{ extra_cls }}">
+  <div class="flex-1 min-w-0">
+    <p class="stat-label">{{ title }}</p>
+    <p class="stat-value mt-1">{{ value }}</p>
+    {% if subtitle %}
+    <p class="text-xs text-muted mt-1">{{ subtitle }}</p>
+    {% endif %}
+    {% if trend %}
+    <div class="mt-2 flex items-center gap-1 text-xs font-semibold
+                {{ 'text-leaf' if trend.direction == 'up' else ('text-danger' if trend.direction == 'down' else 'text-muted') }}">
+      {% if trend.direction == 'up' %}
+        {{ icon('trending-up', size=14) }}
+      {% elif trend.direction == 'down' %}
+        {{ icon('trending-down', size=14) }}
+      {% endif %}
+      <span>{{ trend.text }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% if icon_name %}
+  <div class="stat-icon">
+    {{ icon(icon_name, size=22) }}
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ─── Backward-compatible stat_metric_card alias ─────────────────────────── #}
+{% macro stat_metric_card(title, value, subtitle=none, icon_svg=none, trend=none) %}
+<div class="stat-card">
+  <div class="flex-1 min-w-0">
+    <p class="stat-label">{{ title }}</p>
+    <p class="stat-value mt-1">{{ value }}</p>
+    {% if subtitle %}<p class="text-xs text-muted mt-1">{{ subtitle }}</p>{% endif %}
+    {% if trend %}
+    <div class="mt-2 flex items-center gap-1 text-xs font-semibold {{ trend.color_class or 'text-leaf' }}">
+      <span>{{ trend.text }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% if icon_svg %}
+  <div class="stat-icon">{{ icon_svg|safe }}</div>
+  {% endif %}
+</div>
+{% endmacro %}

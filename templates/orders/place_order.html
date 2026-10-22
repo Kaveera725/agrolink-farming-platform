@@ -1,21 +1,22 @@
 {% extends "base.html" %}
+{% from "components/ui.html" import page_header %}
 {% block title %}Place Order — {{ product.name }} — AgroLink{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
 
-  <!-- Back Link -->
-  <div>
-    <a
-      href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
-      class="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-600 hover:text-leaf transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-md px-1 py-0.5"
-    >
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-      <span>Back to Produce Details</span>
-    </a>
-  </div>
+  {{ page_header(
+      title='Confirm Order: ' ~ product.name,
+      subtitle='Direct purchase from ' ~ (product.farmer.farm_name or product.farmer.name) ~ ' · Cash on Delivery',
+      breadcrumbs=[
+          {'text': 'Home', 'url': url_for('main.home')},
+          {'text': 'Marketplace', 'url': url_for('marketplace.index')},
+          {'text': product.name, 'url': url_for('marketplace.product_detail', product_id=product.id)},
+          {'text': 'Checkout'}
+      ],
+      back_url=url_for('marketplace.product_detail', product_id=product.id),
+      back_text='Back to Product'
+  ) }}
 
   <!-- Produce Summary Header Card -->
   <div class="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200/80 shadow-xs flex items-center gap-4">
