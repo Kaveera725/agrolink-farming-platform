@@ -1,216 +1,352 @@
 {% extends "base.html" %}
-{% block title %}Home — Connecting Sri Lankan Agriculture{% endblock %}
+{% import "components/badges.html" as badges with context %}
+{% import "components/buttons.html" as buttons with context %}
+{% import "components/cards.html" as cards with context %}
+
+{% block title %}AgroLink — Connecting Sri Lankan Agriculture Directly{% endblock %}
 
 {% block content %}
 <!-- HERO SECTION -->
-<section class="relative bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white py-20 lg:py-28 overflow-hidden">
-  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+<section class="relative bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white py-14 sm:py-20 lg:py-28 overflow-hidden">
+  <!-- Subtle geometric background grid pattern -->
+  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true"></div>
+  
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-    <div class="max-w-3xl">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-xs font-semibold mb-6 text-green-100">
-        <span>🌾</span> Direct Farm-to-Buyer Trading Platform in Sri Lanka
-      </div>
-      <h1 class="font-display text-4xl sm:text-6xl font-bold leading-tight mb-6">
-        Fair Prices for Farmers.<br />
-        Fresh Harvests for Buyers.
-      </h1>
-      <p class="text-lg sm:text-xl text-green-100 mb-8 leading-relaxed font-light">
-        AgroLink eliminates exploitative middlemen by connecting local farmers directly with wholesale and retail buyers. Gain complete price transparency, track crop cycles, and trade with confidence.
-      </p>
-      <div class="flex flex-wrap items-center gap-4">
-        <a href="{{ url_for('marketplace.index') }}" class="bg-yellow-500 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:bg-yellow-600 transition duration-200 text-sm">
-          Browse Marketplace →
-        </a>
-        <a href="{{ url_for('prices.index') }}" class="bg-white/15 backdrop-blur-sm text-white border border-white/30 font-semibold px-6 py-3.5 rounded-xl hover:bg-white/25 transition duration-200 text-sm">
-          📊 Check Live Market Prices
-        </a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- STATS BAR -->
-<section class="bg-white border-b border-gray-100 py-6">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-      <div>
-        <p class="font-display text-3xl font-bold text-leaf">100%</p>
-        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Direct Farm Trade</p>
-      </div>
-      <div>
-        <p class="font-display text-3xl font-bold text-sky">0%</p>
-        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Broker Commissions</p>
-      </div>
-      <div>
-        <p class="font-display text-3xl font-bold text-earth">25+</p>
-        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Tracked Crops</p>
-      </div>
-      <div>
-        <p class="font-display text-3xl font-bold text-gold">LKR</p>
-        <p class="text-xs text-gray-500 uppercase tracking-wider font-medium mt-0.5">Fair Local Currency</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="py-16 bg-[#F7FAF5]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center max-w-2xl mx-auto mb-12">
-      <h2 class="font-display text-3xl font-bold text-gray-800">How AgroLink Works</h2>
-      <p class="text-gray-500 text-sm mt-2">A fair, transparent ecosystem designed for both agricultural producers and commercial buyers.</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- For Farmers -->
-      <div class="card p-8 border-t-4 border-leaf">
-        <div class="w-12 h-12 rounded-2xl bg-leaf-pale flex items-center justify-center text-2xl mb-5">👨‍🌾</div>
-        <h3 class="font-display text-xl font-bold text-gray-800 mb-3">For Farmers</h3>
-        <ul class="space-y-3 text-sm text-gray-600">
-          <li class="flex items-start gap-2.5">
-            <span class="text-leaf font-bold">✓</span>
-            <span><strong>Crop Management:</strong> Log field records, harvest dates, and expected yields privately.</span>
-          </li>
-          <li class="flex items-start gap-2.5">
-            <span class="text-leaf font-bold">✓</span>
-            <span><strong>Marketplace Listings:</strong> List your ready produce with transparent per-kg pricing.</span>
-          </li>
-          <li class="flex items-start gap-2.5">
-            <span class="text-leaf font-bold">✓</span>
-            <span><strong>Direct Orders:</strong> Receive purchasing orders from buyers with delivery requirements and fulfillment tracking.</span>
-          </li>
-        </ul>
-        <div class="mt-6">
-          <a href="{{ url_for('auth.register') }}" class="text-leaf font-semibold text-sm hover:underline">Join as Farmer →</a>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      
+      <!-- Left Column: Copy & CTAs -->
+      <div class="lg:col-span-7 space-y-6 text-center sm:text-left">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs sm:text-sm font-semibold text-green-100 shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-gold animate-pulse" aria-hidden="true"></span>
+          <span>Direct Farm-to-Buyer Trading in Sri Lanka</span>
         </div>
-      </div>
 
-      <!-- For Buyers -->
-      <div class="card p-8 border-t-4 border-sky">
-        <div class="w-12 h-12 rounded-2xl bg-sky-pale flex items-center justify-center text-2xl mb-5">🛒</div>
-        <h3 class="font-display text-xl font-bold text-gray-800 mb-3">For Buyers</h3>
-        <ul class="space-y-3 text-sm text-gray-600">
-          <li class="flex items-start gap-2.5">
-            <span class="text-sky font-bold">✓</span>
-            <span><strong>Fresh Local Produce:</strong> Search fresh vegetables, fruits, grains, and spices directly from growers.</span>
-          </li>
-          <li class="flex items-start gap-2.5">
-            <span class="text-sky font-bold">✓</span>
-            <span><strong>Price Intelligence:</strong> Compare farmer asking prices against Colombo wholesale benchmarks.</span>
-          </li>
-          <li class="flex items-start gap-2.5">
-            <span class="text-sky font-bold">✓</span>
-            <span><strong>Instant Communication:</strong> Connect with growers immediately via integrated WhatsApp and phone dialing.</span>
-          </li>
-        </ul>
-        <div class="mt-6">
-          <a href="{{ url_for('auth.register') }}" class="text-sky font-semibold text-sm hover:underline">Join as Buyer →</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+        <h1 class="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight sm:leading-none text-white">
+          Fair Prices for Farmers.<br class="hidden sm:inline" />
+          <span class="text-leaf-pale">Fresh Harvests for Buyers.</span>
+        </h1>
 
-<!-- FEATURED PRODUCE -->
-<section class="py-16 bg-white">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
-      <div>
-        <h2 class="font-display text-3xl font-bold text-gray-800">Fresh Produce on the Marketplace</h2>
-        <p class="text-gray-500 text-sm mt-1">Directly listed by registered Sri Lankan farmers.</p>
-      </div>
-      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary text-sm">View All Marketplace Produce →</a>
-    </div>
+        <p class="text-base sm:text-lg lg:text-xl text-green-100/90 leading-relaxed font-normal max-w-2xl mx-auto sm:mx-0">
+          AgroLink connects verified local growers directly with wholesale and commercial buyers. Gain daily market price transparency, monitor crop readiness, and trade without middlemen.
+        </p>
 
-    {% if featured_products %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {% for product in featured_products %}
-      <div class="card hover:shadow-md transition flex flex-col justify-between overflow-hidden">
-        <div>
-          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="block relative h-44 overflow-hidden">
-            <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
-            <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-leaf-dark text-xs px-2.5 py-0.5 rounded-full font-semibold">
-              {{ product.category }}
-            </span>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+          <a
+            href="{{ url_for('marketplace.index') }}"
+            class="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-light active:bg-amber-600 text-gray-900 font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+          >
+            <span>Browse Marketplace</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
           </a>
-          <div class="p-4">
-            <h3 class="font-semibold text-gray-800 text-base truncate">
-              <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="hover:text-leaf transition">
-                {{ product.name }}
-              </a>
-            </h3>
-            <p class="text-xs text-gray-400 mt-1">📍 {{ product.location or product.farmer.location or 'Sri Lanka' }}</p>
-            <div class="mt-3 flex items-baseline justify-between">
-              <span class="font-bold text-leaf text-lg">LKR {{ "{:,.0f}".format(product.price_per_kg) }}<span class="text-xs font-normal text-gray-400">/kg</span></span>
-              <span class="text-xs text-gray-500">{{ product.quantity_kg }} kg in stock</span>
+          <a
+            href="{{ url_for('prices.index') }}"
+            class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm text-white border border-white/30 font-semibold px-6 py-3.5 min-h-[48px] rounded-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+          >
+            <svg class="w-4 h-4 text-green-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Daily Market Prices</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Column: Visual Highlight Card -->
+      <div class="lg:col-span-5">
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl space-y-5">
+          <div class="flex items-center justify-between pb-4 border-b border-white/15">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-display font-bold text-lg text-white">Daily Agri Highlights</h3>
+                <p class="text-xs text-green-200">Verified Colombo Wholesale Benchmark</p>
+              </div>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">Live</span>
+          </div>
+
+          <!-- Feature Bullets with inline SVGs -->
+          <div class="space-y-3.5">
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <div class="p-2 rounded-xl bg-leaf-light/40 text-green-200 shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm font-semibold text-white">Direct Trade, Zero Brokerage</p>
+                <p class="text-xs text-green-200/90">Buyers transact straight with producers with clear phone &amp; WhatsApp communication.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <div class="p-2 rounded-xl bg-leaf-light/40 text-green-200 shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm font-semibold text-white">Reliable Price Intelligence</p>
+                <p class="text-xs text-green-200/90">Updated wholesale buying &amp; selling prices prevent middlemen exploitation.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <div class="p-2 rounded-xl bg-leaf-light/40 text-green-200 shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm font-semibold text-white">Harvest Cycle Management</p>
+                <p class="text-xs text-green-200/90">Farmers track field status privately from planting to ready-to-sell.</p>
+              </div>
             </div>
           </div>
         </div>
-        <div class="p-4 pt-0">
-          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="block text-center w-full btn-secondary text-xs py-2">
-            View Details
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- METRICS / STATS BAR -->
+<section class="bg-white border-b border-gray-200/80 py-8" aria-label="Platform Highlights">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-leaf">100%</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Direct Farm Trade</p>
+        <p class="text-xs text-gray-600 mt-0.5">No intermediary markup</p>
+      </div>
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-sky">0%</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Hidden Broker Fees</p>
+        <p class="text-xs text-gray-600 mt-0.5">Completely free to list</p>
+      </div>
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-earth">25+</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Tracked Crops</p>
+        <p class="text-xs text-gray-600 mt-0.5">Sri Lankan varieties</p>
+      </div>
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-gold">LKR</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Fair Local Currency</p>
+        <p class="text-xs text-gray-600 mt-0.5">Direct rupees settlement</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW AGROLINK WORKS -->
+<section class="py-16 sm:py-20 bg-[#F8FAF7]" aria-labelledby="how-it-works-title">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+      <h2 id="how-it-works-title" class="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
+        How AgroLink Empowers Both Sides
+      </h2>
+      <p class="text-sm sm:text-base text-gray-600 mt-2.5">
+        A transparent, role-focused platform designed specifically for Sri Lankan agriculture.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <!-- For Farmers -->
+      <article class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-12 h-12 rounded-2xl bg-earth-pale text-earth flex items-center justify-center font-bold">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-earth uppercase tracking-wider">Farmer Persona</span>
+              <h3 class="font-display text-xl sm:text-2xl font-bold text-gray-900">For Farmers &amp; Growers</h3>
+            </div>
+          </div>
+
+          <ul class="space-y-3.5 text-sm text-gray-600 mb-6">
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-emerald-100 text-leaf flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Private Crop Logging:</strong> Track harvest dates, crop variety, field location, and expected yields privately.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-emerald-100 text-leaf flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Direct Marketplace Listings:</strong> Upload photos of your produce with transparent Rs. per-kg asking rates.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-emerald-100 text-leaf flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Direct Order Control:</strong> Accept, confirm, and update order statuses straight from your dashboard.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+          <a href="{{ url_for('auth.register') }}" class="btn-secondary w-full sm:w-auto text-sm">
+            Join as Farmer Partner →
           </a>
         </div>
+      </article>
+
+      <!-- For Buyers -->
+      <article class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-12 h-12 rounded-2xl bg-sky-pale text-sky flex items-center justify-center font-bold">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-sky uppercase tracking-wider">Buyer Persona</span>
+              <h3 class="font-display text-xl sm:text-2xl font-bold text-gray-900">For Wholesale &amp; Retail Buyers</h3>
+            </div>
+          </div>
+
+          <ul class="space-y-3.5 text-sm text-gray-600 mb-6">
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-sky-100 text-sky flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Fresh Verified Sourcing:</strong> Browse categories with real photos uploaded directly from farms.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-sky-100 text-sky flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Market Benchmark Comparison:</strong> View live price differences between farmer asking rates and Colombo wholesale.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-sky-100 text-sky flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Direct WhatsApp &amp; Phone Contact:</strong> Call or chat with verified farmers instantly to arrange logistics.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+          <a href="{{ url_for('auth.register') }}" class="btn-secondary w-full sm:w-auto text-sm">
+            Join as Commercial Buyer →
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED MARKETPLACE SECTION -->
+<section class="py-16 sm:py-20 bg-white" aria-labelledby="featured-produce-title">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
+          <span>Fresh Local Harvest</span>
+        </div>
+        <h2 id="featured-produce-title" class="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
+          Recent Produce on Marketplace
+        </h2>
+        <p class="text-sm text-gray-600 mt-1">Available directly from verified local agricultural producers.</p>
       </div>
-      {% endfor %}
+
+      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary text-sm self-start sm:self-auto">
+        <span>View Full Marketplace</span>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      </a>
     </div>
+
+    {% if featured_products %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for product in featured_products %}
+          {{ cards.product_card(product) }}
+        {% endfor %}
+      </div>
     {% else %}
-    <div class="card p-12 text-center text-gray-400">
-      <p class="text-base font-medium">No produce currently listed.</p>
-      <a href="{{ url_for('marketplace.index') }}" class="text-leaf text-sm font-semibold hover:underline mt-2 inline-block">Explore the marketplace →</a>
-    </div>
+      <div class="bg-gray-50 rounded-2xl p-12 text-center border border-gray-200">
+        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+        </svg>
+        <p class="text-base font-semibold text-gray-700">No produce currently listed.</p>
+        <p class="text-xs text-gray-500 mt-1">Check back shortly or list your harvest as a registered farmer.</p>
+        <div class="mt-4">
+          <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-xs py-2 px-4">Browse Marketplace</a>
+        </div>
+      </div>
     {% endif %}
   </div>
 </section>
 
 <!-- LIVE MARKET PRICES SPOTLIGHT -->
-<section class="py-16 bg-[#F7FAF5]">
+<section class="py-16 sm:py-20 bg-[#F8FAF7]" aria-labelledby="price-board-title">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
       <div>
-        <h2 class="font-display text-3xl font-bold text-gray-800">Colombo Market Price Highlights</h2>
-        <p class="text-gray-500 text-sm mt-1">Benchmark prices to help you negotiate and buy at fair market rates.</p>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-pale text-gold font-semibold text-xs mb-2">
+          <span>Colombo Wholesale Benchmark</span>
+        </div>
+        <h2 id="price-board-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Current Market Price Highlights
+        </h2>
+        <p class="text-sm text-gray-600 mt-1">Benchmark prices to assist you in negotiating fair transactions.</p>
       </div>
-      <a href="{{ url_for('prices.index') }}" class="btn-primary text-sm">View Full Price Board & Deals →</a>
+
+      <a href="{{ url_for('prices.index') }}" class="btn-primary text-sm self-start sm:self-auto">
+        <span>View Full Price Board</span>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      </a>
     </div>
 
     {% if sample_prices %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {% for mp in sample_prices %}
-      <div class="card p-5 hover:shadow-sm transition">
-        <div class="flex items-center justify-between mb-2">
-          <h4 class="font-semibold text-gray-800">{{ mp.crop_name }}</h4>
-          <span class="text-xs bg-leaf-pale text-leaf px-2 py-0.5 rounded-full font-medium">{{ mp.category }}</span>
-        </div>
-        <div class="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-50 text-sm">
-          <div>
-            <span class="text-xs text-gray-400 block">Farmer Buying Price</span>
-            <span class="font-semibold text-sky">LKR {{ "{:,.0f}".format(mp.buying_price) }}/kg</span>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for mp in sample_prices %}
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-leaf/30 transition-all">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-gray-900 text-base sm:text-lg">{{ mp.crop_name }}</h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+                {{ mp.category }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 text-xs">
+              <div class="bg-sky-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Farmer Buying</span>
+                <span class="font-display font-bold text-sm sm:text-base text-sky">Rs. {{ "{:,.0f}".format(mp.buying_price) }}</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+              <div class="bg-leaf-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Retail Selling</span>
+                <span class="font-display font-bold text-sm sm:text-base text-leaf-dark">Rs. {{ "{:,.0f}".format(mp.selling_price) }}</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+            </div>
           </div>
-          <div>
-            <span class="text-xs text-gray-400 block">Retail Selling Price</span>
-            <span class="font-semibold text-leaf">LKR {{ "{:,.0f}".format(mp.selling_price) }}/kg</span>
-          </div>
-        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
     {% endif %}
   </div>
 </section>
 
-<!-- CALL TO ACTION -->
-<section class="py-16 bg-leaf-dark text-white text-center">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 class="font-display text-3xl sm:text-4xl font-bold mb-4">Ready to Transform Agricultural Trade?</h2>
-    <p class="text-green-200 text-base mb-8 max-w-2xl mx-auto">
-      Whether you are cultivating crops or sourcing fresh supplies for commercial markets, AgroLink gives you fair access.
+<!-- CALL TO ACTION BANNER -->
+<section class="py-16 sm:py-20 bg-leaf-dark text-white text-center relative overflow-hidden" aria-label="Get Started">
+  <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" aria-hidden="true"></div>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
+    <h2 class="font-display text-2xl sm:text-4xl font-extrabold tracking-tight">
+      Ready to Experience Fair Agricultural Trade?
+    </h2>
+    <p class="text-green-200 text-sm sm:text-base leading-relaxed">
+      Whether you are harvesting local crops or seeking dependable wholesale produce, AgroLink gives you direct access without middleman commissions.
     </p>
-    <div class="flex flex-wrap justify-center gap-4">
-      <a href="{{ url_for('auth.register') }}" class="btn-primary bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3.5 text-base shadow-md">
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
+      <a href="{{ url_for('auth.register') }}" class="btn-primary bg-gold hover:bg-gold-light active:bg-amber-600 text-gray-900 font-bold px-8 py-3.5 min-h-[48px] text-sm sm:text-base shadow-lg w-full sm:w-auto">
         Create Your Free Account
       </a>
-      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary bg-white/10 hover:bg-white/20 text-white border-white/30 px-8 py-3.5 text-base">
+      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border-white/30 px-8 py-3.5 min-h-[48px] text-sm sm:text-base w-full sm:w-auto">
         Browse as Guest
       </a>
     </div>

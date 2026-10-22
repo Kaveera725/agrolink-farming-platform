@@ -11,13 +11,13 @@ marketplace_bp = Blueprint('marketplace', __name__, url_prefix='/marketplace')
 CATEGORIES = ['Vegetables', 'Fruits', 'Grains & Rice', 'Spices', 'Pulses', 'Roots & Tubers', 'Other']
 
 PRODUCT_IMAGES = {
-    'Vegetables': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&q=80',
-    'Fruits': 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=400&q=80',
-    'Grains & Rice': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80',
-    'Spices': 'https://images.unsplash.com/photo-1506368249639-73a05d6f6488?w=400&q=80',
-    'Pulses': 'https://images.unsplash.com/photo-1515543904379-3d757afe72e4?w=400&q=80',
-    'Roots & Tubers': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80',
-    'Other': 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400&q=80',
+    'Vegetables': '/static/images/categories/vegetables.svg',
+    'Fruits': '/static/images/categories/fruits.svg',
+    'Grains & Rice': '/static/images/categories/grains.svg',
+    'Spices': '/static/images/categories/spices.svg',
+    'Pulses': '/static/images/categories/pulses.svg',
+    'Roots & Tubers': '/static/images/categories/roots.svg',
+    'Other': '/static/images/categories/other.svg',
 }
 
 

@@ -1,117 +1,227 @@
 {% extends "base.html" %}
-{% block title %}{{ 'Edit' if product else 'List' }} Product{% endblock %}
+{% block title %}{{ 'Edit Listing' if product else 'List New Produce' }} — AgroLink Marketplace{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+  
+  <!-- Back Link -->
   <div class="mb-6">
-    <a href="{{ url_for('marketplace.index') }}" class="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-      Back to marketplace
+    <a
+      href="{{ url_for('marketplace.index') }}"
+      class="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-600 hover:text-leaf transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-md px-1 py-0.5"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      <span>Back to Marketplace</span>
     </a>
-    <h1 class="font-display text-3xl font-bold text-gray-800 mt-3">
-      {{ 'Edit Product' if product else 'List a Product' }}
-    </h1>
-    <p class="text-gray-500 mt-1 text-sm">Post your agricultural products directly to the marketplace.</p>
   </div>
 
-  <div class="card p-8">
-    <form method="POST" enctype="multipart/form-data" class="space-y-5">
+  <!-- Form Card -->
+  <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
+    <div class="mb-8 pb-6 border-b border-gray-100">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
+        <span>👨‍🌾</span> Farmer Listing Portal
+      </div>
+      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+        {{ 'Edit Produce Listing' if product else 'List Fresh Produce' }}
+      </h1>
+      <p class="text-sm text-gray-600 mt-1">
+        Post your agricultural harvest directly to commercial and wholesale buyers across Sri Lanka.
+      </p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <!-- Product Name -->
+      <div class="space-y-1.5">
+        <label for="product_name" class="block text-sm font-semibold text-gray-800">
+          Product / Crop Name <span class="text-red-600 font-bold">*</span>
+        </label>
+        <input
+          type="text"
+          id="product_name"
+          name="name"
+          required
+          placeholder="e.g. Fresh Red Onions, Organic Keeri Samba, Cavendish Bananas"
+          value="{{ product.name if product else '' }}"
+          class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+        />
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div class="sm:col-span-2">
-          <label class="form-label">Product Name *</label>
-          <input type="text" name="name" required class="form-input"
-            placeholder="e.g. Fresh Tomatoes, Organic Rice"
-            value="{{ product.name if product else '' }}" />
-        </div>
-        <div>
-          <label class="form-label">Category *</label>
-          <select name="category" required class="form-input">
-            <option value="">Select category...</option>
-            {% for cat in categories %}
-            <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>{{ cat }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Location</label>
-          <input type="text" name="location" class="form-input"
-            placeholder="e.g. Kandy, Galle"
-            value="{{ product.location if product else current_user.location or '' }}" />
-        </div>
-        <div>
-          <label class="form-label">Quantity Available (kg) *</label>
-          <input type="number" name="quantity_kg" required class="form-input" min="0.1" step="0.1"
-            placeholder="e.g. 200"
-            value="{{ product.quantity_kg if product else '' }}" />
-        </div>
-        <div>
-          <label class="form-label">Price per kg (LKR) *</label>
-          <input type="number" name="price_per_kg" required class="form-input" min="1" step="0.01"
-            placeholder="e.g. 150"
-            value="{{ product.price_per_kg if product else '' }}" />
-        </div>
-        <div class="sm:col-span-2">
-          <label class="form-label">Description</label>
-          <textarea name="description" rows="4" class="form-input resize-none"
-            placeholder="Describe the quality, freshness, farming method, etc.">{{ product.description if product else '' }}</textarea>
-        </div>
-
-        <!-- Product Image Upload with Live Preview -->
-        <div class="sm:col-span-2">
-          <label class="form-label flex items-center justify-between">
-            <span>Product Photo</span>
-            <span class="text-xs text-gray-400 font-normal">JPG, PNG, or WEBP (Max 5 MB)</span>
+        <!-- Category Selection -->
+        <div class="space-y-1.5">
+          <label for="product_category" class="block text-sm font-semibold text-gray-800">
+            Category <span class="text-red-600 font-bold">*</span>
           </label>
-
-          <!-- Upload Dropzone / File Picker -->
-          <div class="mt-1 flex flex-col sm:flex-row items-center gap-5 p-5 border-2 border-dashed border-gray-200 rounded-2xl hover:border-leaf/50 transition bg-gray-50/50">
-            <!-- Preview Box -->
-            <div id="image-preview-wrapper" class="relative w-32 h-32 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border border-gray-200 shadow-inner">
-              <img id="image-preview"
-                src="{{ product.display_image_url if product else '' }}"
-                alt="{{ product.name if product else 'Product preview' }}"
-                class="w-full h-full object-cover {% if not product or not product.image_url %}hidden{% endif %}" />
-              <div id="image-placeholder-icon" class="text-center p-3 {% if product and product.image_url %}hidden{% endif %}">
-                <svg class="mx-auto w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span class="text-[11px] text-gray-400 font-medium block mt-1">No Image</span>
-              </div>
-            </div>
-
-            <!-- File Input and Controls -->
-            <div class="flex-1 w-full space-y-2">
-              <input type="file" id="product_image_input" name="image"
-                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf-pale file:text-leaf hover:file:bg-leaf/20 cursor-pointer" />
-              <div id="file-info-text" class="text-xs text-gray-500">
-                {% if product and product.image_url %}
-                <span class="text-leaf font-medium">✓ Current image active</span> (Upload new file to replace)
-                {% else %}
-                Select an image from your device or leave blank to use the category stock image.
-                {% endif %}
-              </div>
-              <div id="file-error-text" class="text-xs text-red-500 font-medium hidden"></div>
+          <div class="relative">
+            <select
+              id="product_category"
+              name="category"
+              required
+              class="w-full min-h-[46px] appearance-none px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition pr-10"
+            >
+              <option value="">Select Category...</option>
+              {% for cat in categories %}
+                <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           </div>
         </div>
 
-        {% if product %}
-        <div class="sm:col-span-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" name="is_available" value="on"
+        <!-- Location -->
+        <div class="space-y-1.5">
+          <label for="product_location" class="block text-sm font-semibold text-gray-800">
+            Harvest Location / District
+          </label>
+          <input
+            type="text"
+            id="product_location"
+            name="location"
+            placeholder="e.g. Nuwara Eliya, Dambulla, Jaffna"
+            value="{{ product.location if product else (current_user.location or current_user.district or '') }}"
+            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          />
+        </div>
+
+        <!-- Quantity Available -->
+        <div class="space-y-1.5">
+          <label for="product_quantity" class="block text-sm font-semibold text-gray-800">
+            Available Quantity (kg) <span class="text-red-600 font-bold">*</span>
+          </label>
+          <input
+            type="number"
+            id="product_quantity"
+            name="quantity_kg"
+            required
+            min="0.1"
+            step="0.1"
+            placeholder="e.g. 500"
+            value="{{ product.quantity_kg if product else '' }}"
+            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          />
+        </div>
+
+        <!-- Price per kg -->
+        <div class="space-y-1.5">
+          <label for="product_price" class="block text-sm font-semibold text-gray-800">
+            Asking Price per kg (Rs.) <span class="text-red-600 font-bold">*</span>
+          </label>
+          <input
+            type="number"
+            id="product_price"
+            name="price_per_kg"
+            required
+            min="1"
+            step="0.01"
+            placeholder="e.g. 180"
+            value="{{ product.price_per_kg if product else '' }}"
+            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="space-y-1.5">
+        <label for="product_description" class="block text-sm font-semibold text-gray-800">
+          Harvest Notes &amp; Quality Details
+        </label>
+        <textarea
+          id="product_description"
+          name="description"
+          rows="4"
+          placeholder="Describe harvest date, grading, packing options, organic practices, or logistics info..."
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+        >{{ product.description if product else '' }}</textarea>
+      </div>
+
+      <!-- PRODUCT PHOTO UPLOAD WITH LIVE PREVIEW -->
+      <div class="space-y-2 pt-2">
+        <div class="flex items-center justify-between">
+          <label for="product_image_input" class="block text-sm font-semibold text-gray-800">
+            Real Produce Photo
+          </label>
+          <span class="text-xs text-gray-500">JPG, PNG, WebP (Max 5 MB)</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-5 p-5 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50/60 hover:bg-gray-50 transition">
+          <!-- Thumbnail preview frame -->
+          <div id="image-preview-wrapper" class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-xs flex items-center justify-center shrink-0">
+            <img
+              id="image-preview"
+              src="{{ product.display_image_url if product else '' }}"
+              alt="{{ product.name if product else 'Produce preview' }}"
+              class="w-full h-full object-cover {% if not product or not product.image_url %}hidden{% endif %}"
+            />
+            <div id="image-placeholder-icon" class="text-center p-3 {% if product and product.image_url %}hidden{% endif %}">
+              <svg class="mx-auto w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span class="text-[11px] text-gray-500 font-medium block mt-1">No Image</span>
+            </div>
+          </div>
+
+          <!-- File Picker & Feedback -->
+          <div class="flex-1 w-full space-y-2 text-center sm:text-left">
+            <input
+              type="file"
+              id="product_image_input"
+              name="image"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+              class="block w-full text-xs text-gray-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf file:text-white hover:file:bg-leaf-light file:cursor-pointer cursor-pointer"
+            />
+            <p id="file-info-text" class="text-xs text-gray-600">
+              {% if product and product.image_url %}
+                <span class="text-leaf font-semibold">✓ Current image active.</span> Upload a new file if you want to replace it.
+              {% else %}
+                Upload a genuine photo of your crops. If omitted, the category illustration will be used.
+              {% endif %}
+            </p>
+            <p id="file-error-text" class="text-xs text-red-600 font-semibold hidden"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Availability Toggle (when editing) -->
+      {% if product %}
+        <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              name="is_available"
+              value="on"
               {% if product.is_available %}checked{% endif %}
-              class="w-4 h-4 accent-leaf rounded" />
-            <span class="text-sm font-semibold text-gray-700">Product is available for sale</span>
+              class="w-5 h-5 accent-leaf rounded"
+            />
+            <div>
+              <span class="text-sm font-bold text-gray-900 block">Listing is active for sale</span>
+              <span class="text-xs text-gray-500">Uncheck to pause buyer inquiries without deleting the listing.</span>
+            </div>
           </label>
         </div>
-        {% endif %}
-      </div>
-      <div class="flex gap-3 pt-2">
-        <button type="submit" class="btn-primary flex-1 py-3 flex justify-center">
-          {{ 'Update Listing' if product else 'List Product' }}
+      {% endif %}
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-gray-100">
+        <button
+          type="submit"
+          class="btn-primary w-full sm:flex-1 py-3 text-base shadow-sm"
+        >
+          {{ 'Update Produce Listing' if product else 'Publish to Marketplace' }}
         </button>
-        <a href="{{ url_for('marketplace.index') }}" class="btn-secondary flex-1 py-3 flex justify-center">Cancel</a>
+        <a
+          href="{{ url_for('marketplace.index') }}"
+          class="btn-secondary w-full sm:w-auto px-6 py-3 text-center text-sm"
+        >
+          Cancel
+        </a>
       </div>
     </form>
   </div>
@@ -127,6 +237,7 @@
 
     if (fileInput) {
       fileInput.addEventListener('change', function() {
+        if (!errorText) return;
         errorText.classList.add('hidden');
         errorText.textContent = '';
 
@@ -142,33 +253,21 @@
           return;
         }
 
-        // Verify image type
-        const validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (!validExtensions.includes(ext)) {
-          errorText.textContent = 'Invalid format. Please select a JPG, JPEG, PNG, or WEBP image.';
-          errorText.classList.remove('hidden');
-          this.value = '';
-          return;
+        // Live preview
+        if (previewImg && placeholderIcon) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewImg.classList.remove('hidden');
+            placeholderIcon.classList.add('hidden');
+          };
+          reader.readAsDataURL(file);
         }
 
-        // Live preview via FileReader
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          previewImg.src = e.target.result;
-          previewImg.classList.remove('hidden');
-          if (placeholderIcon) placeholderIcon.classList.add('hidden');
-          infoText.innerHTML = '<span class="text-leaf font-semibold">Ready to upload:</span> ' +
-            escapeHtml(file.name) + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
-        };
-        reader.readAsDataURL(file);
+        if (infoText) {
+          infoText.innerHTML = '<span class="text-leaf font-semibold">✓ Selected:</span> ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+        }
       });
-    }
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.innerText = text;
-      return div.innerHTML;
     }
   })();
 </script>

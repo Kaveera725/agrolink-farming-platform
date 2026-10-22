@@ -1,86 +1,209 @@
 {% extends "base.html" %}
-{% block title %}Create Account{% endblock %}
+{% block title %}Create Account — AgroLink{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center py-12 px-4">
-  <div class="w-full max-w-lg">
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 bg-leaf-pale rounded-2xl mb-4">
-        <svg class="w-8 h-8 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+<div class="min-h-[80vh] flex items-center justify-center py-10 sm:py-16 px-4">
+  <div class="w-full max-w-xl space-y-6">
+    
+    <!-- Header -->
+    <div class="text-center space-y-2">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-leaf-pale text-leaf-dark rounded-2xl shadow-xs mx-auto">
+        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
         </svg>
       </div>
-      <h1 class="font-display text-3xl font-bold text-gray-800">Join AgroLink</h1>
-      <p class="text-gray-500 mt-1 text-sm">Create your account to start trading</p>
+      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+        Join AgroLink Sri Lanka
+      </h1>
+      <p class="text-xs sm:text-sm text-gray-600">
+        Choose your persona to begin direct agricultural trade
+      </p>
     </div>
 
-    <div class="card p-8">
-      <form method="POST" class="space-y-5">
+    <!-- Registration Card -->
+    <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
+      <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-6" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <!-- Role selection -->
-        <div>
-          <label class="form-label">I am a</label>
-          <div class="grid grid-cols-2 gap-3">
+
+        <!-- Role Selection Radios -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-800">
+            Account Type <span class="text-red-600 font-bold">*</span>
+          </label>
+          <div class="grid grid-cols-2 gap-3.5">
+            <!-- Farmer Option -->
             <label class="relative cursor-pointer">
-              <input type="radio" name="role" value="farmer" class="peer sr-only" {% if not form_data or form_data.role == 'farmer' %}checked{% endif %} />
-              <div class="border-2 border-gray-200 peer-checked:border-leaf peer-checked:bg-leaf-pale rounded-xl p-4 text-center transition-all">
-                <div class="text-2xl mb-1">🌾</div>
-                <div class="font-semibold text-sm text-gray-700 peer-checked:text-leaf">Farmer</div>
-                <div class="text-xs text-gray-400">List & sell crops</div>
+              <input
+                type="radio"
+                name="role"
+                value="farmer"
+                class="peer sr-only"
+                {% if not form_data or form_data.role == 'farmer' %}checked{% endif %}
+              />
+              <div class="border-2 border-gray-200 peer-checked:border-leaf peer-checked:bg-leaf-pale/50 peer-focus-visible:ring-2 peer-focus-visible:ring-leaf rounded-2xl p-4 text-center transition-all">
+                <span class="text-2xl block mb-1">👨‍🌾</span>
+                <span class="font-bold text-sm text-gray-800 peer-checked:text-leaf-dark block">Farmer</span>
+                <span class="text-xs text-gray-500 block">List &amp; sell crops</span>
               </div>
             </label>
+
+            <!-- Buyer Option -->
             <label class="relative cursor-pointer">
-              <input type="radio" name="role" value="buyer" class="peer sr-only" {% if form_data and form_data.role == 'buyer' %}checked{% endif %} />
-              <div class="border-2 border-gray-200 peer-checked:border-sky peer-checked:bg-sky-pale rounded-xl p-4 text-center transition-all">
-                <div class="text-2xl mb-1">🛒</div>
-                <div class="font-semibold text-sm text-gray-700">Buyer</div>
-                <div class="text-xs text-gray-400">Browse & order</div>
+              <input
+                type="radio"
+                name="role"
+                value="buyer"
+                class="peer sr-only"
+                {% if form_data and form_data.role == 'buyer' %}checked{% endif %}
+              />
+              <div class="border-2 border-gray-200 peer-checked:border-sky peer-checked:bg-sky-pale/50 peer-focus-visible:ring-2 peer-focus-visible:ring-sky rounded-2xl p-4 text-center transition-all">
+                <span class="text-2xl block mb-1">🛒</span>
+                <span class="font-bold text-sm text-gray-800 peer-checked:text-sky block">Buyer</span>
+                <span class="text-xs text-gray-500 block">Browse &amp; order</span>
               </div>
             </label>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="sm:col-span-2">
-            <label class="form-label">Full Name</label>
-            <input type="text" name="name" required class="form-input" placeholder="Your full name" value="{{ form_data.name if form_data else '' }}" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <!-- Full Name -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <label for="reg-name" class="block text-sm font-semibold text-gray-800">
+              Full Name <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="text"
+              id="reg-name"
+              name="name"
+              required
+              autocomplete="name"
+              placeholder="e.g. Bandara Jayasuriya"
+              value="{{ form_data.name if form_data else '' }}"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
           </div>
-          <div class="sm:col-span-2">
-            <label class="form-label">Email Address</label>
-            <input type="email" name="email" required class="form-input" placeholder="you@example.com" value="{{ form_data.email if form_data else '' }}" />
+
+          <!-- Email Address -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <label for="reg-email" class="block text-sm font-semibold text-gray-800">
+              Email Address <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="email"
+              id="reg-email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="you@domain.lk"
+              value="{{ form_data.email if form_data else '' }}"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
           </div>
-          <div>
-            <label class="form-label">Password</label>
-            <input type="password" name="password" required class="form-input" placeholder="Min 8 characters" minlength="8" />
+
+          <!-- Password -->
+          <div class="space-y-1.5">
+            <label for="reg-password" class="block text-sm font-semibold text-gray-800">
+              Password <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="password"
+              id="reg-password"
+              name="password"
+              required
+              minlength="8"
+              autocomplete="new-password"
+              placeholder="Min 8 characters"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
           </div>
-          <div>
-            <label class="form-label">Confirm Password</label>
-            <input type="password" name="confirm_password" required class="form-input" placeholder="Repeat password" minlength="8" />
+
+          <!-- Confirm Password -->
+          <div class="space-y-1.5">
+            <label for="reg-confirm-password" class="block text-sm font-semibold text-gray-800">
+              Confirm Password <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="password"
+              id="reg-confirm-password"
+              name="confirm_password"
+              required
+              minlength="8"
+              autocomplete="new-password"
+              placeholder="Repeat password"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
           </div>
-          <div class="sm:col-span-2">
-            <label class="form-label">WhatsApp Number *</label>
-            <input type="tel" name="whatsapp_number" required class="form-input" placeholder="077 123 4567 or +94771234567" value="{{ form_data.whatsapp_number if form_data else '' }}" />
-            <p class="text-xs text-gray-500 mt-1">Order and payment alerts are sent to this WhatsApp number</p>
+
+          <!-- WhatsApp Number -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label for="reg-whatsapp" class="block text-sm font-semibold text-gray-800">
+                WhatsApp Contact Number <span class="text-red-600 font-bold">*</span>
+              </label>
+              <span class="text-xs text-gray-500">Order Alerts</span>
+            </div>
+            <input
+              type="tel"
+              id="reg-whatsapp"
+              name="whatsapp_number"
+              required
+              autocomplete="tel"
+              placeholder="077 123 4567 or +94771234567"
+              value="{{ form_data.whatsapp_number if form_data else '' }}"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+            <p class="text-xs text-gray-500">Used for direct buyer-farmer trade communication</p>
           </div>
-          <div>
-            <label class="form-label">Phone <span class="text-gray-400 font-normal">(optional)</span></label>
-            <input type="tel" name="phone" class="form-input" placeholder="+94 77 123 4567" value="{{ form_data.phone if form_data else '' }}" />
+
+          <!-- Phone -->
+          <div class="space-y-1.5">
+            <label for="reg-phone" class="block text-sm font-semibold text-gray-800">
+              Direct Phone <span class="text-xs text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="tel"
+              id="reg-phone"
+              name="phone"
+              autocomplete="tel"
+              placeholder="+94 77 123 4567"
+              value="{{ form_data.phone if form_data else '' }}"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
           </div>
-          <div>
-            <label class="form-label">Location <span class="text-gray-400 font-normal">(optional)</span></label>
-            <input type="text" name="location" class="form-input" placeholder="e.g. Kandy, Sri Lanka" value="{{ form_data.location if form_data else '' }}" />
+
+          <!-- Location -->
+          <div class="space-y-1.5">
+            <label for="reg-location" class="block text-sm font-semibold text-gray-800">
+              District / Location <span class="text-xs text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              id="reg-location"
+              name="location"
+              placeholder="e.g. Kandy, Badulla, Jaffna"
+              value="{{ form_data.location if form_data else '' }}"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
           </div>
         </div>
 
-        <button type="submit" class="w-full btn-primary py-3 text-base flex justify-center">
-          Create Account
+        <button
+          type="submit"
+          class="w-full btn-primary py-3.5 text-base shadow-sm justify-center flex"
+        >
+          Create AgroLink Account
         </button>
       </form>
     </div>
 
-    <p class="text-center mt-5 text-sm text-gray-500">
+    <!-- Sign In Link -->
+    <p class="text-center text-xs sm:text-sm text-gray-600">
       Already have an account?
-      <a href="{{ url_for('auth.login') }}" class="text-leaf font-semibold hover:underline">Sign in</a>
+      <a href="{{ url_for('auth.login') }}" class="text-leaf font-bold hover:underline">
+        Sign in here
+      </a>
     </p>
+
   </div>
 </div>
 {% endblock %}

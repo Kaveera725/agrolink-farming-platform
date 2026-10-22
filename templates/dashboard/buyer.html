@@ -1,77 +1,139 @@
 {% extends "base.html" %}
-{% block title %}Buyer Dashboard{% endblock %}
+{% import "components/badges.html" as badges with context %}
+{% import "components/buttons.html" as buttons with context %}
+
+{% block title %}Buyer Dashboard — AgroLink{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
 
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-    <div>
-      <h1 class="font-display text-3xl font-bold text-gray-800">Hello, {{ current_user.name.split()[0] }} 🛒</h1>
-      <p class="text-gray-500 mt-1">Track your orders and discover fresh produce.</p>
+  <!-- HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
+    <div class="space-y-1">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-pale text-sky text-xs font-semibold">
+        <span>🛒</span> Commercial Buyer Dashboard
+      </div>
+      <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
+        Ayubowan, {{ current_user.name.split()[0] }}
+      </h1>
+      <p class="text-sm text-gray-600">
+        Review purchase orders, monitor deliveries, and source fresh crops directly.
+      </p>
     </div>
-    <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-sm">Browse Marketplace</a>
+
+    <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-sm shadow-xs self-start sm:self-auto">
+      <span>Browse Produce Catalog</span>
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+      </svg>
+    </a>
   </div>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Orders</p>
-      <p class="font-display text-3xl font-bold text-sky mt-1">{{ orders|length }}</p>
+  <!-- STATS -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Orders</p>
+      <p class="font-display font-extrabold text-2xl sm:text-3xl text-sky mt-1">{{ orders|length }}</p>
+      <p class="text-xs text-gray-500 mt-1">Lifetime purchases</p>
     </div>
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Pending</p>
-      <p class="font-display text-3xl font-bold text-yellow-500 mt-1">{{ orders|selectattr('status','equalto','pending')|list|length }}</p>
+
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Pending Orders</p>
+      <p class="font-display font-extrabold text-2xl sm:text-3xl text-amber-600 mt-1">
+        {{ orders|selectattr('status','equalto','pending')|list|length }}
+      </p>
+      <p class="text-xs text-gray-500 mt-1">Awaiting confirmation</p>
     </div>
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Delivered</p>
-      <p class="font-display text-3xl font-bold text-leaf mt-1">{{ orders|selectattr('status','equalto','delivered')|list|length }}</p>
+
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Delivered</p>
+      <p class="font-display font-extrabold text-2xl sm:text-3xl text-leaf mt-1">
+        {{ orders|selectattr('status','equalto','delivered')|list|length }}
+      </p>
+      <p class="text-xs text-gray-500 mt-1">Fulfilled successfully</p>
     </div>
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Spent</p>
-      <p class="font-display text-2xl font-bold text-earth mt-1">LKR {{ "{:,.0f}".format(total_spent) }}</p>
+
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Spend</p>
+      <p class="font-display font-extrabold text-xl sm:text-2xl text-leaf-dark mt-1">Rs. {{ "{:,.0f}".format(total_spent) }}</p>
+      <p class="text-xs text-gray-500 mt-1">Direct trade savings</p>
     </div>
   </div>
 
-  <!-- Orders list -->
-  <div class="card">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-      <h2 class="font-display text-lg font-bold text-gray-800">My Orders</h2>
-      <a href="{{ url_for('orders.index') }}" class="text-xs text-leaf font-semibold hover:underline">View all →</a>
+  <!-- ORDERS TABLE -->
+  <div class="bg-white rounded-3xl border border-gray-200/80 shadow-xs overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50/70 border-b border-gray-200 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <h2 class="font-display font-bold text-lg text-gray-900">Purchase Order History</h2>
+        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-pale text-sky">
+          {{ orders|length }}
+        </span>
+      </div>
+      <a href="{{ url_for('orders.index') }}" class="text-xs font-semibold text-leaf hover:underline">
+        All Orders →
+      </a>
     </div>
+
     {% if orders %}
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Product</th>
-            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Qty</th>
-            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
-            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-            <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
-            <th class="px-6 py-3"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          {% for order in orders %}
-          <tr class="hover:bg-gray-50 transition">
-            <td class="px-6 py-4 font-medium text-gray-800">{{ order.product.name }}</td>
-            <td class="px-6 py-4 text-gray-500">{{ order.quantity_kg }} kg</td>
-            <td class="px-6 py-4 font-semibold text-leaf">LKR {{ "{:,.0f}".format(order.total_price) }}</td>
-            <td class="px-6 py-4"><span class="badge-{{ order.status }}">{{ order.status }}</span></td>
-            <td class="px-6 py-4 text-gray-400">{{ order.created_at.strftime('%d %b %Y') }}</td>
-            <td class="px-6 py-4">
-              <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="text-leaf text-xs font-semibold hover:underline">View →</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+      <div class="overflow-x-auto w-full">
+        <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
+          <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+            <tr>
+              <th scope="col" class="py-3.5 px-6">Produce Item</th>
+              <th scope="col" class="py-3.5 px-4">Quantity</th>
+              <th scope="col" class="py-3.5 px-4 text-leaf-dark font-bold">Total (Rs.)</th>
+              <th scope="col" class="py-3.5 px-4">Status</th>
+              <th scope="col" class="py-3.5 px-4">Order Date</th>
+              <th scope="col" class="py-3.5 px-6 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for order in orders %}
+              <tr class="hover:bg-gray-50/80 transition-colors">
+                <td class="py-4 px-6 font-semibold text-gray-900">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                      <img src="{{ order.product.thumbnail_url }}" alt="{{ order.product.name }}" class="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <p class="font-semibold text-gray-900 truncate">{{ order.product.name }}</p>
+                      <p class="text-xs text-gray-500">By {{ order.product.farmer.name }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-4 text-gray-700">
+                  {{ "{:,.0f}".format(order.quantity_kg) }} kg
+                </td>
+                <td class="py-4 px-4 font-display font-bold text-leaf-dark text-base">
+                  Rs. {{ "{:,.0f}".format(order.total_price) }}
+                </td>
+                <td class="py-4 px-4">
+                  {{ badges.order_status_badge(order.status) }}
+                </td>
+                <td class="py-4 px-4 text-xs text-gray-500">
+                  {{ order.created_at.strftime('%d %b %Y') }}
+                </td>
+                <td class="py-4 px-6 text-right">
+                  <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="btn-secondary text-xs py-1.5 px-3">
+                    Details
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% else %}
-    <div class="py-16 text-center text-gray-400">
-      <div class="text-5xl mb-4">📭</div>
-      <p class="font-medium">No orders yet.</p>
-      <a href="{{ url_for('marketplace.index') }}" class="text-leaf text-sm font-semibold hover:underline mt-2 inline-block">Start shopping →</a>
-    </div>
+      <div class="py-16 text-center text-gray-500 space-y-3">
+        <div class="text-5xl">📭</div>
+        <p class="text-base font-semibold text-gray-800">No purchases made yet</p>
+        <p class="text-xs text-gray-500">Browse verified farmer listings and place direct purchase orders.</p>
+        <div class="pt-2">
+          <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-xs py-2 px-5 inline-block">
+            Start Sourcing
+          </a>
+        </div>
+      </div>
     {% endif %}
   </div>
 

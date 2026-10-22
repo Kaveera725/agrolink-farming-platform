@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="rootBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350F" />
+      <stop offset="100%" stop-color="#451A03" />
+    </linearGradient>
+    <linearGradient id="potatoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#B45309" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#rootBg)" />
+  <circle cx="200" cy="150" r="110" fill="#ffffff" opacity="0.05" />
+  <g transform="translate(130, 75) scale(1.3)">
+    <!-- Root / Potato / Yam -->
+    <ellipse cx="65" cy="65" rx="42" ry="32" transform="rotate(-15 65 65)" fill="url(#potatoGrad)" />
+    <!-- Potato dots -->
+    <ellipse cx="48" cy="55" rx="3" ry="1.5" fill="#78350F" opacity="0.6" />
+    <ellipse cx="78" cy="60" rx="3.5" ry="2" fill="#78350F" opacity="0.6" />
+    <ellipse cx="62" cy="78" rx="2.5" ry="1.5" fill="#78350F" opacity="0.6" />
+    <!-- Carrot / Beet shape -->
+    <path d="M45 70 Q30 95 20 120 Q35 110 50 85 Z" fill="#F97316" opacity="0.95" />
+  </g>
+  <text x="200" y="240" font-family="'DM Sans', sans-serif" font-size="16" font-weight="600" fill="#FEF3C7" text-anchor="middle" letter-spacing="1">ROOTS &amp; TUBERS</text>
+</svg>

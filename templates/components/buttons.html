@@ -1,0 +1,46 @@
+{# AgroLink Reusable Button Macros with Text Flexibility & Focus Rings #}
+
+{% macro btn_primary(text, href=none, icon=none, type='button', extra_classes='') %}
+  {% set base_classes = "inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl font-semibold text-white bg-leaf hover:bg-leaf-light active:bg-leaf-dark shadow-sm hover:shadow-md transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none " ~ extra_classes %}
+  {% if href %}
+    <a href="{{ href }}" class="{{ base_classes }}">
+      {% if icon %}{{ icon|safe }}{% endif %}
+      <span>{{ text }}</span>
+    </a>
+  {% else %}
+    <button type="{{ type }}" class="{{ base_classes }}">
+      {% if icon %}{{ icon|safe }}{% endif %}
+      <span>{{ text }}</span>
+    </button>
+  {% endif %}
+{% endmacro %}
+
+{% macro btn_secondary(text, href=none, icon=none, type='button', extra_classes='') %}
+  {% set base_classes = "inline-flex items-center justify-center gap-2 px-5 py-2.5 min-h-[44px] rounded-xl font-semibold text-leaf bg-white border border-leaf/40 hover:bg-leaf-pale hover:border-leaf active:bg-leaf-pale/80 shadow-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none " ~ extra_classes %}
+  {% if href %}
+    <a href="{{ href }}" class="{{ base_classes }}">
+      {% if icon %}{{ icon|safe }}{% endif %}
+      <span>{{ text }}</span>
+    </a>
+  {% else %}
+    <button type="{{ type }}" class="{{ base_classes }}">
+      {% if icon %}{{ icon|safe }}{% endif %}
+      <span>{{ text }}</span>
+    </button>
+  {% endif %}
+{% endmacro %}
+
+{% macro btn_danger(text, href=none, icon=none, type='button', extra_classes='') %}
+  {% set base_classes = "inline-flex items-center justify-center gap-2 px-4 py-2 min-h-[44px] rounded-xl font-semibold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 shadow-xs transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none text-sm " ~ extra_classes %}
+  {% if href %}
+    <a href="{{ href }}" class="{{ base_classes }}">
+      {% if icon %}{{ icon|safe }}{% endif %}
+      <span>{{ text }}</span>
+    </a>
+  {% else %}
+    <button type="{{ type }}" class="{{ base_classes }}">
+      {% if icon %}{{ icon|safe }}{% endif %}
+      <span>{{ text }}</span>
+    </button>
+  {% endif %}
+{% endmacro %}
