@@ -1,0 +1,2220 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Prices & Deals — AgroLink — Sri Lankan Agricultural Marketplace</title>
+  <meta name="csrf-token" content="IjFkY2Q1YTg5MjQ3NjE2ZjA5MWZiYWZlNDZhN2I0ZmY3NjAwOTgwNDci.atnbjg.9JoIBcyhmKeMAAPi7mIdFC7aMMQ">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            leaf:   { DEFAULT: '#2D6A4F', light: '#40916C', dark: '#1B4332', pale: '#D8F3DC' },
+            earth:  { DEFAULT: '#8B4513', light: '#A0522D', pale: '#FDF1E8' },
+            gold:   { DEFAULT: '#D97706', light: '#F59E0B', pale: '#FFF8E7' },
+            sky:    { DEFAULT: '#1A659E', pale: '#EBF4FB' },
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:    ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; background-color: #F8FAF7; color: #111827; }
+    .nav-link { @apply text-gray-700 hover:text-leaf font-medium transition-colors duration-150 px-2.5 py-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf; }
+    .btn-primary { @apply inline-flex items-center justify-center gap-2 bg-leaf text-white px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-light active:bg-leaf-dark transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-secondary { @apply inline-flex items-center justify-center gap-2 bg-white border border-leaf/40 text-leaf px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-pale hover:border-leaf transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-danger { @apply inline-flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 min-h-[44px] rounded-xl font-semibold hover:bg-red-700 transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2; }
+    .card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden; }
+    .form-input { @apply w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition bg-white text-gray-900 min-h-[44px]; }
+    .form-label { @apply block text-sm font-semibold text-gray-800 mb-1.5; }
+  </style>
+  
+</head>
+<body class="min-h-full flex flex-col antialiased text-gray-900 overflow-x-hidden">
+
+  <!-- SKIP TO CONTENT -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:bg-leaf focus:text-white focus:rounded-xl focus:shadow-xl focus:font-semibold focus:outline-none focus:ring-2 focus:ring-leaf-light">
+    Skip to main content
+  </a>
+
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="bg-white border-b border-gray-200/80 sticky top-0 z-40 shadow-xs" aria-label="Main Navigation">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Brand & Hamburger Area -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile Drawer Toggle Button -->
+          <button
+            id="mobile-menu-toggle"
+            type="button"
+            class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-gray-700 hover:text-leaf hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf"
+            aria-controls="mobile-drawer"
+            aria-expanded="false"
+            aria-label="Open main menu"
+          >
+            <svg id="hamburger-icon" class="w-6 h-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-lg p-1">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-leaf rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl sm:text-2xl text-leaf-dark tracking-tight">Agro<span class="text-leaf-light">Link</span></span>
+          </a>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-1 lg:gap-2">
+          <a href="/" class="nav-link ">Home</a>
+          <a href="/marketplace/" class="nav-link ">Marketplace</a>
+          <a href="/prices/" class="nav-link text-leaf font-bold bg-leaf-pale/50">Market Prices</a>
+          
+        </div>
+
+        <!-- Auth Actions / Profile Menu -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <a href="/auth/login" class="btn-secondary text-sm py-2 px-3.5 sm:px-4">Log In</a>
+          <a href="/auth/register" class="btn-primary text-sm py-2 px-3.5 sm:px-4">Sign Up</a>
+          
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MOBILE DRAWER NAVIGATION (Overlay & Offcanvas) -->
+    <div id="mobile-drawer" class="md:hidden hidden fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+      <!-- Backdrop -->
+      <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+
+      <!-- Drawer Content -->
+      <div class="fixed inset-y-0 left-0 max-w-[300px] w-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
+        <div class="space-y-6">
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+            <a href="/" class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-leaf rounded-xl flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+              </div>
+              <span class="font-display font-bold text-lg text-leaf-dark">AgroLink</span>
+            </a>
+            <button id="mobile-drawer-close" type="button" class="p-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf" aria-label="Close menu">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Drawer Links -->
+          <nav class="flex flex-col space-y-1">
+            <a href="/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Home
+            </a>
+            <a href="/marketplace/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+              Marketplace
+            </a>
+            <a href="/prices/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Market Prices
+            </a>
+            
+          </nav>
+        </div>
+
+        <!-- Drawer Footer / Auth -->
+        <div class="pt-6 border-t border-gray-100 space-y-3">
+          
+            <div class="flex flex-col gap-2">
+              <a href="/auth/login" class="btn-secondary w-full text-center">Log In</a>
+              <a href="/auth/register" class="btn-primary w-full text-center">Sign Up</a>
+            </div>
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- FLASH NOTIFICATIONS -->
+  
+  
+  
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="main-content" class="flex-1 w-full max-w-full">
+    
+<!-- HEADER BANNER -->
+<section class="bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white py-10 sm:py-14 relative overflow-hidden" aria-labelledby="prices-title">
+  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" aria-hidden="true"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+    <div class="space-y-2 max-w-2xl">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-xs font-semibold text-green-100 border border-white/20">
+        <span>📊</span> Real-Time Agricultural Benchmarks
+      </div>
+      <h1 id="prices-title" class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
+        Sri Lanka Market Prices
+      </h1>
+      <p class="text-sm sm:text-base text-green-100/90 leading-relaxed font-normal">
+        Official wholesale buying &amp; selling price intelligence from key commercial trading centres including Colombo Pettah.
+      </p>
+    </div>
+
+    <div>
+      <a
+        href="/prices/bids"
+        class="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-light active:bg-amber-600 text-gray-900 font-bold px-6 py-3.5 min-h-[46px] rounded-xl shadow-lg transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      >
+        <span>Compare Direct Farmer Deals</span>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ADVISORY NOTICE -->
+<aside class="bg-amber-50/90 border-b border-amber-200 py-3 text-xs sm:text-sm text-amber-900" aria-label="Pricing note">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2">
+    <svg class="w-4 h-4 text-amber-700 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    </svg>
+    <span>
+      <strong>Note:</strong> Wholesale benchmarks are updated daily and serve as indicative guidance. Actual transaction prices depend on crop quality grade, freshness, and transport distance.
+    </span>
+  </div>
+</aside>
+
+<!-- MAIN CONTAINER -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
+
+  <!-- BEST DEALS SECTION -->
+  
+    <section aria-labelledby="best-deals-title" class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-leaf-dark text-xs font-semibold mb-1">
+            <span>🔥</span> Direct Farmer Savings
+          </div>
+          <h2 id="best-deals-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            Best Deals for Commercial Buyers
+          </h2>
+          <p class="text-xs sm:text-sm text-gray-600">Farmer listings priced below Colombo wholesale benchmark selling rates.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/16" class="hover:text-leaf transition">
+                    Beans2
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 60/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Fruits
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 160/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 100<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 60 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/16"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/7" class="hover:text-leaf transition">
+                    Beans Renamed
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 60/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Fruits
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 160/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 100<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 60 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/7"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/25" class="hover:text-leaf transition">
+                    Beans Renamed
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 60/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Fruits
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 160/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 100<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 60 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/25"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/26" class="hover:text-leaf transition">
+                    Beans Renamed
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 60/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Fruits
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 160/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 100<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 60 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/26"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/32" class="hover:text-leaf transition">
+                    Beans2
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 60/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Fruits
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 160/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 100<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 60 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/32"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/48" class="hover:text-leaf transition">
+                    Delete &amp; Restore Test Leeks
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 60/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Vegetables
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 180/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 120<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 60 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/48"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/6" class="hover:text-leaf transition">
+                    Tomato
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 40/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Vegetables
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 120/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 80<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 40 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/6"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
+                  <a href="/marketplace/product/3" class="hover:text-leaf transition">
+                    Fresh Cabbage
+                  </a>
+                </h3>
+                
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    Save Rs. 15/kg
+  </span>
+
+              </div>
+
+              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
+                Vegetables
+              </span>
+
+              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
+                <div class="flex items-baseline justify-between text-xs text-gray-500">
+                  <span>Colombo Wholesale:</span>
+                  <span class="line-through font-medium">Rs. 75/kg</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
+                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. 60<span class="text-xs font-normal text-gray-500">/kg</span></span>
+                </div>
+                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>You save Rs. 15 on every kg</span>
+                </div>
+              </div>
+            </div>
+
+            <a
+              href="/marketplace/product/3"
+              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
+            >
+              <span>View Product Listing</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </article>
+        
+      </div>
+    </section>
+  
+
+  <!-- CATEGORY FILTER & BENCHMARK PRICE TABLES -->
+  <section aria-labelledby="benchmark-tables-title" class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h2 id="benchmark-tables-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Daily Wholesale Benchmark Rates
+        </h2>
+        <p class="text-xs sm:text-sm text-gray-600">Comparing farmer buying prices vs. retail selling prices with wholesale margins.</p>
+      </div>
+
+      <!-- Category Filter Pills (Mobile friendly wrapping) -->
+      <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter prices by category">
+        <button
+          type="button"
+          id="filter-btn-all"
+          onclick="filterCategory('all')"
+          aria-pressed="true"
+          class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-leaf text-white"
+        >
+          All
+        </button>
+        
+          <button
+            type="button"
+            id="filter-btn-1"
+            onclick="filterCategory('Fruits')"
+            aria-pressed="false"
+            class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-leaf"
+          >
+            Fruits
+          </button>
+        
+          <button
+            type="button"
+            id="filter-btn-2"
+            onclick="filterCategory('Grains &amp; Rice')"
+            aria-pressed="false"
+            class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-leaf"
+          >
+            Grains &amp; Rice
+          </button>
+        
+          <button
+            type="button"
+            id="filter-btn-3"
+            onclick="filterCategory('Pulses')"
+            aria-pressed="false"
+            class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-leaf"
+          >
+            Pulses
+          </button>
+        
+          <button
+            type="button"
+            id="filter-btn-4"
+            onclick="filterCategory('Roots &amp; Tubers')"
+            aria-pressed="false"
+            class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-leaf"
+          >
+            Roots &amp; Tubers
+          </button>
+        
+          <button
+            type="button"
+            id="filter-btn-5"
+            onclick="filterCategory('Spices')"
+            aria-pressed="false"
+            class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-leaf"
+          >
+            Spices
+          </button>
+        
+          <button
+            type="button"
+            id="filter-btn-6"
+            onclick="filterCategory('Vegetables')"
+            aria-pressed="false"
+            class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-leaf"
+          >
+            Vegetables
+          </button>
+        
+      </div>
+    </div>
+
+    <!-- Grouped Tables by Category -->
+    <div class="space-y-8">
+      
+        <div class="category-section bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden" data-category="Fruits">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-lg text-gray-900 flex items-center gap-2">
+              <span>Fruits</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
+                5 crops
+              </span>
+            </h3>
+            <span class="text-xs text-gray-500">Colombo Market Benchmark</span>
+          </div>
+
+          <!-- Responsive Scroll Wrapper -->
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Crop Variety</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-sky font-bold">Farmer Buying (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Retail Selling (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Wholesale Margin</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Location</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Banana
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 65
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 100
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +53.8%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Mango
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 120
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 180
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +50.0%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Pineapple
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 80
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 130
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +62.5%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Papaya
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 55
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 90
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +63.6%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Avocado
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 150
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 220
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +46.7%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+        <div class="category-section bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden" data-category="Grains &amp; Rice">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-lg text-gray-900 flex items-center gap-2">
+              <span>Grains &amp; Rice</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
+                3 crops
+              </span>
+            </h3>
+            <span class="text-xs text-gray-500">Colombo Market Benchmark</span>
+          </div>
+
+          <!-- Responsive Scroll Wrapper -->
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Crop Variety</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-sky font-bold">Farmer Buying (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Retail Selling (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Wholesale Margin</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Location</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Rice (Samba)
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 95
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 135
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +42.1%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Rice (Nadu)
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 85
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 120
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +41.2%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Maize
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 55
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 80
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +45.5%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+        <div class="category-section bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden" data-category="Pulses">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-lg text-gray-900 flex items-center gap-2">
+              <span>Pulses</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
+                2 crops
+              </span>
+            </h3>
+            <span class="text-xs text-gray-500">Colombo Market Benchmark</span>
+          </div>
+
+          <!-- Responsive Scroll Wrapper -->
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Crop Variety</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-sky font-bold">Farmer Buying (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Retail Selling (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Wholesale Margin</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Location</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Lentils
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 170
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 240
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +41.2%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Chickpeas
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 190
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 270
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +42.1%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+        <div class="category-section bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden" data-category="Roots &amp; Tubers">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-lg text-gray-900 flex items-center gap-2">
+              <span>Roots &amp; Tubers</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
+                3 crops
+              </span>
+            </h3>
+            <span class="text-xs text-gray-500">Colombo Market Benchmark</span>
+          </div>
+
+          <!-- Responsive Scroll Wrapper -->
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Crop Variety</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-sky font-bold">Farmer Buying (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Retail Selling (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Wholesale Margin</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Location</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Sweet Potato
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 70
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 110
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +57.1%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Cassava
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 40
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 65
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +62.5%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Potato
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 80
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 120
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +50.0%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+        <div class="category-section bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden" data-category="Spices">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-lg text-gray-900 flex items-center gap-2">
+              <span>Spices</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
+                4 crops
+              </span>
+            </h3>
+            <span class="text-xs text-gray-500">Colombo Market Benchmark</span>
+          </div>
+
+          <!-- Responsive Scroll Wrapper -->
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Crop Variety</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-sky font-bold">Farmer Buying (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Retail Selling (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Wholesale Margin</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Location</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Red Chilli
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 700
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 950
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +35.7%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Turmeric
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 450
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 650
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +44.4%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Ginger
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 300
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 480
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +60.0%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Garlic
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 350
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 520
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +48.6%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+        <div class="category-section bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden" data-category="Vegetables">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-lg text-gray-900 flex items-center gap-2">
+              <span>Vegetables</span>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
+                8 crops
+              </span>
+            </h3>
+            <span class="text-xs text-gray-500">Colombo Market Benchmark</span>
+          </div>
+
+          <!-- Responsive Scroll Wrapper -->
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Crop Variety</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-sky font-bold">Farmer Buying (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Retail Selling (Rs./kg)</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Wholesale Margin</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Location</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Tomato
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 85
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 120
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +41.2%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Carrot
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 60
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 95
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +58.3%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Cabbage
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 45
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 75
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +66.7%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Beans
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 110
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 160
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +45.5%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Brinjal
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 70
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 105
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +50.0%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Leeks
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 130
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 180
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-amber-100 text-amber-900 border border-amber-200
+                        ">
+                        +38.5%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Pumpkin
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 40
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 65
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +62.5%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Cucumber
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
+                      Rs. 55
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 85
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
+                        
+                          bg-rose-100 text-rose-900 border border-rose-200
+                        ">
+                        +54.5%
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
+                      Colombo
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+    </div>
+  </section>
+
+  <!-- CHEAPEST SELLERS (DIRECT FROM FARMERS) -->
+  <section aria-labelledby="sellers-title" class="space-y-6 pt-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-earth-pale text-earth text-xs font-semibold mb-1">
+          <span>👨‍🌾</span> Verified Farmer Listings
+        </div>
+        <h2 id="sellers-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Cheapest Local Sellers (Direct from Farmers)
+        </h2>
+        <p class="text-xs sm:text-sm text-gray-600">Lowest priced active produce from registered growers across all categories.</p>
+      </div>
+    </div>
+
+    
+      
+        <div class="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden mb-6">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-base sm:text-lg text-gray-900">Fruits</h3>
+            <span class="text-xs text-gray-500">Direct Farmer Offerings</span>
+          </div>
+
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[640px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Product</th>
+                  <th scope="col" class="py-3.5 px-4">Farmer</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Farmer Price</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Market Benchmark</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Potential Savings</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Beans2
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 100
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        Rs. 160
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                            Save Rs. 60/kg
+                          </span>
+                        
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/16"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Beans Renamed
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 100
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        Rs. 160
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                            Save Rs. 60/kg
+                          </span>
+                        
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/7"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Beans Renamed
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 100
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        Rs. 160
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                            Save Rs. 60/kg
+                          </span>
+                        
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/25"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Beans Renamed
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 100
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        Rs. 160
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                            Save Rs. 60/kg
+                          </span>
+                        
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/26"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Test2
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 100
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        <span class="text-xs text-gray-400">N/A</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        <span class="text-xs text-gray-400">—</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/31"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+    
+      
+        <div class="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden mb-6">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-base sm:text-lg text-gray-900">Roots &amp; Tubers</h3>
+            <span class="text-xs text-gray-500">Direct Farmer Offerings</span>
+          </div>
+
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[640px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Product</th>
+                  <th scope="col" class="py-3.5 px-4">Farmer</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Farmer Price</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Market Benchmark</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Potential Savings</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      potato
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          N
+                        </span>
+                        <span class="truncate max-w-[140px]">Nimal Perera</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 141
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        Rs. 120
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        
+                          <span class="text-xs text-amber-700 font-medium">Above market (+Rs. 21)</span>
+                        
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/89"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+    
+      
+        <div class="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden mb-6">
+          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-display font-bold text-base sm:text-lg text-gray-900">Vegetables</h3>
+            <span class="text-xs text-gray-500">Direct Farmer Offerings</span>
+          </div>
+
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[640px]">
+              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6">Product</th>
+                  <th scope="col" class="py-3.5 px-4">Farmer</th>
+                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Farmer Price</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Market Benchmark</th>
+                  <th scope="col" class="py-3.5 px-4 text-right">Potential Savings</th>
+                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Fresh Cabbage
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          S
+                        </span>
+                        <span class="truncate max-w-[140px]">Sunil Fernando</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 60
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        Rs. 75
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                            Save Rs. 15/kg
+                          </span>
+                        
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/3"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Tomato
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          N
+                        </span>
+                        <span class="truncate max-w-[140px]">Nimal Perera</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 80
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        Rs. 120
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                            Save Rs. 40/kg
+                          </span>
+                        
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/6"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Active Cancel Test Spinach
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 90
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        <span class="text-xs text-gray-400">N/A</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        <span class="text-xs text-gray-400">—</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/58"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Active Cancel Test Spinach
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 90
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        <span class="text-xs text-gray-400">N/A</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        <span class="text-xs text-gray-400">—</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/63"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+                  <tr class="hover:bg-gray-50/80 transition-colors">
+                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                      Active Cancel Test Spinach
+                    </td>
+                    <td class="py-3.5 px-4 text-gray-700">
+                      <div class="flex items-center gap-1.5">
+                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
+                          T
+                        </span>
+                        <span class="truncate max-w-[140px]">Test Farmer</span>
+                      </div>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
+                      Rs. 90
+                    </td>
+                    <td class="py-3.5 px-4 text-right text-gray-600">
+                      
+                        <span class="text-xs text-gray-400">N/A</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      
+                        <span class="text-xs text-gray-400">—</span>
+                      
+                    </td>
+                    <td class="py-3.5 px-4 sm:px-6 text-right">
+                      <a
+                        href="/marketplace/product/68"
+                        class="btn-primary text-xs py-1.5 px-3"
+                      >
+                        Buy Now
+                      </a>
+                    </td>
+                  </tr>
+                
+              </tbody>
+            </table>
+          </div>
+        </div>
+      
+    
+  </section>
+
+  <!-- SUMMARY STATS -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
+    <div class="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-xs">
+      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Tracked Categories</span>
+      <p class="font-display font-extrabold text-3xl text-gray-900 mt-1">6</p>
+    </div>
+    <div class="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-xs">
+      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Active Best Deals</span>
+      <p class="font-display font-extrabold text-3xl text-leaf mt-1">8</p>
+    </div>
+    <div class="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-xs">
+      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Tracked Produce Items</span>
+      <p class="font-display font-extrabold text-3xl text-sky mt-1">6</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- INTERACTIVE FILTER SCRIPT -->
+<script>
+  function filterCategory(cat) {
+    document.querySelectorAll('.category-section').forEach(el => {
+      el.style.display = (cat === 'all' || el.dataset.category === cat) ? 'block' : 'none';
+    });
+
+    // Update active filter pill button styles
+    document.querySelectorAll('.cat-filter-btn').forEach(btn => {
+      btn.setAttribute('aria-pressed', 'false');
+      btn.classList.remove('bg-leaf', 'text-white');
+      btn.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-200');
+    });
+
+    const activeBtn = event?.currentTarget;
+    if (activeBtn) {
+      activeBtn.setAttribute('aria-pressed', 'true');
+      activeBtn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-200');
+      activeBtn.classList.add('bg-leaf', 'text-white');
+    }
+  }
+</script>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-leaf-dark text-white mt-16 sm:mt-24 border-t border-emerald-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+        <!-- Col 1: About -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-leaf-light rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl text-white">AgroLink</span>
+          </div>
+          <p class="text-green-200/90 text-sm leading-relaxed max-w-sm">
+            Empowering Sri Lankan agriculture through transparent pricing, direct marketplace connections, and dependable harvest tracking.
+          </p>
+        </div>
+
+        <!-- Col 2: Quick Links -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Platform Links</h4>
+          <ul class="space-y-2 text-sm text-green-200">
+            <li><a href="/" class="hover:text-white transition inline-block py-1">Home</a></li>
+            <li><a href="/marketplace/" class="hover:text-white transition inline-block py-1">Browse Marketplace</a></li>
+            <li><a href="/prices/" class="hover:text-white transition inline-block py-1">Live Market Prices</a></li>
+            
+            <li><a href="/auth/register" class="hover:text-white transition inline-block py-1">Create Account</a></li>
+            <li><a href="/auth/login" class="hover:text-white transition inline-block py-1">Sign In</a></li>
+            
+          </ul>
+        </div>
+
+        <!-- Col 3: Academic / Info -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Academic Project</h4>
+          <p class="text-sm text-green-200 leading-relaxed">
+            BSc (Hons) in Software Engineering<br>
+            Kingston University London &amp; Esoft Campus Sri Lanka
+          </p>
+          <div class="mt-4 pt-3 border-t border-emerald-900/60 text-xs text-green-300">
+            <span>Production ready agricultural trading framework</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-emerald-900 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-green-300 gap-2">
+        <p>© 2024 AgroLink Marketplace — S E Coulton (Esoft ID: 131044)</p>
+        <p class="text-green-400 font-medium">Built for Sri Lankan farmers &amp; buyers</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GLOBAL SCRIPTS -->
+  <script>
+    (function() {
+      // 1. CSRF Header setup for all dynamic fetch requests
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (token && window.fetch) {
+        const _fetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          options = options || {};
+          const method = (options.method || 'GET').toUpperCase();
+          if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+            options.headers = options.headers || {};
+            if (options.headers instanceof Headers) {
+              if (!options.headers.has('X-CSRFToken')) options.headers.set('X-CSRFToken', token);
+            } else if (Array.isArray(options.headers)) {
+              if (!options.headers.some(([k]) => k.toLowerCase() === 'x-csrftoken')) {
+                options.headers.push(['X-CSRFToken', token]);
+              }
+            } else {
+              if (!options.headers['X-CSRFToken']) {
+                options.headers['X-CSRFToken'] = token;
+              }
+            }
+          }
+          return _fetch(url, options);
+        };
+      }
+
+      // 2. Desktop User dropdown menu interaction
+      const menuBtn = document.getElementById('user-menu-button');
+      const dropdown = document.getElementById('user-dropdown-menu');
+      const chevron = document.getElementById('user-menu-chevron');
+      if (menuBtn && dropdown) {
+        menuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isHidden = dropdown.classList.contains('hidden');
+          if (isHidden) {
+            dropdown.classList.remove('hidden');
+            menuBtn.setAttribute('aria-expanded', 'true');
+            if (chevron) chevron.classList.add('rotate-180');
+          } else {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('click', function(e) {
+          if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+      }
+
+      // 3. Mobile Navigation Drawer interaction
+      const drawerToggle = document.getElementById('mobile-menu-toggle');
+      const drawer = document.getElementById('mobile-drawer');
+      const drawerClose = document.getElementById('mobile-drawer-close');
+      const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
+      const hamburgerIcon = document.getElementById('hamburger-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      function openDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'true');
+        if (hamburgerIcon) hamburgerIcon.classList.add('hidden');
+        if (closeIcon) closeIcon.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDrawer() {
+        if (!drawer) return;
+        drawer.classList.add('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'false');
+        if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
+        if (closeIcon) closeIcon.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      if (drawerToggle && drawer) {
+        drawerToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isOpen = !drawer.classList.contains('hidden');
+          if (isOpen) {
+            closeDrawer();
+          } else {
+            openDrawer();
+          }
+        });
+      }
+
+      if (drawerClose) {
+        drawerClose.addEventListener('click', closeDrawer);
+      }
+
+      if (drawerBackdrop) {
+        drawerBackdrop.addEventListener('click', closeDrawer);
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && drawer && !drawer.classList.contains('hidden')) {
+          closeDrawer();
+        }
+      });
+    })();
+  </script>
+  
+</body>
+</html>

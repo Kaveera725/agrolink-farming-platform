@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tomatoes adfh — AgroLink Marketplace — Sri Lankan Agricultural Marketplace</title>
+  <meta name="csrf-token" content="IjFkY2Q1YTg5MjQ3NjE2ZjA5MWZiYWZlNDZhN2I0ZmY3NjAwOTgwNDci.atnbjg.9JoIBcyhmKeMAAPi7mIdFC7aMMQ">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            leaf:   { DEFAULT: '#2D6A4F', light: '#40916C', dark: '#1B4332', pale: '#D8F3DC' },
+            earth:  { DEFAULT: '#8B4513', light: '#A0522D', pale: '#FDF1E8' },
+            gold:   { DEFAULT: '#D97706', light: '#F59E0B', pale: '#FFF8E7' },
+            sky:    { DEFAULT: '#1A659E', pale: '#EBF4FB' },
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:    ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; background-color: #F8FAF7; color: #111827; }
+    .nav-link { @apply text-gray-700 hover:text-leaf font-medium transition-colors duration-150 px-2.5 py-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf; }
+    .btn-primary { @apply inline-flex items-center justify-center gap-2 bg-leaf text-white px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-light active:bg-leaf-dark transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-secondary { @apply inline-flex items-center justify-center gap-2 bg-white border border-leaf/40 text-leaf px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-pale hover:border-leaf transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-danger { @apply inline-flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 min-h-[44px] rounded-xl font-semibold hover:bg-red-700 transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2; }
+    .card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden; }
+    .form-input { @apply w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition bg-white text-gray-900 min-h-[44px]; }
+    .form-label { @apply block text-sm font-semibold text-gray-800 mb-1.5; }
+  </style>
+  
+</head>
+<body class="min-h-full flex flex-col antialiased text-gray-900 overflow-x-hidden">
+
+  <!-- SKIP TO CONTENT -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:bg-leaf focus:text-white focus:rounded-xl focus:shadow-xl focus:font-semibold focus:outline-none focus:ring-2 focus:ring-leaf-light">
+    Skip to main content
+  </a>
+
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="bg-white border-b border-gray-200/80 sticky top-0 z-40 shadow-xs" aria-label="Main Navigation">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Brand & Hamburger Area -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile Drawer Toggle Button -->
+          <button
+            id="mobile-menu-toggle"
+            type="button"
+            class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-gray-700 hover:text-leaf hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf"
+            aria-controls="mobile-drawer"
+            aria-expanded="false"
+            aria-label="Open main menu"
+          >
+            <svg id="hamburger-icon" class="w-6 h-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-lg p-1">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-leaf rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl sm:text-2xl text-leaf-dark tracking-tight">Agro<span class="text-leaf-light">Link</span></span>
+          </a>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-1 lg:gap-2">
+          <a href="/" class="nav-link ">Home</a>
+          <a href="/marketplace/" class="nav-link text-leaf font-bold bg-leaf-pale/50">Marketplace</a>
+          <a href="/prices/" class="nav-link ">Market Prices</a>
+          
+        </div>
+
+        <!-- Auth Actions / Profile Menu -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <a href="/auth/login" class="btn-secondary text-sm py-2 px-3.5 sm:px-4">Log In</a>
+          <a href="/auth/register" class="btn-primary text-sm py-2 px-3.5 sm:px-4">Sign Up</a>
+          
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MOBILE DRAWER NAVIGATION (Overlay & Offcanvas) -->
+    <div id="mobile-drawer" class="md:hidden hidden fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+      <!-- Backdrop -->
+      <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+
+      <!-- Drawer Content -->
+      <div class="fixed inset-y-0 left-0 max-w-[300px] w-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
+        <div class="space-y-6">
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+            <a href="/" class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-leaf rounded-xl flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+              </div>
+              <span class="font-display font-bold text-lg text-leaf-dark">AgroLink</span>
+            </a>
+            <button id="mobile-drawer-close" type="button" class="p-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf" aria-label="Close menu">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Drawer Links -->
+          <nav class="flex flex-col space-y-1">
+            <a href="/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Home
+            </a>
+            <a href="/marketplace/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+              Marketplace
+            </a>
+            <a href="/prices/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Market Prices
+            </a>
+            
+          </nav>
+        </div>
+
+        <!-- Drawer Footer / Auth -->
+        <div class="pt-6 border-t border-gray-100 space-y-3">
+          
+            <div class="flex flex-col gap-2">
+              <a href="/auth/login" class="btn-secondary w-full text-center">Log In</a>
+              <a href="/auth/register" class="btn-primary w-full text-center">Sign Up</a>
+            </div>
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- FLASH NOTIFICATIONS -->
+  
+  
+  
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="main-content" class="flex-1 w-full max-w-full">
+    
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+
+  <!-- BREADCRUMB / BACK LINK -->
+  <div class="mb-6">
+    <a
+      href="/marketplace/"
+      class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-600 hover:text-leaf transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-md px-1 py-0.5"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      <span>Back to Marketplace</span>
+    </a>
+  </div>
+
+  <!-- MAIN PRODUCT DETAIL GRID -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-14">
+    
+    <!-- LEFT: High-Res Image Card -->
+    <div class="lg:col-span-6">
+      <div class="bg-white rounded-3xl overflow-hidden border border-gray-200/80 shadow-sm sticky top-24">
+        <div class="relative w-full h-72 sm:h-96 lg:h-[420px] bg-emerald-50/50 flex items-center justify-center overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&amp;q=80"
+            alt="Tomatoes adfh"
+            loading="lazy"
+            class="w-full h-full object-cover"
+          />
+          <span class="absolute top-4 left-4 bg-white/95 backdrop-blur-xs text-gray-900 text-xs sm:text-sm font-semibold px-3 py-1 rounded-full shadow-xs border border-gray-200/60">
+            Vegetables
+          </span>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Product Info, Pricing & Actions -->
+    <div class="lg:col-span-6 flex flex-col justify-start space-y-6">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-leaf-pale text-leaf-dark">
+            Vegetables
+          </span>
+          <span class="text-xs text-gray-500 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            nuwar eliya
+          </span>
+        </div>
+
+        <h1 class="font-display text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+          Tomatoes adfh
+        </h1>
+      </div>
+
+      <!-- PRICE & QUANTITY HIGHLIGHT CARD -->
+      <div class="bg-gradient-to-br from-emerald-50/50 to-white rounded-2xl p-5 border border-emerald-100/80 shadow-2xs">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Direct Asking Price</span>
+            <div class="flex items-baseline gap-1 mt-1">
+              <span class="font-display font-extrabold text-3xl sm:text-4xl text-leaf-dark">Rs. 450</span>
+              <span class="text-xs text-gray-500">/ kg</span>
+            </div>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Stock Available</span>
+            <div class="mt-1">
+              <span class="font-display font-bold text-2xl sm:text-3xl text-gray-900">1</span>
+              <span class="text-xs text-gray-500">kg ready</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DESCRIPTION -->
+      
+        <div class="space-y-1.5">
+          <h2 class="text-xs font-bold text-gray-600 uppercase tracking-wider">Harvest &amp; Crop Description</h2>
+          <p class="text-sm sm:text-base text-gray-700 leading-relaxed bg-white p-4 rounded-2xl border border-gray-100">
+            Apen witharai hoda badu
+          </p>
+        </div>
+      
+
+      <!-- PUBLIC VERIFIED FARMER PROFILE CARD -->
+      <div class="bg-gradient-to-br from-white to-earth-pale/40 border border-orange-200/70 rounded-2xl p-5 shadow-xs">
+        <div class="flex items-start justify-between gap-3 mb-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-13 h-13 rounded-full bg-earth-pale flex items-center justify-center overflow-hidden border-2 border-white shadow-xs shrink-0">
+              
+                <span class="font-display font-bold text-lg text-earth">H</span>
+              
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 leading-snug">hashan mart</h3>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-earth-pale text-earth">Farmer</span>
+              </div>
+              
+            </div>
+          </div>
+
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-leaf-pale text-leaf-dark shrink-0">
+            <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span>Verified</span>
+          </span>
+        </div>
+
+        
+
+        <!-- Farmer stats (No email leakage) -->
+        <div class="grid grid-cols-3 gap-2 py-3 border-t border-b border-earth/15 text-xs text-center sm:text-left">
+          <div>
+            <span class="text-gray-500 block">Location</span>
+            <span class="font-semibold text-gray-800 truncate block">nuwar eliya</span>
+          </div>
+          <div>
+            <span class="text-gray-500 block">Member Since</span>
+            <span class="font-semibold text-gray-800 block">
+              Apr 2026
+            </span>
+          </div>
+          <div>
+            <span class="text-gray-500 block">Active Listings</span>
+            <span class="font-semibold text-leaf block">
+              1 active
+            </span>
+          </div>
+        </div>
+
+        <!-- Direct Contact Action Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-4">
+          
+            <a
+              href="https://wa.me/94766720164"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-2xs min-h-[44px] focus-visible:ring-2 focus-visible:ring-emerald-500"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0012.04 2z"/></svg>
+              <span>Chat on WhatsApp</span>
+            </a>
+          
+
+          
+            <a
+              href="tel:94766720164"
+              class="inline-flex items-center justify-center gap-2 bg-sky hover:bg-sky/90 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-2xs min-h-[44px] focus-visible:ring-2 focus-visible:ring-sky"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+              </svg>
+              <span>Call Farmer</span>
+            </a>
+          
+        </div>
+      </div>
+
+      <!-- ORDER ACTION -->
+      <div class="pt-2">
+        
+          <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200 text-center space-y-3">
+            <p class="text-xs text-gray-600">Register or sign in as a buyer to place formal orders online.</p>
+            <div class="flex flex-col sm:flex-row gap-2 justify-center">
+              <a href="/auth/login" class="btn-primary text-sm py-2 px-6">Sign In to Order</a>
+              <a href="/auth/register" class="btn-secondary text-sm py-2 px-6">Create Account</a>
+            </div>
+          </div>
+        
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RELATED PRODUCE IN SAME CATEGORY -->
+  
+    <section class="pt-8 border-t border-gray-200" aria-labelledby="related-heading">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 id="related-heading" class="font-display text-xl sm:text-2xl font-bold text-gray-900">
+            More Vegetables
+          </h2>
+          <p class="text-xs sm:text-sm text-gray-500">Other direct farm offerings in this category.</p>
+        </div>
+        <a href="/marketplace/?category=Vegetables" class="text-xs sm:text-sm font-semibold text-leaf hover:underline">
+          View all Vegetables →
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&amp;q=80"
+          alt="Fresh Cabbage"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Matale</span>
+          </div>
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/3" class="focus:outline-none">
+            Fresh Cabbage
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
+            Crisp and fresh cabbages, harvested this week.
+          </p>
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 60.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/3"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Fresh Cabbage"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&amp;q=80"
+          alt="carret"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">panadura</span>
+          </div>
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/5" class="focus:outline-none">
+            carret
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
+            good
+          </p>
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 190.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/5"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for carret"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400&amp;q=80"
+          alt="Tomato"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Kandy</span>
+          </div>
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/6" class="focus:outline-none">
+            Tomato
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
+            Fresh organically grown red tomatoes from Kandy.
+          </p>
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 80.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/6"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Tomato"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://example.com/carrot.jpg"
+          alt="Safety Check Carrots"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+        <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+          Low Stock
+        </span>
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/8" class="focus:outline-none">
+            Safety Check Carrots
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 150.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/8"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Safety Check Carrots"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+      </div>
+    </section>
+  
+
+</div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-leaf-dark text-white mt-16 sm:mt-24 border-t border-emerald-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+        <!-- Col 1: About -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-leaf-light rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl text-white">AgroLink</span>
+          </div>
+          <p class="text-green-200/90 text-sm leading-relaxed max-w-sm">
+            Empowering Sri Lankan agriculture through transparent pricing, direct marketplace connections, and dependable harvest tracking.
+          </p>
+        </div>
+
+        <!-- Col 2: Quick Links -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Platform Links</h4>
+          <ul class="space-y-2 text-sm text-green-200">
+            <li><a href="/" class="hover:text-white transition inline-block py-1">Home</a></li>
+            <li><a href="/marketplace/" class="hover:text-white transition inline-block py-1">Browse Marketplace</a></li>
+            <li><a href="/prices/" class="hover:text-white transition inline-block py-1">Live Market Prices</a></li>
+            
+            <li><a href="/auth/register" class="hover:text-white transition inline-block py-1">Create Account</a></li>
+            <li><a href="/auth/login" class="hover:text-white transition inline-block py-1">Sign In</a></li>
+            
+          </ul>
+        </div>
+
+        <!-- Col 3: Academic / Info -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Academic Project</h4>
+          <p class="text-sm text-green-200 leading-relaxed">
+            BSc (Hons) in Software Engineering<br>
+            Kingston University London &amp; Esoft Campus Sri Lanka
+          </p>
+          <div class="mt-4 pt-3 border-t border-emerald-900/60 text-xs text-green-300">
+            <span>Production ready agricultural trading framework</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-emerald-900 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-green-300 gap-2">
+        <p>© 2024 AgroLink Marketplace — S E Coulton (Esoft ID: 131044)</p>
+        <p class="text-green-400 font-medium">Built for Sri Lankan farmers &amp; buyers</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GLOBAL SCRIPTS -->
+  <script>
+    (function() {
+      // 1. CSRF Header setup for all dynamic fetch requests
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (token && window.fetch) {
+        const _fetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          options = options || {};
+          const method = (options.method || 'GET').toUpperCase();
+          if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+            options.headers = options.headers || {};
+            if (options.headers instanceof Headers) {
+              if (!options.headers.has('X-CSRFToken')) options.headers.set('X-CSRFToken', token);
+            } else if (Array.isArray(options.headers)) {
+              if (!options.headers.some(([k]) => k.toLowerCase() === 'x-csrftoken')) {
+                options.headers.push(['X-CSRFToken', token]);
+              }
+            } else {
+              if (!options.headers['X-CSRFToken']) {
+                options.headers['X-CSRFToken'] = token;
+              }
+            }
+          }
+          return _fetch(url, options);
+        };
+      }
+
+      // 2. Desktop User dropdown menu interaction
+      const menuBtn = document.getElementById('user-menu-button');
+      const dropdown = document.getElementById('user-dropdown-menu');
+      const chevron = document.getElementById('user-menu-chevron');
+      if (menuBtn && dropdown) {
+        menuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isHidden = dropdown.classList.contains('hidden');
+          if (isHidden) {
+            dropdown.classList.remove('hidden');
+            menuBtn.setAttribute('aria-expanded', 'true');
+            if (chevron) chevron.classList.add('rotate-180');
+          } else {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('click', function(e) {
+          if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+      }
+
+      // 3. Mobile Navigation Drawer interaction
+      const drawerToggle = document.getElementById('mobile-menu-toggle');
+      const drawer = document.getElementById('mobile-drawer');
+      const drawerClose = document.getElementById('mobile-drawer-close');
+      const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
+      const hamburgerIcon = document.getElementById('hamburger-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      function openDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'true');
+        if (hamburgerIcon) hamburgerIcon.classList.add('hidden');
+        if (closeIcon) closeIcon.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDrawer() {
+        if (!drawer) return;
+        drawer.classList.add('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'false');
+        if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
+        if (closeIcon) closeIcon.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      if (drawerToggle && drawer) {
+        drawerToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isOpen = !drawer.classList.contains('hidden');
+          if (isOpen) {
+            closeDrawer();
+          } else {
+            openDrawer();
+          }
+        });
+      }
+
+      if (drawerClose) {
+        drawerClose.addEventListener('click', closeDrawer);
+      }
+
+      if (drawerBackdrop) {
+        drawerBackdrop.addEventListener('click', closeDrawer);
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && drawer && !drawer.classList.contains('hidden')) {
+          closeDrawer();
+        }
+      });
+    })();
+  </script>
+  
+</body>
+</html>

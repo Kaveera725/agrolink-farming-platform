@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — AgroLink — Sri Lankan Agricultural Marketplace</title>
+  <meta name="csrf-token" content="IjFkY2Q1YTg5MjQ3NjE2ZjA5MWZiYWZlNDZhN2I0ZmY3NjAwOTgwNDci.atnbjg.9JoIBcyhmKeMAAPi7mIdFC7aMMQ">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            leaf:   { DEFAULT: '#2D6A4F', light: '#40916C', dark: '#1B4332', pale: '#D8F3DC' },
+            earth:  { DEFAULT: '#8B4513', light: '#A0522D', pale: '#FDF1E8' },
+            gold:   { DEFAULT: '#D97706', light: '#F59E0B', pale: '#FFF8E7' },
+            sky:    { DEFAULT: '#1A659E', pale: '#EBF4FB' },
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:    ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; background-color: #F8FAF7; color: #111827; }
+    .nav-link { @apply text-gray-700 hover:text-leaf font-medium transition-colors duration-150 px-2.5 py-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf; }
+    .btn-primary { @apply inline-flex items-center justify-center gap-2 bg-leaf text-white px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-light active:bg-leaf-dark transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-secondary { @apply inline-flex items-center justify-center gap-2 bg-white border border-leaf/40 text-leaf px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-pale hover:border-leaf transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-danger { @apply inline-flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 min-h-[44px] rounded-xl font-semibold hover:bg-red-700 transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2; }
+    .card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden; }
+    .form-input { @apply w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition bg-white text-gray-900 min-h-[44px]; }
+    .form-label { @apply block text-sm font-semibold text-gray-800 mb-1.5; }
+  </style>
+  
+</head>
+<body class="min-h-full flex flex-col antialiased text-gray-900 overflow-x-hidden">
+
+  <!-- SKIP TO CONTENT -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:bg-leaf focus:text-white focus:rounded-xl focus:shadow-xl focus:font-semibold focus:outline-none focus:ring-2 focus:ring-leaf-light">
+    Skip to main content
+  </a>
+
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="bg-white border-b border-gray-200/80 sticky top-0 z-40 shadow-xs" aria-label="Main Navigation">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Brand & Hamburger Area -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile Drawer Toggle Button -->
+          <button
+            id="mobile-menu-toggle"
+            type="button"
+            class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-gray-700 hover:text-leaf hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf"
+            aria-controls="mobile-drawer"
+            aria-expanded="false"
+            aria-label="Open main menu"
+          >
+            <svg id="hamburger-icon" class="w-6 h-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-lg p-1">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-leaf rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl sm:text-2xl text-leaf-dark tracking-tight">Agro<span class="text-leaf-light">Link</span></span>
+          </a>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-1 lg:gap-2">
+          <a href="/" class="nav-link ">Home</a>
+          <a href="/marketplace/" class="nav-link ">Marketplace</a>
+          <a href="/prices/" class="nav-link ">Market Prices</a>
+          
+        </div>
+
+        <!-- Auth Actions / Profile Menu -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <a href="/auth/login" class="btn-secondary text-sm py-2 px-3.5 sm:px-4">Log In</a>
+          <a href="/auth/register" class="btn-primary text-sm py-2 px-3.5 sm:px-4">Sign Up</a>
+          
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MOBILE DRAWER NAVIGATION (Overlay & Offcanvas) -->
+    <div id="mobile-drawer" class="md:hidden hidden fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+      <!-- Backdrop -->
+      <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+
+      <!-- Drawer Content -->
+      <div class="fixed inset-y-0 left-0 max-w-[300px] w-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
+        <div class="space-y-6">
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+            <a href="/" class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-leaf rounded-xl flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+              </div>
+              <span class="font-display font-bold text-lg text-leaf-dark">AgroLink</span>
+            </a>
+            <button id="mobile-drawer-close" type="button" class="p-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf" aria-label="Close menu">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Drawer Links -->
+          <nav class="flex flex-col space-y-1">
+            <a href="/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Home
+            </a>
+            <a href="/marketplace/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+              Marketplace
+            </a>
+            <a href="/prices/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Market Prices
+            </a>
+            
+          </nav>
+        </div>
+
+        <!-- Drawer Footer / Auth -->
+        <div class="pt-6 border-t border-gray-100 space-y-3">
+          
+            <div class="flex flex-col gap-2">
+              <a href="/auth/login" class="btn-secondary w-full text-center">Log In</a>
+              <a href="/auth/register" class="btn-primary w-full text-center">Sign Up</a>
+            </div>
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- FLASH NOTIFICATIONS -->
+  
+  
+  
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="main-content" class="flex-1 w-full max-w-full">
+    
+<div class="min-h-[80vh] flex items-center justify-center py-10 sm:py-16 px-4">
+  <div class="w-full max-w-xl space-y-6">
+    
+    <!-- Header -->
+    <div class="text-center space-y-2">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-leaf-pale text-leaf-dark rounded-2xl shadow-xs mx-auto">
+        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg>
+      </div>
+      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+        Join AgroLink Sri Lanka
+      </h1>
+      <p class="text-xs sm:text-sm text-gray-600">
+        Choose your persona to begin direct agricultural trade
+      </p>
+    </div>
+
+    <!-- Registration Card -->
+    <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
+      <form method="POST" action="/auth/register" class="space-y-6" novalidate>
+        <input type="hidden" name="csrf_token" value="IjFkY2Q1YTg5MjQ3NjE2ZjA5MWZiYWZlNDZhN2I0ZmY3NjAwOTgwNDci.atnbjg.9JoIBcyhmKeMAAPi7mIdFC7aMMQ">
+
+        <!-- Role Selection Radios -->
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-800">
+            Account Type <span class="text-red-600 font-bold">*</span>
+          </label>
+          <div class="grid grid-cols-2 gap-3.5">
+            <!-- Farmer Option -->
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                name="role"
+                value="farmer"
+                class="peer sr-only"
+                checked
+              />
+              <div class="border-2 border-gray-200 peer-checked:border-leaf peer-checked:bg-leaf-pale/50 peer-focus-visible:ring-2 peer-focus-visible:ring-leaf rounded-2xl p-4 text-center transition-all">
+                <span class="text-2xl block mb-1">👨‍🌾</span>
+                <span class="font-bold text-sm text-gray-800 peer-checked:text-leaf-dark block">Farmer</span>
+                <span class="text-xs text-gray-500 block">List &amp; sell crops</span>
+              </div>
+            </label>
+
+            <!-- Buyer Option -->
+            <label class="relative cursor-pointer">
+              <input
+                type="radio"
+                name="role"
+                value="buyer"
+                class="peer sr-only"
+                
+              />
+              <div class="border-2 border-gray-200 peer-checked:border-sky peer-checked:bg-sky-pale/50 peer-focus-visible:ring-2 peer-focus-visible:ring-sky rounded-2xl p-4 text-center transition-all">
+                <span class="text-2xl block mb-1">🛒</span>
+                <span class="font-bold text-sm text-gray-800 peer-checked:text-sky block">Buyer</span>
+                <span class="text-xs text-gray-500 block">Browse &amp; order</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <!-- Full Name -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <label for="reg-name" class="block text-sm font-semibold text-gray-800">
+              Full Name <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="text"
+              id="reg-name"
+              name="name"
+              required
+              autocomplete="name"
+              placeholder="e.g. Bandara Jayasuriya"
+              value=""
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+          </div>
+
+          <!-- Email Address -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <label for="reg-email" class="block text-sm font-semibold text-gray-800">
+              Email Address <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="email"
+              id="reg-email"
+              name="email"
+              required
+              autocomplete="email"
+              placeholder="you@domain.lk"
+              value=""
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+          </div>
+
+          <!-- Password -->
+          <div class="space-y-1.5">
+            <label for="reg-password" class="block text-sm font-semibold text-gray-800">
+              Password <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="password"
+              id="reg-password"
+              name="password"
+              required
+              minlength="8"
+              autocomplete="new-password"
+              placeholder="Min 8 characters"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="space-y-1.5">
+            <label for="reg-confirm-password" class="block text-sm font-semibold text-gray-800">
+              Confirm Password <span class="text-red-600 font-bold">*</span>
+            </label>
+            <input
+              type="password"
+              id="reg-confirm-password"
+              name="confirm_password"
+              required
+              minlength="8"
+              autocomplete="new-password"
+              placeholder="Repeat password"
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+          </div>
+
+          <!-- WhatsApp Number -->
+          <div class="sm:col-span-2 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label for="reg-whatsapp" class="block text-sm font-semibold text-gray-800">
+                WhatsApp Contact Number <span class="text-red-600 font-bold">*</span>
+              </label>
+              <span class="text-xs text-gray-500">Order Alerts</span>
+            </div>
+            <input
+              type="tel"
+              id="reg-whatsapp"
+              name="whatsapp_number"
+              required
+              autocomplete="tel"
+              placeholder="077 123 4567 or +94771234567"
+              value=""
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+            <p class="text-xs text-gray-500">Used for direct buyer-farmer trade communication</p>
+          </div>
+
+          <!-- Phone -->
+          <div class="space-y-1.5">
+            <label for="reg-phone" class="block text-sm font-semibold text-gray-800">
+              Direct Phone <span class="text-xs text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="tel"
+              id="reg-phone"
+              name="phone"
+              autocomplete="tel"
+              placeholder="+94 77 123 4567"
+              value=""
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+          </div>
+
+          <!-- Location -->
+          <div class="space-y-1.5">
+            <label for="reg-location" class="block text-sm font-semibold text-gray-800">
+              District / Location <span class="text-xs text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              id="reg-location"
+              name="location"
+              placeholder="e.g. Kandy, Badulla, Jaffna"
+              value=""
+              class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full btn-primary py-3.5 text-base shadow-sm justify-center flex"
+        >
+          Create AgroLink Account
+        </button>
+      </form>
+    </div>
+
+    <!-- Sign In Link -->
+    <p class="text-center text-xs sm:text-sm text-gray-600">
+      Already have an account?
+      <a href="/auth/login" class="text-leaf font-bold hover:underline">
+        Sign in here
+      </a>
+    </p>
+
+  </div>
+</div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-leaf-dark text-white mt-16 sm:mt-24 border-t border-emerald-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+        <!-- Col 1: About -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-leaf-light rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl text-white">AgroLink</span>
+          </div>
+          <p class="text-green-200/90 text-sm leading-relaxed max-w-sm">
+            Empowering Sri Lankan agriculture through transparent pricing, direct marketplace connections, and dependable harvest tracking.
+          </p>
+        </div>
+
+        <!-- Col 2: Quick Links -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Platform Links</h4>
+          <ul class="space-y-2 text-sm text-green-200">
+            <li><a href="/" class="hover:text-white transition inline-block py-1">Home</a></li>
+            <li><a href="/marketplace/" class="hover:text-white transition inline-block py-1">Browse Marketplace</a></li>
+            <li><a href="/prices/" class="hover:text-white transition inline-block py-1">Live Market Prices</a></li>
+            
+            <li><a href="/auth/register" class="hover:text-white transition inline-block py-1">Create Account</a></li>
+            <li><a href="/auth/login" class="hover:text-white transition inline-block py-1">Sign In</a></li>
+            
+          </ul>
+        </div>
+
+        <!-- Col 3: Academic / Info -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Academic Project</h4>
+          <p class="text-sm text-green-200 leading-relaxed">
+            BSc (Hons) in Software Engineering<br>
+            Kingston University London &amp; Esoft Campus Sri Lanka
+          </p>
+          <div class="mt-4 pt-3 border-t border-emerald-900/60 text-xs text-green-300">
+            <span>Production ready agricultural trading framework</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-emerald-900 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-green-300 gap-2">
+        <p>© 2024 AgroLink Marketplace — S E Coulton (Esoft ID: 131044)</p>
+        <p class="text-green-400 font-medium">Built for Sri Lankan farmers &amp; buyers</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GLOBAL SCRIPTS -->
+  <script>
+    (function() {
+      // 1. CSRF Header setup for all dynamic fetch requests
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (token && window.fetch) {
+        const _fetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          options = options || {};
+          const method = (options.method || 'GET').toUpperCase();
+          if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+            options.headers = options.headers || {};
+            if (options.headers instanceof Headers) {
+              if (!options.headers.has('X-CSRFToken')) options.headers.set('X-CSRFToken', token);
+            } else if (Array.isArray(options.headers)) {
+              if (!options.headers.some(([k]) => k.toLowerCase() === 'x-csrftoken')) {
+                options.headers.push(['X-CSRFToken', token]);
+              }
+            } else {
+              if (!options.headers['X-CSRFToken']) {
+                options.headers['X-CSRFToken'] = token;
+              }
+            }
+          }
+          return _fetch(url, options);
+        };
+      }
+
+      // 2. Desktop User dropdown menu interaction
+      const menuBtn = document.getElementById('user-menu-button');
+      const dropdown = document.getElementById('user-dropdown-menu');
+      const chevron = document.getElementById('user-menu-chevron');
+      if (menuBtn && dropdown) {
+        menuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isHidden = dropdown.classList.contains('hidden');
+          if (isHidden) {
+            dropdown.classList.remove('hidden');
+            menuBtn.setAttribute('aria-expanded', 'true');
+            if (chevron) chevron.classList.add('rotate-180');
+          } else {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('click', function(e) {
+          if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+      }
+
+      // 3. Mobile Navigation Drawer interaction
+      const drawerToggle = document.getElementById('mobile-menu-toggle');
+      const drawer = document.getElementById('mobile-drawer');
+      const drawerClose = document.getElementById('mobile-drawer-close');
+      const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
+      const hamburgerIcon = document.getElementById('hamburger-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      function openDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'true');
+        if (hamburgerIcon) hamburgerIcon.classList.add('hidden');
+        if (closeIcon) closeIcon.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDrawer() {
+        if (!drawer) return;
+        drawer.classList.add('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'false');
+        if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
+        if (closeIcon) closeIcon.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      if (drawerToggle && drawer) {
+        drawerToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isOpen = !drawer.classList.contains('hidden');
+          if (isOpen) {
+            closeDrawer();
+          } else {
+            openDrawer();
+          }
+        });
+      }
+
+      if (drawerClose) {
+        drawerClose.addEventListener('click', closeDrawer);
+      }
+
+      if (drawerBackdrop) {
+        drawerBackdrop.addEventListener('click', closeDrawer);
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && drawer && !drawer.classList.contains('hidden')) {
+          closeDrawer();
+        }
+      });
+    })();
+  </script>
+  
+</body>
+</html>

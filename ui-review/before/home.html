@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgroLink — Connecting Sri Lankan Agriculture Directly — Sri Lankan Agricultural Marketplace</title>
+  <meta name="csrf-token" content="IjFkY2Q1YTg5MjQ3NjE2ZjA5MWZiYWZlNDZhN2I0ZmY3NjAwOTgwNDci.atnbjg.9JoIBcyhmKeMAAPi7mIdFC7aMMQ">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            leaf:   { DEFAULT: '#2D6A4F', light: '#40916C', dark: '#1B4332', pale: '#D8F3DC' },
+            earth:  { DEFAULT: '#8B4513', light: '#A0522D', pale: '#FDF1E8' },
+            gold:   { DEFAULT: '#D97706', light: '#F59E0B', pale: '#FFF8E7' },
+            sky:    { DEFAULT: '#1A659E', pale: '#EBF4FB' },
+          },
+          fontFamily: {
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:    ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'DM Sans', sans-serif; background-color: #F8FAF7; color: #111827; }
+    .nav-link { @apply text-gray-700 hover:text-leaf font-medium transition-colors duration-150 px-2.5 py-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf; }
+    .btn-primary { @apply inline-flex items-center justify-center gap-2 bg-leaf text-white px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-light active:bg-leaf-dark transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-secondary { @apply inline-flex items-center justify-center gap-2 bg-white border border-leaf/40 text-leaf px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-pale hover:border-leaf transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-danger { @apply inline-flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 min-h-[44px] rounded-xl font-semibold hover:bg-red-700 transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2; }
+    .card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden; }
+    .form-input { @apply w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition bg-white text-gray-900 min-h-[44px]; }
+    .form-label { @apply block text-sm font-semibold text-gray-800 mb-1.5; }
+  </style>
+  
+</head>
+<body class="min-h-full flex flex-col antialiased text-gray-900 overflow-x-hidden">
+
+  <!-- SKIP TO CONTENT -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:bg-leaf focus:text-white focus:rounded-xl focus:shadow-xl focus:font-semibold focus:outline-none focus:ring-2 focus:ring-leaf-light">
+    Skip to main content
+  </a>
+
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="bg-white border-b border-gray-200/80 sticky top-0 z-40 shadow-xs" aria-label="Main Navigation">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Brand & Hamburger Area -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile Drawer Toggle Button -->
+          <button
+            id="mobile-menu-toggle"
+            type="button"
+            class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-gray-700 hover:text-leaf hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf"
+            aria-controls="mobile-drawer"
+            aria-expanded="false"
+            aria-label="Open main menu"
+          >
+            <svg id="hamburger-icon" class="w-6 h-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <!-- Logo -->
+          <a href="/" class="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-lg p-1">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-leaf rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl sm:text-2xl text-leaf-dark tracking-tight">Agro<span class="text-leaf-light">Link</span></span>
+          </a>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-1 lg:gap-2">
+          <a href="/" class="nav-link text-leaf font-bold bg-leaf-pale/50">Home</a>
+          <a href="/marketplace/" class="nav-link ">Marketplace</a>
+          <a href="/prices/" class="nav-link ">Market Prices</a>
+          
+        </div>
+
+        <!-- Auth Actions / Profile Menu -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          
+          <a href="/auth/login" class="btn-secondary text-sm py-2 px-3.5 sm:px-4">Log In</a>
+          <a href="/auth/register" class="btn-primary text-sm py-2 px-3.5 sm:px-4">Sign Up</a>
+          
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MOBILE DRAWER NAVIGATION (Overlay & Offcanvas) -->
+    <div id="mobile-drawer" class="md:hidden hidden fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+      <!-- Backdrop -->
+      <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+
+      <!-- Drawer Content -->
+      <div class="fixed inset-y-0 left-0 max-w-[300px] w-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
+        <div class="space-y-6">
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+            <a href="/" class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-leaf rounded-xl flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+              </div>
+              <span class="font-display font-bold text-lg text-leaf-dark">AgroLink</span>
+            </a>
+            <button id="mobile-drawer-close" type="button" class="p-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf" aria-label="Close menu">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Drawer Links -->
+          <nav class="flex flex-col space-y-1">
+            <a href="/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Home
+            </a>
+            <a href="/marketplace/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+              Marketplace
+            </a>
+            <a href="/prices/" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Market Prices
+            </a>
+            
+          </nav>
+        </div>
+
+        <!-- Drawer Footer / Auth -->
+        <div class="pt-6 border-t border-gray-100 space-y-3">
+          
+            <div class="flex flex-col gap-2">
+              <a href="/auth/login" class="btn-secondary w-full text-center">Log In</a>
+              <a href="/auth/register" class="btn-primary w-full text-center">Sign Up</a>
+            </div>
+          
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- FLASH NOTIFICATIONS -->
+  
+  
+  
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="main-content" class="flex-1 w-full max-w-full">
+    
+<!-- HERO SECTION -->
+<section class="relative bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white py-14 sm:py-20 lg:py-28 overflow-hidden">
+  <!-- Subtle geometric background grid pattern -->
+  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]" aria-hidden="true"></div>
+  
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      
+      <!-- Left Column: Copy & CTAs -->
+      <div class="lg:col-span-7 space-y-6 text-center sm:text-left">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs sm:text-sm font-semibold text-green-100 shadow-xs">
+          <span class="w-2 h-2 rounded-full bg-gold animate-pulse" aria-hidden="true"></span>
+          <span>Direct Farm-to-Buyer Trading in Sri Lanka</span>
+        </div>
+
+        <h1 class="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight sm:leading-none text-white">
+          Fair Prices for Farmers.<br class="hidden sm:inline" />
+          <span class="text-leaf-pale">Fresh Harvests for Buyers.</span>
+        </h1>
+
+        <p class="text-base sm:text-lg lg:text-xl text-green-100/90 leading-relaxed font-normal max-w-2xl mx-auto sm:mx-0">
+          AgroLink connects verified local growers directly with wholesale and commercial buyers. Gain daily market price transparency, monitor crop readiness, and trade without middlemen.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+          <a
+            href="/marketplace/"
+            class="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-light active:bg-amber-600 text-gray-900 font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+          >
+            <span>Browse Marketplace</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
+          <a
+            href="/prices/"
+            class="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 active:bg-white/30 backdrop-blur-sm text-white border border-white/30 font-semibold px-6 py-3.5 min-h-[48px] rounded-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+          >
+            <svg class="w-4 h-4 text-green-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Daily Market Prices</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Column: Visual Highlight Card -->
+      <div class="lg:col-span-5">
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl space-y-5">
+          <div class="flex items-center justify-between pb-4 border-b border-white/15">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-display font-bold text-lg text-white">Daily Agri Highlights</h3>
+                <p class="text-xs text-green-200">Verified Colombo Wholesale Benchmark</p>
+              </div>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">Live</span>
+          </div>
+
+          <!-- Feature Bullets with inline SVGs -->
+          <div class="space-y-3.5">
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <div class="p-2 rounded-xl bg-leaf-light/40 text-green-200 shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm font-semibold text-white">Direct Trade, Zero Brokerage</p>
+                <p class="text-xs text-green-200/90">Buyers transact straight with producers with clear phone &amp; WhatsApp communication.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <div class="p-2 rounded-xl bg-leaf-light/40 text-green-200 shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm font-semibold text-white">Reliable Price Intelligence</p>
+                <p class="text-xs text-green-200/90">Updated wholesale buying &amp; selling prices prevent middlemen exploitation.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+              <div class="p-2 rounded-xl bg-leaf-light/40 text-green-200 shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm font-semibold text-white">Harvest Cycle Management</p>
+                <p class="text-xs text-green-200/90">Farmers track field status privately from planting to ready-to-sell.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- METRICS / STATS BAR -->
+<section class="bg-white border-b border-gray-200/80 py-8" aria-label="Platform Highlights">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-leaf">100%</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Direct Farm Trade</p>
+        <p class="text-xs text-gray-600 mt-0.5">No intermediary markup</p>
+      </div>
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-sky">0%</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Hidden Broker Fees</p>
+        <p class="text-xs text-gray-600 mt-0.5">Completely free to list</p>
+      </div>
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-earth">25+</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Tracked Crops</p>
+        <p class="text-xs text-gray-600 mt-0.5">Sri Lankan varieties</p>
+      </div>
+      <div class="p-3">
+        <p class="font-display text-3xl sm:text-4xl font-extrabold text-gold">LKR</p>
+        <p class="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mt-1">Fair Local Currency</p>
+        <p class="text-xs text-gray-600 mt-0.5">Direct rupees settlement</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW AGROLINK WORKS -->
+<section class="py-16 sm:py-20 bg-[#F8FAF7]" aria-labelledby="how-it-works-title">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
+      <h2 id="how-it-works-title" class="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
+        How AgroLink Empowers Both Sides
+      </h2>
+      <p class="text-sm sm:text-base text-gray-600 mt-2.5">
+        A transparent, role-focused platform designed specifically for Sri Lankan agriculture.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      
+      <!-- For Farmers -->
+      <article class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-12 h-12 rounded-2xl bg-earth-pale text-earth flex items-center justify-center font-bold">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-earth uppercase tracking-wider">Farmer Persona</span>
+              <h3 class="font-display text-xl sm:text-2xl font-bold text-gray-900">For Farmers &amp; Growers</h3>
+            </div>
+          </div>
+
+          <ul class="space-y-3.5 text-sm text-gray-600 mb-6">
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-emerald-100 text-leaf flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Private Crop Logging:</strong> Track harvest dates, crop variety, field location, and expected yields privately.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-emerald-100 text-leaf flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Direct Marketplace Listings:</strong> Upload photos of your produce with transparent Rs. per-kg asking rates.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-emerald-100 text-leaf flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Direct Order Control:</strong> Accept, confirm, and update order statuses straight from your dashboard.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+          <a href="/auth/register" class="btn-secondary w-full sm:w-auto text-sm">
+            Join as Farmer Partner →
+          </a>
+        </div>
+      </article>
+
+      <!-- For Buyers -->
+      <article class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-12 h-12 rounded-2xl bg-sky-pale text-sky flex items-center justify-center font-bold">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-sky uppercase tracking-wider">Buyer Persona</span>
+              <h3 class="font-display text-xl sm:text-2xl font-bold text-gray-900">For Wholesale &amp; Retail Buyers</h3>
+            </div>
+          </div>
+
+          <ul class="space-y-3.5 text-sm text-gray-600 mb-6">
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-sky-100 text-sky flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Fresh Verified Sourcing:</strong> Browse categories with real photos uploaded directly from farms.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-sky-100 text-sky flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Market Benchmark Comparison:</strong> View live price differences between farmer asking rates and Colombo wholesale.</span>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-5 h-5 rounded-full bg-sky-100 text-sky flex items-center justify-center shrink-0 mt-0.5">✓</span>
+              <span><strong class="text-gray-900">Direct WhatsApp &amp; Phone Contact:</strong> Call or chat with verified farmers instantly to arrange logistics.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="pt-4 border-t border-gray-100">
+          <a href="/auth/register" class="btn-secondary w-full sm:w-auto text-sm">
+            Join as Commercial Buyer →
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED MARKETPLACE SECTION -->
+<section class="py-16 sm:py-20 bg-white" aria-labelledby="featured-produce-title">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
+          <span>Fresh Local Harvest</span>
+        </div>
+        <h2 id="featured-produce-title" class="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
+          Recent Produce on Marketplace
+        </h2>
+        <p class="text-sm text-gray-600 mt-1">Available directly from verified local agricultural producers.</p>
+      </div>
+
+      <a href="/marketplace/" class="btn-secondary text-sm self-start sm:self-auto">
+        <span>View Full Marketplace</span>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      </a>
+    </div>
+
+    
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="http://127.0.0.1:5000/static/uploads/products/9bfde96d12ab4eeab9a4dc71556bc943_thumb.jpg"
+          alt="potato"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Roots &amp; Tubers
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Kandy</span>
+          </div>
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/89" class="focus:outline-none">
+            potato
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
+            This is the most best potato in Kandy
+          </p>
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 140.90</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/89"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for potato"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://example.com/spinach.jpg"
+          alt="Active Cancel Test Spinach"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+        <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+          Low Stock
+        </span>
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/87" class="focus:outline-none">
+            Active Cancel Test Spinach
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 90.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/87"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Active Cancel Test Spinach"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=400&amp;q=80"
+          alt="Edit Test Beans Now Fruits"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Fruits
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+        <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+          Low Stock
+        </span>
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Kandy</span>
+          </div>
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/85" class="focus:outline-none">
+            Edit Test Beans Now Fruits
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
+            Updated
+          </p>
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 210.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/85"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Edit Test Beans Now Fruits"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://example.com/carrot.jpg"
+          alt="Safety Check Carrots"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+        <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+          Low Stock
+        </span>
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/84" class="focus:outline-none">
+            Safety Check Carrots
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 150.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/84"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Safety Check Carrots"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="http://127.0.0.1:5000/static/uploads/products/54f997b2b4294ecaa2773b28fb3db0bf_thumb.jpg"
+          alt="Crisp Green Cabbage"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Nuwara Eliya</span>
+          </div>
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/83" class="focus:outline-none">
+            Crisp Green Cabbage
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
+            Farm fresh high quality cabbage
+          </p>
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 120.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/83"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Crisp Green Cabbage"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="http://127.0.0.1:5000/static/uploads/products/022452480c9f4758bad67b1737dc0db4_thumb.png"
+          alt="Ripe Blue Tomatoes"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/82" class="focus:outline-none">
+            Ripe Blue Tomatoes
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 200.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/82"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Ripe Blue Tomatoes"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=400&amp;q=80"
+          alt="Golden Mangoes"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Fruits
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/81" class="focus:outline-none">
+            Golden Mangoes
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 350.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/81"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Golden Mangoes"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+          
+  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
+    <!-- Image Header -->
+    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+      
+        <img
+          src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=500"
+          alt="Organic Carrots"
+          loading="lazy"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      
+
+      <!-- Category Pill -->
+      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
+        Vegetables
+      </span>
+
+      <!-- Stock Status -->
+      
+      
+    </div>
+
+    <!-- Body Content -->
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <!-- Farmer Location / Byline -->
+        
+          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
+            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span class="truncate">Nuwara Eliya</span>
+          </div>
+        
+
+        <!-- Product Title -->
+        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
+          <a href="/marketplace/product/80" class="focus:outline-none">
+            Organic Carrots
+          </a>
+        </h3>
+
+        <!-- Description Preview -->
+        
+          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
+            Freshly harvested hill country carrots
+          </p>
+        
+      </div>
+
+      <!-- Pricing & Actions -->
+      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
+        <div>
+          <span class="text-xs text-gray-600 block">Price</span>
+          <div class="flex items-baseline gap-1">
+            <span class="font-display font-bold text-lg text-leaf-dark">Rs. 250.00</span>
+            <span class="text-xs text-gray-600">/ kg</span>
+          </div>
+        </div>
+
+        <a
+          href="/marketplace/product/80"
+          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
+          aria-label="View details for Organic Carrots"
+        >
+          <span>View</span>
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </article>
+
+        
+      </div>
+    
+  </div>
+</section>
+
+<!-- LIVE MARKET PRICES SPOTLIGHT -->
+<section class="py-16 sm:py-20 bg-[#F8FAF7]" aria-labelledby="price-board-title">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+      <div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-pale text-gold font-semibold text-xs mb-2">
+          <span>Colombo Wholesale Benchmark</span>
+        </div>
+        <h2 id="price-board-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          Current Market Price Highlights
+        </h2>
+        <p class="text-sm text-gray-600 mt-1">Benchmark prices to assist you in negotiating fair transactions.</p>
+      </div>
+
+      <a href="/prices/" class="btn-primary text-sm self-start sm:self-auto">
+        <span>View Full Price Board</span>
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+      </a>
+    </div>
+
+    
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-leaf/30 transition-all">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-gray-900 text-base sm:text-lg">Tomato</h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+                Vegetables
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 text-xs">
+              <div class="bg-sky-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Farmer Buying</span>
+                <span class="font-display font-bold text-sm sm:text-base text-sky">Rs. 85</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+              <div class="bg-leaf-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Retail Selling</span>
+                <span class="font-display font-bold text-sm sm:text-base text-leaf-dark">Rs. 120</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+            </div>
+          </div>
+        
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-leaf/30 transition-all">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-gray-900 text-base sm:text-lg">Carrot</h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+                Vegetables
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 text-xs">
+              <div class="bg-sky-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Farmer Buying</span>
+                <span class="font-display font-bold text-sm sm:text-base text-sky">Rs. 60</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+              <div class="bg-leaf-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Retail Selling</span>
+                <span class="font-display font-bold text-sm sm:text-base text-leaf-dark">Rs. 95</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+            </div>
+          </div>
+        
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-leaf/30 transition-all">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-gray-900 text-base sm:text-lg">Cabbage</h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+                Vegetables
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 text-xs">
+              <div class="bg-sky-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Farmer Buying</span>
+                <span class="font-display font-bold text-sm sm:text-base text-sky">Rs. 45</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+              <div class="bg-leaf-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Retail Selling</span>
+                <span class="font-display font-bold text-sm sm:text-base text-leaf-dark">Rs. 75</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+            </div>
+          </div>
+        
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-leaf/30 transition-all">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-gray-900 text-base sm:text-lg">Beans</h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+                Vegetables
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 text-xs">
+              <div class="bg-sky-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Farmer Buying</span>
+                <span class="font-display font-bold text-sm sm:text-base text-sky">Rs. 110</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+              <div class="bg-leaf-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Retail Selling</span>
+                <span class="font-display font-bold text-sm sm:text-base text-leaf-dark">Rs. 160</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+            </div>
+          </div>
+        
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-leaf/30 transition-all">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-gray-900 text-base sm:text-lg">Brinjal</h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+                Vegetables
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 text-xs">
+              <div class="bg-sky-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Farmer Buying</span>
+                <span class="font-display font-bold text-sm sm:text-base text-sky">Rs. 70</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+              <div class="bg-leaf-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Retail Selling</span>
+                <span class="font-display font-bold text-sm sm:text-base text-leaf-dark">Rs. 105</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+            </div>
+          </div>
+        
+          <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:border-leaf/30 transition-all">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-display font-bold text-gray-900 text-base sm:text-lg">Leeks</h3>
+              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+                Vegetables
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 text-xs">
+              <div class="bg-sky-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Farmer Buying</span>
+                <span class="font-display font-bold text-sm sm:text-base text-sky">Rs. 130</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+              <div class="bg-leaf-pale/50 p-2.5 rounded-xl">
+                <span class="text-gray-600 block mb-0.5">Retail Selling</span>
+                <span class="font-display font-bold text-sm sm:text-base text-leaf-dark">Rs. 180</span>
+                <span class="text-[10px] text-gray-500 block">/ kg</span>
+              </div>
+            </div>
+          </div>
+        
+      </div>
+    
+  </div>
+</section>
+
+<!-- CALL TO ACTION BANNER -->
+<section class="py-16 sm:py-20 bg-leaf-dark text-white text-center relative overflow-hidden" aria-label="Get Started">
+  <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" aria-hidden="true"></div>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-6">
+    <h2 class="font-display text-2xl sm:text-4xl font-extrabold tracking-tight">
+      Ready to Experience Fair Agricultural Trade?
+    </h2>
+    <p class="text-green-200 text-sm sm:text-base leading-relaxed">
+      Whether you are harvesting local crops or seeking dependable wholesale produce, AgroLink gives you direct access without middleman commissions.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2">
+      <a href="/auth/register" class="btn-primary bg-gold hover:bg-gold-light active:bg-amber-600 text-gray-900 font-bold px-8 py-3.5 min-h-[48px] text-sm sm:text-base shadow-lg w-full sm:w-auto">
+        Create Your Free Account
+      </a>
+      <a href="/marketplace/" class="btn-secondary bg-white/10 hover:bg-white/20 active:bg-white/30 text-white border-white/30 px-8 py-3.5 min-h-[48px] text-sm sm:text-base w-full sm:w-auto">
+        Browse as Guest
+      </a>
+    </div>
+  </div>
+</section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-leaf-dark text-white mt-16 sm:mt-24 border-t border-emerald-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+        <!-- Col 1: About -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-leaf-light rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl text-white">AgroLink</span>
+          </div>
+          <p class="text-green-200/90 text-sm leading-relaxed max-w-sm">
+            Empowering Sri Lankan agriculture through transparent pricing, direct marketplace connections, and dependable harvest tracking.
+          </p>
+        </div>
+
+        <!-- Col 2: Quick Links -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Platform Links</h4>
+          <ul class="space-y-2 text-sm text-green-200">
+            <li><a href="/" class="hover:text-white transition inline-block py-1">Home</a></li>
+            <li><a href="/marketplace/" class="hover:text-white transition inline-block py-1">Browse Marketplace</a></li>
+            <li><a href="/prices/" class="hover:text-white transition inline-block py-1">Live Market Prices</a></li>
+            
+            <li><a href="/auth/register" class="hover:text-white transition inline-block py-1">Create Account</a></li>
+            <li><a href="/auth/login" class="hover:text-white transition inline-block py-1">Sign In</a></li>
+            
+          </ul>
+        </div>
+
+        <!-- Col 3: Academic / Info -->
+        <div>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Academic Project</h4>
+          <p class="text-sm text-green-200 leading-relaxed">
+            BSc (Hons) in Software Engineering<br>
+            Kingston University London &amp; Esoft Campus Sri Lanka
+          </p>
+          <div class="mt-4 pt-3 border-t border-emerald-900/60 text-xs text-green-300">
+            <span>Production ready agricultural trading framework</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-emerald-900 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-green-300 gap-2">
+        <p>© 2024 AgroLink Marketplace — S E Coulton (Esoft ID: 131044)</p>
+        <p class="text-green-400 font-medium">Built for Sri Lankan farmers &amp; buyers</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GLOBAL SCRIPTS -->
+  <script>
+    (function() {
+      // 1. CSRF Header setup for all dynamic fetch requests
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (token && window.fetch) {
+        const _fetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+          options = options || {};
+          const method = (options.method || 'GET').toUpperCase();
+          if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+            options.headers = options.headers || {};
+            if (options.headers instanceof Headers) {
+              if (!options.headers.has('X-CSRFToken')) options.headers.set('X-CSRFToken', token);
+            } else if (Array.isArray(options.headers)) {
+              if (!options.headers.some(([k]) => k.toLowerCase() === 'x-csrftoken')) {
+                options.headers.push(['X-CSRFToken', token]);
+              }
+            } else {
+              if (!options.headers['X-CSRFToken']) {
+                options.headers['X-CSRFToken'] = token;
+              }
+            }
+          }
+          return _fetch(url, options);
+        };
+      }
+
+      // 2. Desktop User dropdown menu interaction
+      const menuBtn = document.getElementById('user-menu-button');
+      const dropdown = document.getElementById('user-dropdown-menu');
+      const chevron = document.getElementById('user-menu-chevron');
+      if (menuBtn && dropdown) {
+        menuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isHidden = dropdown.classList.contains('hidden');
+          if (isHidden) {
+            dropdown.classList.remove('hidden');
+            menuBtn.setAttribute('aria-expanded', 'true');
+            if (chevron) chevron.classList.add('rotate-180');
+          } else {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('click', function(e) {
+          if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+          }
+        });
+      }
+
+      // 3. Mobile Navigation Drawer interaction
+      const drawerToggle = document.getElementById('mobile-menu-toggle');
+      const drawer = document.getElementById('mobile-drawer');
+      const drawerClose = document.getElementById('mobile-drawer-close');
+      const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
+      const hamburgerIcon = document.getElementById('hamburger-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      function openDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'true');
+        if (hamburgerIcon) hamburgerIcon.classList.add('hidden');
+        if (closeIcon) closeIcon.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDrawer() {
+        if (!drawer) return;
+        drawer.classList.add('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'false');
+        if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
+        if (closeIcon) closeIcon.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      if (drawerToggle && drawer) {
+        drawerToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isOpen = !drawer.classList.contains('hidden');
+          if (isOpen) {
+            closeDrawer();
+          } else {
+            openDrawer();
+          }
+        });
+      }
+
+      if (drawerClose) {
+        drawerClose.addEventListener('click', closeDrawer);
+      }
+
+      if (drawerBackdrop) {
+        drawerBackdrop.addEventListener('click', closeDrawer);
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && drawer && !drawer.classList.contains('hidden')) {
+          closeDrawer();
+        }
+      });
+    })();
+  </script>
+  
+</body>
+</html>
