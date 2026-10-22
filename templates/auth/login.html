@@ -1,48 +1,93 @@
 {% extends "base.html" %}
-{% block title %}Log In{% endblock %}
+{% block title %}Sign In — AgroLink{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center py-12 px-4">
-  <div class="w-full max-w-md">
+<div class="min-h-[75vh] flex items-center justify-center py-10 sm:py-16 px-4">
+  <div class="w-full max-w-md space-y-6">
+    
     <!-- Header -->
-    <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-16 h-16 bg-leaf-pale rounded-2xl mb-4">
-        <svg class="w-8 h-8 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+    <div class="text-center space-y-2">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-leaf-pale text-leaf-dark rounded-2xl shadow-xs mx-auto">
+        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
         </svg>
       </div>
-      <h1 class="font-display text-3xl font-bold text-gray-800">Welcome back</h1>
-      <p class="text-gray-500 mt-1 text-sm">Sign in to your AgroLink account</p>
+      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+        Sign in to AgroLink
+      </h1>
+      <p class="text-xs sm:text-sm text-gray-600">
+        Access your direct agricultural trading account
+      </p>
     </div>
 
-    <div class="card p-8">
-      <form method="POST">
+    <!-- Login Card -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200/80">
+      <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="space-y-5">
-          <div>
-            <label class="form-label">Email Address</label>
-            <input type="email" name="email" required class="form-input" placeholder="you@example.com" />
-          </div>
-          <div>
-            <label class="form-label">Password</label>
-            <input type="password" name="password" required class="form-input" placeholder="••••••••" />
-          </div>
-          <div class="flex items-center justify-between">
-            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-              <input type="checkbox" name="remember" class="w-4 h-4 rounded accent-leaf" />
-              Remember me
-            </label>
-          </div>
-          <button type="submit" class="w-full btn-primary py-3 text-base justify-center flex">
-            Sign In
-          </button>
+
+        <!-- Email -->
+        <div class="space-y-1.5">
+          <label for="login-email" class="block text-sm font-semibold text-gray-800">
+            Email Address <span class="text-red-600 font-bold">*</span>
+          </label>
+          <input
+            type="email"
+            id="login-email"
+            name="email"
+            required
+            autocomplete="email"
+            placeholder="you@domain.lk"
+            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          />
         </div>
+
+        <!-- Password -->
+        <div class="space-y-1.5">
+          <label for="login-password" class="block text-sm font-semibold text-gray-800">
+            Password <span class="text-red-600 font-bold">*</span>
+          </label>
+          <input
+            type="password"
+            id="login-password"
+            name="password"
+            required
+            autocomplete="current-password"
+            placeholder="••••••••"
+            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          />
+        </div>
+
+        <!-- Remember Me -->
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-2.5 text-xs sm:text-sm text-gray-700 cursor-pointer">
+            <input
+              type="checkbox"
+              id="remember_me"
+              name="remember"
+              class="w-4 h-4 rounded accent-leaf text-leaf"
+            />
+            <span>Remember my session</span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="w-full btn-primary py-3 text-base shadow-sm justify-center flex"
+        >
+          Sign In
+        </button>
       </form>
     </div>
 
-    <p class="text-center mt-5 text-sm text-gray-500">
-      Don't have an account?
-      <a href="{{ url_for('auth.register') }}" class="text-leaf font-semibold hover:underline">Create one</a>
+    <!-- Registration Link -->
+    <p class="text-center text-xs sm:text-sm text-gray-600">
+      Don't have an AgroLink account?
+      <a href="{{ url_for('auth.register') }}" class="text-leaf font-bold hover:underline">
+        Create free account
+      </a>
     </p>
+
   </div>
 </div>
 {% endblock %}
