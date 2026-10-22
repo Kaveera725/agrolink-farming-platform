@@ -42,14 +42,70 @@
         </div>
       </div>
 
-      <!-- Farmer info -->
-      <div class="flex items-center gap-3 p-4 bg-earth-pale rounded-xl mb-6">
-        <div class="w-10 h-10 rounded-full bg-earth flex items-center justify-center text-white font-bold flex-shrink-0">
-          {{ product.farmer.name[0].upper() }}
+      <!-- Public Farmer Profile Card -->
+      <div class="bg-gradient-to-br from-earth-pale/60 to-white border border-orange-100 rounded-2xl p-5 mb-6 shadow-sm">
+        <div class="flex items-start justify-between gap-3 mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full bg-earth text-white font-bold text-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+              {{ product.farmer.name[0].upper() }}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-gray-900 text-base leading-tight">{{ product.farmer.name }}</h3>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-earth/10 text-earth">Farmer</span>
+              </div>
+              {% if product.farmer.farm_name %}
+              <p class="text-xs font-medium text-earth-light flex items-center gap-1 mt-0.5">
+                <svg class="w-3.5 h-3.5 text-earth" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                {{ product.farmer.farm_name }}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-leaf-pale text-leaf-dark">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Verified Farmer
+          </span>
         </div>
-        <div>
-          <p class="font-semibold text-gray-800 text-sm">{{ product.farmer.name }}</p>
-          <p class="text-xs text-gray-500">Farmer · {{ product.farmer.location or 'Sri Lanka' }}</p>
+
+        {% if product.farmer.bio %}
+        <p class="text-xs text-gray-600 italic bg-white/70 p-2.5 rounded-xl border border-orange-50 mb-3 leading-relaxed">
+          "{{ product.farmer.bio }}"
+        </p>
+        {% endif %}
+
+        <div class="grid grid-cols-3 gap-2 pt-3 border-t border-orange-100/70 text-xs">
+          <div>
+            <span class="text-gray-400 block font-medium">District / Location</span>
+            <span class="font-semibold text-gray-700 flex items-center gap-1 mt-0.5 truncate">
+              <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              </svg>
+              {{ product.farmer.location or 'Sri Lanka' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-gray-400 block font-medium">Member Since</span>
+            <span class="font-semibold text-gray-700 flex items-center gap-1 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {{ product.farmer.created_at.strftime('%b %Y') if product.farmer.created_at else 'Recent' }}
+            </span>
+          </div>
+          <div>
+            <span class="text-gray-400 block font-medium">Active Listings</span>
+            <span class="font-semibold text-leaf flex items-center gap-1 mt-0.5">
+              <svg class="w-3.5 h-3.5 text-leaf flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              {{ product.farmer.active_products_count }} active listing{{ 's' if product.farmer.active_products_count != 1 else '' }}
+            </span>
+          </div>
         </div>
       </div>
 

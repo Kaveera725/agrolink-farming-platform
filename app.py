@@ -71,6 +71,7 @@ def create_app():
     from blueprints.orders.routes import orders_bp
     from blueprints.prices.routes import prices_bp
     from blueprints.main.routes import main_bp
+    from blueprints.profile.routes import profile_bp
 
     # Register Blueprints
     app.register_blueprint(auth_bp)
@@ -79,6 +80,7 @@ def create_app():
     app.register_blueprint(orders_bp)
     app.register_blueprint(prices_bp)
     app.register_blueprint(main_bp)
+    app.register_blueprint(profile_bp)
 
     # CLI Commands
     @app.cli.command('seed-prices')
