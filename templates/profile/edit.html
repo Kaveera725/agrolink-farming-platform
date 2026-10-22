@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <form method="POST" action="{{ url_for('profile.edit') }}" class="space-y-8">
+  <form method="POST" action="{{ url_for('profile.edit') }}" enctype="multipart/form-data" class="space-y-8">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <!-- Main Details Card -->
@@ -35,6 +35,29 @@
         </svg>
         Personal & Contact Information
       </h2>
+
+      <!-- Profile Photo Upload Field -->
+      <div class="mb-6 p-4 bg-gray-50/70 border border-gray-200 rounded-2xl flex flex-col sm:flex-row items-center gap-5">
+        <div class="relative w-20 h-20 rounded-full overflow-hidden flex-shrink-0 border-2 border-leaf shadow-sm bg-leaf-pale flex items-center justify-center">
+          <img id="avatar-preview-img"
+            src="{{ user.profile_image_url if user.profile_image_url else '' }}"
+            alt="{{ user.name }}"
+            class="w-full h-full object-cover {% if not user.profile_image_url %}hidden{% endif %}" />
+          <span id="avatar-initial-badge" class="font-display font-bold text-2xl text-leaf {% if user.profile_image_url %}hidden{% endif %}">
+            {{ user.name[0].upper() }}
+          </span>
+        </div>
+        <div class="flex-1 w-full space-y-1 text-center sm:text-left">
+          <label for="profile_image" class="block text-sm font-semibold text-gray-800">
+            Profile Photo <span class="text-xs text-gray-400 font-normal">(Optional · Max 5 MB)</span>
+          </label>
+          <input type="file" id="profile_image_input" name="profile_image"
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+            class="block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf-pale file:text-leaf hover:file:bg-leaf/20 cursor-pointer" />
+          <p class="text-xs text-gray-400">JPG, JPEG, PNG, or WEBP. Upload a clear portrait photo.</p>
+          <p id="profile-photo-error" class="text-xs text-red-500 font-medium hidden"></p>
+        </div>
+      </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
@@ -169,4 +192,58 @@
   </form>
 
 </div>
+
+<script>
+  (function() {
+    const avatarInput = document.getElementById('profile_image_input');
+    const avatarPreviewImg = document.getElementById('avatar-preview-img');
+    const avatarBadge = document.getElementById('avatar-initial-badge');
+    const avatarError = document.getElementById('profile-photo-error');
+
+    if (avatarInput) {
+      avatarInput.addEventListener('change', function() {
+        if (avatarError) {
+          avatarError.classList.add('hidden');
+          avatarError.textContent = '';
+        }
+
+        const file = this.files && this.files[0];
+        if (!file) return;
+
+        // Max 5 MB check
+        if (file.size > 5 * 1024 * 1024) {
+          if (avatarError) {
+            avatarError.textContent = 'Profile photo exceeds 5 MB. Please select a smaller image.';
+            avatarError.classList.remove('hidden');
+          }
+          this.value = '';
+          return;
+        }
+
+        const validExts = ['jpg', 'jpeg', 'png', 'webp'];
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!validExts.includes(ext)) {
+          if (avatarError) {
+            avatarError.textContent = 'Invalid format. Allowed: JPG, JPEG, PNG, WEBP.';
+            avatarError.classList.remove('hidden');
+          }
+          this.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (avatarPreviewImg) {
+            avatarPreviewImg.src = e.target.result;
+            avatarPreviewImg.classList.remove('hidden');
+          }
+          if (avatarBadge) {
+            avatarBadge.classList.add('hidden');
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  })();
+</script>
 {% endblock %}

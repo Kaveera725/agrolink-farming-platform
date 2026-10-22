@@ -75,8 +75,12 @@
           {% if current_user.is_authenticated %}
           <div class="relative" id="user-menu-container">
             <button id="user-menu-button" type="button" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 transition text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-leaf">
-              <div class="w-8 h-8 rounded-full bg-leaf-pale flex items-center justify-center shadow-inner">
+              <div class="w-8 h-8 rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center shadow-inner">
+                {% if current_user.profile_image_url %}
+                <img src="{{ current_user.profile_image_url }}" alt="{{ current_user.name }}" class="w-full h-full object-cover" />
+                {% else %}
                 <span class="text-leaf font-bold text-xs">{{ current_user.name[0].upper() }}</span>
+                {% endif %}
               </div>
               <span class="font-medium hidden sm:inline">{{ current_user.name.split()[0] }}</span>
               <span class="text-xs px-2 py-0.5 rounded-full {% if current_user.role == 'farmer' %}bg-earth-pale text-earth{% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-sky-pale text-sky{% endif %} font-semibold capitalize hidden sm:inline">{{ current_user.role }}</span>

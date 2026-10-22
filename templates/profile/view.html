@@ -35,9 +35,15 @@
   <!-- Profile Overview Hero Card -->
   <div class="card p-6 sm:p-8 mb-8 bg-gradient-to-br from-white via-white to-leaf-pale/20">
     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+      {% if user.profile_image_url %}
+      <div class="w-20 h-20 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border-2 border-white">
+        <img src="{{ user.profile_image_url }}" alt="{{ user.name }}" class="w-full h-full object-cover" />
+      </div>
+      {% else %}
       <div class="w-20 h-20 rounded-2xl {% if user.role == 'farmer' %}bg-earth text-white{% elif user.role == 'admin' %}bg-purple-700 text-white{% else %}bg-sky text-white{% endif %} flex items-center justify-center font-display font-bold text-3xl shadow-md flex-shrink-0">
         {{ user.name[0].upper() }}
       </div>
+      {% endif %}
 
       <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-center gap-2.5 mb-1.5">

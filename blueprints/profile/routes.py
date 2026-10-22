@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db
 from utils.phone import validate_sl_phone, normalize_phone_number
+from utils.uploads import save_uploaded_image, delete_uploaded_image
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
 
@@ -113,6 +114,27 @@ def edit():
         if current_user.role == 'farmer':
             current_user.farm_name = farm_name or None
             current_user.bio = bio or None
+
+        # Handle optional profile photo upload
+        profile_photo = request.files.get('profile_image')
+        if profile_photo and profile_photo.filename:
+            main_url, thumb_url, err = save_uploaded_image(
+                profile_photo,
+                folder='profiles',
+                max_width=800,
+                thumb_width=200
+            )
+            if err:
+                flash(err, 'error')
+                return render_template(
+                    'profile/edit.html',
+                    user=current_user,
+                    districts=SRI_LANKAN_DISTRICTS,
+                    form_data=request.form
+                )
+            if current_user.profile_image_url:
+                delete_uploaded_image(current_user.profile_image_url)
+            current_user.profile_image_url = main_url
 
         db.session.commit()
         flash('Profile updated successfully!', 'success')

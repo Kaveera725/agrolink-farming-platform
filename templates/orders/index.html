@@ -22,7 +22,7 @@
     <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="card block hover:shadow-md transition-shadow duration-200">
       <div class="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
-          <img src="{{ order.product.image_url }}" alt="{{ order.product.name }}" class="w-full h-full object-cover" />
+          <img src="{{ order.product.thumbnail_url }}" alt="{{ order.product.name }}" loading="lazy" class="w-full h-full object-cover" />
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex flex-wrap items-start justify-between gap-2">

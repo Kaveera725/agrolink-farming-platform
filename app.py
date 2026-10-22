@@ -33,7 +33,12 @@ def create_app():
         'DATABASE_URL',
         'postgresql://agrolink_db_user:agrolink_db_user_password@localhost:5432/agrolink_db'
     )
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB maximum request / file size
+
+    # Ensure static upload directories exist automatically at startup
+    uploads_base = os.path.join(app.root_path, 'static', 'uploads')
+    os.makedirs(os.path.join(uploads_base, 'products'), exist_ok=True)
+    os.makedirs(os.path.join(uploads_base, 'profiles'), exist_ok=True)
 
     # Init extensions
     db.init_app(app)
@@ -54,6 +59,10 @@ def create_app():
     @app.errorhandler(404)
     def not_found_error(e):
         return render_template('errors/404.html'), 404
+
+    @app.errorhandler(413)
+    def request_entity_too_large(e):
+        return render_template('errors/413.html'), 413
 
     @app.errorhandler(429)
     def ratelimit_error(e):
