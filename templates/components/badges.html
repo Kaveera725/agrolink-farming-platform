@@ -1,0 +1,85 @@
+{# AgroLink Reusable Status & Role Badges #}
+
+{% macro crop_status_badge(status) %}
+  {% set s = (status or '')|lower %}
+  {% if s == 'growing' %}
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-200">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+      Growing
+    </span>
+  {% elif s == 'ready' %}
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-leaf-pale text-leaf-dark border border-leaf/20">
+      <span class="w-1.5 h-1.5 rounded-full bg-leaf"></span>
+      Ready to Harvest
+    </span>
+  {% elif s == 'harvested' %}
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-300">
+      <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+      Harvested
+    </span>
+  {% else %}
+    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+      {{ status|capitalize }}
+    </span>
+  {% endif %}
+{% endmacro %}
+
+{% macro order_status_badge(status) %}
+  {% set s = (status or '')|lower %}
+  {% if s == 'pending' %}
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200">
+      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+      Pending
+    </span>
+  {% elif s == 'confirmed' %}
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-900 border border-blue-200">
+      <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+      Confirmed
+    </span>
+  {% elif s == 'delivered' %}
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-200">
+      <svg class="w-3.5 h-3.5 text-emerald-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      Delivered
+    </span>
+  {% elif s == 'cancelled' %}
+    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-900 border border-red-200">
+      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+      Cancelled
+    </span>
+  {% else %}
+    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+      {{ status|capitalize }}
+    </span>
+  {% endif %}
+{% endmacro %}
+
+{% macro role_badge(role) %}
+  {% set r = (role or '')|lower %}
+  {% if r == 'farmer' %}
+    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-earth-pale text-earth border border-earth/20">
+      <svg class="w-3 h-3 text-earth" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/></svg>
+      Farmer
+    </span>
+  {% elif r == 'buyer' %}
+    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-pale text-sky border border-sky/20">
+      <svg class="w-3 h-3 text-sky" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+      Buyer
+    </span>
+  {% elif r == 'admin' %}
+    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
+      <svg class="w-3 h-3 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Admin
+    </span>
+  {% else %}
+    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 capitalize">
+      {{ role }}
+    </span>
+  {% endif %}
+{% endmacro %}
+
+{% macro deal_badge(saving_text) %}
+  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 shadow-xs">
+    <svg class="w-3.5 h-3.5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.316.492-.53 1.05-.668 1.625-.138.575-.17 1.144-.067 1.69a6.002 6.002 0 00-4.015 5.258A6 6 0 1016.99 12a5.98 5.98 0 00-2.095-4.57 6.02 6.02 0 00-.5-4.877zM10 14a2 2 0 110-4 2 2 0 010 4z" clip-rule="evenodd"/></svg>
+    {{ saving_text }}
+  </span>
+{% endmacro %}

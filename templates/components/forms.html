@@ -1,0 +1,177 @@
+{# AgroLink Reusable Accessible Form Field Macros #}
+
+{% macro input_field(id, name, label, type='text', value='', required=false, placeholder='', hint='', error='', step='', min='', max='', readonly=false, disabled=false, autocomplete='') %}
+  <div class="space-y-1.5 w-full">
+    <div class="flex items-center justify-between">
+      <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
+        {{ label }}
+        {% if required %}
+          <span class="text-red-600 font-bold ml-0.5" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        {% endif %}
+      </label>
+      {% if hint and not error %}
+        <span class="text-xs text-gray-600" id="{{ id }}-hint">{{ hint }}</span>
+      {% endif %}
+    </div>
+
+    <input
+      type="{{ type }}"
+      id="{{ id }}"
+      name="{{ name }}"
+      value="{{ value if value is not none else '' }}"
+      {% if required %}required{% endif %}
+      {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+      {% if step %}step="{{ step }}"{% endif %}
+      {% if min %}min="{{ min }}"{% endif %}
+      {% if max %}max="{{ max }}"{% endif %}
+      {% if readonly %}readonly{% endif %}
+      {% if disabled %}disabled{% endif %}
+      {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+      {% if hint or error %}aria-describedby="{% if error %}{{ id }}-error{% else %}{{ id }}-hint{% endif %}"{% endif %}
+      {% if error %}aria-invalid="true"{% endif %}
+      class="w-full min-h-[44px] px-4 py-2.5 rounded-xl border {% if error %}border-red-500 bg-red-50/30 text-red-900{% else %}border-gray-300 bg-white text-gray-900{% endif %} text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition disabled:bg-gray-100 disabled:text-gray-600 {% if readonly %}bg-gray-50 text-gray-600 cursor-not-allowed{% endif %}"
+    />
+
+    {% if error %}
+      <p class="text-xs font-medium text-red-600 flex items-center gap-1 mt-1" id="{{ id }}-error" role="alert">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <span>{{ error }}</span>
+      </p>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro textarea_field(id, name, label, value='', required=false, rows=3, placeholder='', hint='', error='') %}
+  <div class="space-y-1.5 w-full">
+    <div class="flex items-center justify-between">
+      <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
+        {{ label }}
+        {% if required %}
+          <span class="text-red-600 font-bold ml-0.5" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        {% endif %}
+      </label>
+      {% if hint and not error %}
+        <span class="text-xs text-gray-600" id="{{ id }}-hint">{{ hint }}</span>
+      {% endif %}
+    </div>
+
+    <textarea
+      id="{{ id }}"
+      name="{{ name }}"
+      rows="{{ rows }}"
+      {% if required %}required{% endif %}
+      {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+      {% if hint or error %}aria-describedby="{% if error %}{{ id }}-error{% else %}{{ id }}-hint{% endif %}"{% endif %}
+      {% if error %}aria-invalid="true"{% endif %}
+      class="w-full px-4 py-2.5 rounded-xl border {% if error %}border-red-500 bg-red-50/30 text-red-900{% else %}border-gray-300 bg-white text-gray-900{% endif %} text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+    >{{ value if value is not none else '' }}</textarea>
+
+    {% if error %}
+      <p class="text-xs font-medium text-red-600 flex items-center gap-1 mt-1" id="{{ id }}-error" role="alert">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <span>{{ error }}</span>
+      </p>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro select_field(id, name, label, options=[], selected='', required=false, hint='', error='') %}
+  <div class="space-y-1.5 w-full">
+    <div class="flex items-center justify-between">
+      <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
+        {{ label }}
+        {% if required %}
+          <span class="text-red-600 font-bold ml-0.5" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        {% endif %}
+      </label>
+      {% if hint and not error %}
+        <span class="text-xs text-gray-600" id="{{ id }}-hint">{{ hint }}</span>
+      {% endif %}
+    </div>
+
+    <div class="relative">
+      <select
+        id="{{ id }}"
+        name="{{ name }}"
+        {% if required %}required{% endif %}
+        {% if hint or error %}aria-describedby="{% if error %}{{ id }}-error{% else %}{{ id }}-hint{% endif %}"{% endif %}
+        {% if error %}aria-invalid="true"{% endif %}
+        class="w-full min-h-[44px] appearance-none px-4 py-2.5 rounded-xl border {% if error %}border-red-500 bg-red-50/30 text-red-900{% else %}border-gray-300 bg-white text-gray-900{% endif %} text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition pr-10"
+      >
+        {% for opt in options %}
+          {% if opt is mapping %}
+            <option value="{{ opt.value }}" {% if (selected|string) == (opt.value|string) %}selected{% endif %}>{{ opt.label }}</option>
+          {% elif opt is sequence and not opt is string %}
+            <option value="{{ opt[0] }}" {% if (selected|string) == (opt[0]|string) %}selected{% endif %}>{{ opt[1] }}</option>
+          {% else %}
+            <option value="{{ opt }}" {% if (selected|string) == (opt|string) %}selected{% endif %}>{{ opt|capitalize }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </div>
+
+    {% if error %}
+      <p class="text-xs font-medium text-red-600 flex items-center gap-1 mt-1" id="{{ id }}-error" role="alert">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        <span>{{ error }}</span>
+      </p>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro image_upload_field(id, name, label, current_url=none, hint="JPG, PNG or WebP up to 5 MB") %}
+  <div class="space-y-2 w-full">
+    <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
+      {{ label }}
+    </label>
+
+    <div class="flex flex-col sm:flex-row items-center gap-4 p-4 border border-dashed border-gray-300 rounded-2xl bg-gray-50/50 hover:bg-gray-50 transition">
+      <!-- Preview Frame -->
+      <div class="relative w-24 h-24 rounded-xl overflow-hidden bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-xs">
+        <img
+          id="{{ id }}-preview"
+          src="{{ current_url if current_url else '' }}"
+          alt="Preview"
+          class="w-full h-full object-cover {% if not current_url %}hidden{% endif %}"
+        />
+        <div id="{{ id }}-empty" class="text-center p-2 {% if current_url %}hidden{% endif %}">
+          <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <span class="text-[10px] text-gray-600 block mt-1">No Image</span>
+        </div>
+      </div>
+
+      <!-- Input and Info -->
+      <div class="flex-1 text-center sm:text-left min-w-0">
+        <input
+          type="file"
+          id="{{ id }}"
+          name="{{ name }}"
+          accept="image/jpeg,image/png,image/webp,image/jpg"
+          aria-describedby="{{ id }}-hint"
+          class="block w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf file:text-white hover:file:bg-leaf-light file:cursor-pointer cursor-pointer"
+          onchange="(function(e){
+            const file = e.target.files[0];
+            if (file) {
+              const preview = document.getElementById('{{ id }}-preview');
+              const empty = document.getElementById('{{ id }}-empty');
+              preview.src = URL.createObjectURL(file);
+              preview.classList.remove('hidden');
+              if (empty) empty.classList.add('hidden');
+            }
+          })(event)"
+        />
+        <p class="text-xs text-gray-600 mt-1.5" id="{{ id }}-hint">{{ hint }}</p>
+      </div>
+    </div>
+  </div>
+{% endmacro %}

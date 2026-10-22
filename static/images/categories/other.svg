@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="otherBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B4332" />
+      <stop offset="100%" stop-color="#081C15" />
+    </linearGradient>
+    <linearGradient id="harvestGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#52B788" />
+      <stop offset="100%" stop-color="#2D6A4F" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#otherBg)" />
+  <circle cx="200" cy="150" r="110" fill="#ffffff" opacity="0.05" />
+  <g transform="translate(140, 75) scale(1.3)">
+    <!-- Sprout & Crate / Harvest -->
+    <rect x="25" y="60" width="70" height="45" rx="8" fill="#A0522D" opacity="0.9" />
+    <line x1="25" y1="75" x2="95" y2="75" stroke="#78350F" stroke-width="2" />
+    <line x1="25" y1="90" x2="95" y2="90" stroke="#78350F" stroke-width="2" />
+    <path d="M60 60 C55 40 40 30 35 25 C45 22 65 30 60 60 Z" fill="url(#harvestGrad)" />
+    <path d="M60 55 C65 38 80 28 85 24 C75 22 55 32 60 55 Z" fill="#74C69D" />
+  </g>
+  <text x="200" y="240" font-family="'DM Sans', sans-serif" font-size="16" font-weight="600" fill="#D8F3DC" text-anchor="middle" letter-spacing="1">AGRICULTURAL PRODUCE</text>
+</svg>

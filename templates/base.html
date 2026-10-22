@@ -1,116 +1,145 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}AgroLink{% endblock %} — Smart Agricultural Marketplace</title>
+  <title>{% block title %}AgroLink{% endblock %} — Sri Lankan Agricultural Marketplace</title>
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
             leaf:   { DEFAULT: '#2D6A4F', light: '#40916C', dark: '#1B4332', pale: '#D8F3DC' },
-            earth:  { DEFAULT: '#A0522D', light: '#C1703B', pale: '#FDF1E8' },
-            gold:   { DEFAULT: '#F4A226', light: '#FBBF24', pale: '#FFF8E7' },
+            earth:  { DEFAULT: '#8B4513', light: '#A0522D', pale: '#FDF1E8' },
+            gold:   { DEFAULT: '#D97706', light: '#F59E0B', pale: '#FFF8E7' },
             sky:    { DEFAULT: '#1A659E', pale: '#EBF4FB' },
           },
           fontFamily: {
-            display: ['Playfair Display', 'serif'],
-            body:    ['DM Sans', 'sans-serif'],
+            display: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:    ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
           },
         }
       }
     }
   </script>
   <style>
-    body { font-family: 'DM Sans', sans-serif; background: #F7FAF5; }
-    .nav-link { @apply text-gray-600 hover:text-leaf font-medium transition-colors duration-200; }
-    .btn-primary { @apply bg-leaf text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-leaf-light transition-all duration-200 shadow-sm hover:shadow-md; }
-    .btn-secondary { @apply bg-white border border-leaf text-leaf px-5 py-2.5 rounded-xl font-semibold hover:bg-leaf-pale transition-all duration-200; }
-    .btn-danger { @apply bg-red-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-red-600 transition-all duration-200 text-sm; }
+    body { font-family: 'DM Sans', sans-serif; background-color: #F8FAF7; color: #111827; }
+    .nav-link { @apply text-gray-700 hover:text-leaf font-medium transition-colors duration-150 px-2.5 py-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf; }
+    .btn-primary { @apply inline-flex items-center justify-center gap-2 bg-leaf text-white px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-light active:bg-leaf-dark transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-secondary { @apply inline-flex items-center justify-center gap-2 bg-white border border-leaf/40 text-leaf px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-pale hover:border-leaf transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
+    .btn-danger { @apply inline-flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 min-h-[44px] rounded-xl font-semibold hover:bg-red-700 transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2; }
     .card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden; }
-    .form-input { @apply w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-transparent transition bg-white; }
-    .form-label { @apply block text-sm font-semibold text-gray-700 mb-1.5; }
-    .badge-growing { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800; }
-    .badge-ready   { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-leaf-pale text-leaf-dark; }
-    .badge-harvested { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700; }
-    .badge-pending   { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800; }
-    .badge-confirmed { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800; }
-    .badge-delivered { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800; }
-    .badge-cancelled { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800; }
-    .stat-card { @apply bg-white rounded-2xl p-6 shadow-sm border border-gray-100; }
+    .form-input { @apply w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition bg-white text-gray-900 min-h-[44px]; }
+    .form-label { @apply block text-sm font-semibold text-gray-800 mb-1.5; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-full flex flex-col antialiased text-gray-900 overflow-x-hidden">
 
-  <!-- NAVBAR -->
-  <nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+  <!-- SKIP TO CONTENT -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:bg-leaf focus:text-white focus:rounded-xl focus:shadow-xl focus:font-semibold focus:outline-none focus:ring-2 focus:ring-leaf-light">
+    Skip to main content
+  </a>
+
+  <!-- TOP NAVIGATION BAR -->
+  <nav class="bg-white border-b border-gray-200/80 sticky top-0 z-40 shadow-xs" aria-label="Main Navigation">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Logo -->
-        <a href="{{ url_for('main.home') }}" class="flex items-center gap-2.5">
-          <div class="w-9 h-9 bg-leaf rounded-xl flex items-center justify-center shadow-sm">
-            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-          </div>
-          <span class="font-display font-bold text-xl text-leaf-dark">Agro<span class="text-leaf-light">Link</span></span>
-        </a>
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Brand & Hamburger Area -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile Drawer Toggle Button -->
+          <button
+            id="mobile-menu-toggle"
+            type="button"
+            class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-gray-700 hover:text-leaf hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf"
+            aria-controls="mobile-drawer"
+            aria-expanded="false"
+            aria-label="Open main menu"
+          >
+            <svg id="hamburger-icon" class="w-6 h-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-        <!-- Nav links -->
-        <div class="hidden md:flex items-center gap-6">
-          <a href="{{ url_for('main.home') }}" class="nav-link {% if request.blueprint == 'main' %}text-leaf font-semibold{% endif %}">Home</a>
-          <a href="{{ url_for('marketplace.index') }}" class="nav-link {% if request.blueprint == 'marketplace' %}text-leaf font-semibold{% endif %}">Marketplace</a>
-          <a href="{{ url_for('prices.index') }}" class="nav-link {% if request.blueprint == 'prices' %}text-leaf font-semibold{% endif %}">Market Prices</a>
+          <!-- Logo -->
+          <a href="{{ url_for('main.home') }}" class="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-lg p-1">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-leaf rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-xl sm:text-2xl text-leaf-dark tracking-tight">Agro<span class="text-leaf-light">Link</span></span>
+          </a>
+        </div>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-1 lg:gap-2">
+          <a href="{{ url_for('main.home') }}" class="nav-link {% if request.blueprint == 'main' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Home</a>
+          <a href="{{ url_for('marketplace.index') }}" class="nav-link {% if request.blueprint == 'marketplace' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Marketplace</a>
+          <a href="{{ url_for('prices.index') }}" class="nav-link {% if request.blueprint == 'prices' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Market Prices</a>
           {% if current_user.is_authenticated %}
-          <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if request.blueprint == 'dashboard' %}text-leaf font-semibold{% endif %}">Dashboard</a>
-          <a href="{{ url_for('orders.index') }}" class="nav-link {% if request.blueprint == 'orders' %}text-leaf font-semibold{% endif %}">Orders</a>
+          <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if request.blueprint == 'dashboard' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Dashboard</a>
+          <a href="{{ url_for('orders.index') }}" class="nav-link {% if request.blueprint == 'orders' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Orders</a>
           {% endif %}
         </div>
 
-        <!-- Auth -->
-        <div class="flex items-center gap-3">
+        <!-- Auth Actions / Profile Menu -->
+        <div class="flex items-center gap-2 sm:gap-3">
           {% if current_user.is_authenticated %}
           <div class="relative" id="user-menu-container">
-            <button id="user-menu-button" type="button" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 transition text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-leaf">
-              <div class="w-8 h-8 rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center shadow-inner">
+            <button
+              id="user-menu-button"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              class="flex items-center gap-2 p-1.5 sm:p-2 rounded-xl hover:bg-gray-100 transition text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-leaf"
+              aria-label="User profile and account options"
+            >
+              <div class="w-8 h-8 rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center border border-leaf/20 shrink-0">
                 {% if current_user.profile_image_url %}
                 <img src="{{ current_user.profile_image_url }}" alt="{{ current_user.name }}" class="w-full h-full object-cover" />
                 {% else %}
                 <span class="text-leaf font-bold text-xs">{{ current_user.name[0].upper() }}</span>
                 {% endif %}
               </div>
-              <span class="font-medium hidden sm:inline">{{ current_user.name.split()[0] }}</span>
-              <span class="text-xs px-2 py-0.5 rounded-full {% if current_user.role == 'farmer' %}bg-earth-pale text-earth{% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-sky-pale text-sky{% endif %} font-semibold capitalize hidden sm:inline">{{ current_user.role }}</span>
+              <span class="font-medium hidden sm:inline truncate max-w-[120px]">{{ current_user.name.split()[0] }}</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full {% if current_user.role == 'farmer' %}bg-earth-pale text-earth{% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-sky-pale text-sky{% endif %} font-semibold capitalize hidden md:inline">{{ current_user.role }}</span>
               <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" id="user-menu-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
-            <!-- Dropdown menu -->
+            <!-- Desktop User Dropdown Menu -->
             <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
               <div class="px-4 py-3 border-b border-gray-100">
-                <p class="text-xs text-gray-400 font-medium">Signed in as</p>
-                <p class="text-sm font-bold text-gray-800 truncate">{{ current_user.name }}</p>
-                <p class="text-xs text-gray-500 truncate">{{ current_user.email }}</p>
+                <p class="text-xs text-gray-600 font-medium">Signed in as</p>
+                <p class="text-sm font-bold text-gray-900 truncate">{{ current_user.name }}</p>
+                <p class="text-xs text-gray-600 truncate">{{ current_user.email }}</p>
                 <span class="inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full {% if current_user.role == 'farmer' %}bg-earth-pale text-earth{% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-sky-pale text-sky{% endif %} font-semibold capitalize">{{ current_user.role }}</span>
               </div>
               <div class="py-1">
-                <a href="{{ url_for('profile.view') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
+                <a href="{{ url_for('profile.view') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
                   <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   My Profile
                 </a>
-                <a href="{{ url_for('profile.edit') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
+                <a href="{{ url_for('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
                   <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                   Edit Profile
                 </a>
-                <a href="{{ url_for('profile.password') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
+                <a href="{{ url_for('profile.password') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
                   <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
@@ -118,7 +147,7 @@
                 </a>
               </div>
               <div class="border-t border-gray-100 py-1">
-                <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-medium transition">
+                <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-medium transition">
                   <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
@@ -127,82 +156,198 @@
               </div>
             </div>
           </div>
-          <a href="{{ url_for('auth.logout') }}" class="btn-secondary text-sm py-2 px-4 hidden md:inline-flex">Logout</a>
           {% else %}
-          <a href="{{ url_for('auth.login') }}" class="btn-secondary text-sm py-2 px-4">Log In</a>
-          <a href="{{ url_for('auth.register') }}" class="btn-primary text-sm py-2 px-4">Sign Up</a>
+          <a href="{{ url_for('auth.login') }}" class="btn-secondary text-sm py-2 px-3.5 sm:px-4">Log In</a>
+          <a href="{{ url_for('auth.register') }}" class="btn-primary text-sm py-2 px-3.5 sm:px-4">Sign Up</a>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MOBILE DRAWER NAVIGATION (Overlay & Offcanvas) -->
+    <div id="mobile-drawer" class="md:hidden hidden fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
+      <!-- Backdrop -->
+      <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+
+      <!-- Drawer Content -->
+      <div class="fixed inset-y-0 left-0 max-w-[300px] w-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
+        <div class="space-y-6">
+          <!-- Drawer Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+            <a href="{{ url_for('main.home') }}" class="flex items-center gap-2">
+              <div class="w-8 h-8 bg-leaf rounded-xl flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                </svg>
+              </div>
+              <span class="font-display font-bold text-lg text-leaf-dark">AgroLink</span>
+            </a>
+            <button id="mobile-drawer-close" type="button" class="p-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf" aria-label="Close menu">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Drawer Links -->
+          <nav class="flex flex-col space-y-1">
+            <a href="{{ url_for('main.home') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Home
+            </a>
+            <a href="{{ url_for('marketplace.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+              Marketplace
+            </a>
+            <a href="{{ url_for('prices.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+              Market Prices
+            </a>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+              Dashboard
+            </a>
+            <a href="{{ url_for('orders.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              Orders
+            </a>
+            <div class="pt-2 pb-1">
+              <div class="h-px bg-gray-100"></div>
+            </div>
+            <a href="{{ url_for('profile.view') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              My Profile
+            </a>
+            <a href="{{ url_for('profile.edit') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Edit Profile
+            </a>
+            <a href="{{ url_for('profile.password') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
+              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              Change Password
+            </a>
+            {% endif %}
+          </nav>
+        </div>
+
+        <!-- Drawer Footer / Auth -->
+        <div class="pt-6 border-t border-gray-100 space-y-3">
+          {% if current_user.is_authenticated %}
+            <div class="flex items-center gap-3 px-1 mb-2">
+              <div class="w-9 h-9 rounded-full bg-leaf-pale flex items-center justify-center font-bold text-leaf text-sm">
+                {{ current_user.name[0].upper() }}
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-bold text-gray-900 truncate">{{ current_user.name }}</p>
+                <p class="text-xs text-gray-600 truncate capitalize">{{ current_user.role }}</p>
+              </div>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition">
+              <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+              Log Out
+            </a>
+          {% else %}
+            <div class="flex flex-col gap-2">
+              <a href="{{ url_for('auth.login') }}" class="btn-secondary w-full text-center">Log In</a>
+              <a href="{{ url_for('auth.register') }}" class="btn-primary w-full text-center">Sign Up</a>
+            </div>
           {% endif %}
         </div>
       </div>
     </div>
   </nav>
 
-  <!-- FLASH MESSAGES -->
+  <!-- FLASH NOTIFICATIONS -->
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 space-y-2">
+  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 space-y-2.5" role="region" aria-label="Notifications">
     {% for category, message in messages %}
-    <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-      {% if category == 'success' %}bg-green-50 text-green-800 border border-green-200
-      {% elif category == 'error' %}bg-red-50 text-red-800 border border-red-200
-      {% elif category == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200
-      {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-      <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+    <div
+      class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium shadow-xs transition
+      {% if category == 'success' %}bg-emerald-50 text-emerald-900 border border-emerald-200
+      {% elif category == 'error' %}bg-red-50 text-red-900 border border-red-200
+      {% elif category == 'warning' %}bg-amber-50 text-amber-900 border border-amber-200
+      {% else %}bg-sky-pale text-sky border border-sky/30{% endif %}"
+      role="{% if category in ['error', 'warning'] %}alert{% else %}status{% endif %}"
+    >
+      <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
         {% if category == 'success' %}<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
         {% else %}<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>{% endif %}
       </svg>
-      {{ message }}
+      <span class="flex-1">{{ message }}</span>
     </div>
     {% endfor %}
   </div>
   {% endif %}
   {% endwith %}
 
-  <!-- CONTENT -->
-  <main class="flex-1">
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="main-content" class="flex-1 w-full max-w-full">
     {% block content %}{% endblock %}
   </main>
 
   <!-- FOOTER -->
-  <footer class="bg-leaf-dark text-white mt-16">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <div class="flex items-center gap-2 mb-3">
-            <div class="w-8 h-8 bg-leaf-light rounded-lg flex items-center justify-center">
-              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+  <footer class="bg-leaf-dark text-white mt-16 sm:mt-24 border-t border-emerald-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
+        <!-- Col 1: About -->
+        <div class="space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-leaf-light rounded-xl flex items-center justify-center shadow-xs">
+              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
             </div>
-            <span class="font-display font-bold text-lg">AgroLink</span>
+            <span class="font-display font-bold text-xl text-white">AgroLink</span>
           </div>
-          <p class="text-green-200 text-sm leading-relaxed">Connecting Sri Lankan farmers and buyers for fair, transparent agricultural trade.</p>
+          <p class="text-green-200/90 text-sm leading-relaxed max-w-sm">
+            Empowering Sri Lankan agriculture through transparent pricing, direct marketplace connections, and dependable harvest tracking.
+          </p>
         </div>
+
+        <!-- Col 2: Quick Links -->
         <div>
-          <h4 class="font-semibold mb-3 text-green-100">Quick Links</h4>
-          <ul class="space-y-1.5 text-sm text-green-200">
-            <li><a href="{{ url_for('main.home') }}" class="hover:text-white transition">Home</a></li>
-            <li><a href="{{ url_for('marketplace.index') }}" class="hover:text-white transition">Marketplace</a></li>
-            <li><a href="{{ url_for('prices.index') }}" class="hover:text-white transition">Market Prices</a></li>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Platform Links</h4>
+          <ul class="space-y-2 text-sm text-green-200">
+            <li><a href="{{ url_for('main.home') }}" class="hover:text-white transition inline-block py-1">Home</a></li>
+            <li><a href="{{ url_for('marketplace.index') }}" class="hover:text-white transition inline-block py-1">Browse Marketplace</a></li>
+            <li><a href="{{ url_for('prices.index') }}" class="hover:text-white transition inline-block py-1">Live Market Prices</a></li>
             {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('dashboard.index') }}" class="hover:text-white transition">Dashboard</a></li>
-            <li><a href="{{ url_for('profile.view') }}" class="hover:text-white transition">My Profile</a></li>
+            <li><a href="{{ url_for('dashboard.index') }}" class="hover:text-white transition inline-block py-1">My Dashboard</a></li>
+            <li><a href="{{ url_for('profile.view') }}" class="hover:text-white transition inline-block py-1">Account Profile</a></li>
             {% else %}
-            <li><a href="{{ url_for('auth.register') }}" class="hover:text-white transition">Register</a></li>
+            <li><a href="{{ url_for('auth.register') }}" class="hover:text-white transition inline-block py-1">Create Account</a></li>
+            <li><a href="{{ url_for('auth.login') }}" class="hover:text-white transition inline-block py-1">Sign In</a></li>
             {% endif %}
           </ul>
         </div>
+
+        <!-- Col 3: Academic / Info -->
         <div>
-          <h4 class="font-semibold mb-3 text-green-100">Project Info</h4>
-          <p class="text-sm text-green-200">BSc Software Engineering<br>Kingston University London<br>Esoft Campus Sri Lanka</p>
+          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Academic Project</h4>
+          <p class="text-sm text-green-200 leading-relaxed">
+            BSc (Hons) in Software Engineering<br>
+            Kingston University London &amp; Esoft Campus Sri Lanka
+          </p>
+          <div class="mt-4 pt-3 border-t border-emerald-900/60 text-xs text-green-300">
+            <span>Production ready agricultural trading framework</span>
+          </div>
         </div>
       </div>
-      <div class="border-t border-green-800 mt-8 pt-6 text-center text-xs text-green-400">
-        © 2024 AgroLink Marketplace — S E Coulton (Esoft ID: 131044)
+
+      <div class="border-t border-emerald-900 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-green-300 gap-2">
+        <p>© 2024 AgroLink Marketplace — S E Coulton (Esoft ID: 131044)</p>
+        <p class="text-green-400 font-medium">Built for Sri Lankan farmers &amp; buyers</p>
       </div>
     </div>
   </footer>
+
+  <!-- GLOBAL SCRIPTS -->
   <script>
     (function() {
-      // CSRF Header setup
+      // 1. CSRF Header setup for all dynamic fetch requests
       const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       if (token && window.fetch) {
         const _fetch = window.fetch;
@@ -227,7 +372,7 @@
         };
       }
 
-      // User dropdown menu interaction
+      // 2. Desktop User dropdown menu interaction
       const menuBtn = document.getElementById('user-menu-button');
       const dropdown = document.getElementById('user-dropdown-menu');
       const chevron = document.getElementById('user-menu-chevron');
@@ -262,7 +407,60 @@
           }
         });
       }
+
+      // 3. Mobile Navigation Drawer interaction
+      const drawerToggle = document.getElementById('mobile-menu-toggle');
+      const drawer = document.getElementById('mobile-drawer');
+      const drawerClose = document.getElementById('mobile-drawer-close');
+      const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
+      const hamburgerIcon = document.getElementById('hamburger-icon');
+      const closeIcon = document.getElementById('close-icon');
+
+      function openDrawer() {
+        if (!drawer) return;
+        drawer.classList.remove('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'true');
+        if (hamburgerIcon) hamburgerIcon.classList.add('hidden');
+        if (closeIcon) closeIcon.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDrawer() {
+        if (!drawer) return;
+        drawer.classList.add('hidden');
+        drawerToggle?.setAttribute('aria-expanded', 'false');
+        if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
+        if (closeIcon) closeIcon.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      if (drawerToggle && drawer) {
+        drawerToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isOpen = !drawer.classList.contains('hidden');
+          if (isOpen) {
+            closeDrawer();
+          } else {
+            openDrawer();
+          }
+        });
+      }
+
+      if (drawerClose) {
+        drawerClose.addEventListener('click', closeDrawer);
+      }
+
+      if (drawerBackdrop) {
+        drawerBackdrop.addEventListener('click', closeDrawer);
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && drawer && !drawer.classList.contains('hidden')) {
+          closeDrawer();
+        }
+      });
     })();
   </script>
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>
