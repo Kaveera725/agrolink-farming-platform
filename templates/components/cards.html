@@ -9,87 +9,182 @@
 
 {# ─── product_card() ─────────────────────────────────────────────────────── #}
 {#
-  Decoupled from nested interactive elements:
-  Card wrapper uses a pseudo-element overlay via after:inset-0 pattern.
-  Child action buttons use relative z-10 to sit above the overlay.
+  Shared product card macro for home, marketplace, and related products.
+  Features:
+  - 4:3 aspect ratio image with hover zoom
+  - Overlay badges (Deal, Low stock) and category pill
+  - 2-line clamped title, farmer name + district with pin icon
+  - Big price with gold-pale accent chip for deals, stock available, and % below market chip
+  - Stretched link technique (NO nested anchors; inner actions use relative z-20)
+  - 44px icon buttons for WhatsApp and Call (shown ONLY to authenticated users)
+  - Guests see "Log in to contact" — farmer phone numbers NEVER exposed to guests
+  - Compact variant for 2-column mobile layouts
 #}
-{% macro product_card(product) %}
-{%- set qty = product.quantity_kg if product.quantity_kg is defined else (product.available_qty if product.available_qty is defined else 0) -%}
-<article class="group card-hover flex flex-col h-full relative focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
-  {# Image #}
-  <div class="relative h-48 sm:h-52 w-full bg-canvas overflow-hidden flex items-center justify-center rounded-t-xl">
-    {% if product.thumbnail_url %}
+{% macro product_card(product, compact=false) %}
+{%- set qty = product.quantity_kg if product.quantity_kg is defined else 0 -%}
+{%- set is_deal = product.is_deal if product.is_deal is defined else (product.price_per_kg is defined and product.price_per_kg < 100) -%}
+{%- set is_low_stock = product.is_low_stock if product.is_low_stock is defined else (qty <= 50) -%}
+{%- set below_market = product.below_market_pct if product.below_market_pct is defined else none -%}
+{%- set farmer_name = product.farmer.name if (product.farmer and product.farmer.name) else 'Local Grower' -%}
+{%- set location_name = product.location or (product.farmer.location if product.farmer else none) or (product.farmer.district if product.farmer else none) or 'Sri Lanka' -%}
+
+<article class="group relative bg-white rounded-2xl shadow-sm hover:shadow-md border border-bdr transition-all duration-300 flex flex-col h-full overflow-hidden focus-within:ring-2 focus-within:ring-leaf">
+  
+  {# ── 4:3 IMAGE WITH OVERLAYS ─────────────────────────────────────────── #}
+  <div class="relative aspect-[4/3] w-full bg-canvas overflow-hidden flex items-center justify-center shrink-0">
+    {% if product.thumbnail_url or product.display_image_url %}
       <img
-        src="{{ product.thumbnail_url }}"
-        alt="{{ product.name or product.title }}"
+        src="{{ product.thumbnail_url or product.display_image_url }}"
+        alt="{{ product.name }}"
         loading="lazy"
-        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        onerror="this.onerror=null; this.src='/static/images/categories/{{ (product.category or 'other')|lower|replace('&', '')|replace(' ', '') }}.svg'; this.classList.add('p-8', 'opacity-60');"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
       />
     {% else %}
       <div class="w-full h-full bg-leaf-50 flex items-center justify-center">
-        {{ icon('sprout', size=52, cls='text-leaf/20') }}
+        {{ icon('sprout', size=48, cls='text-leaf/30') }}
       </div>
     {% endif %}
 
-    {# Category pill #}
-    <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-inksoft text-xs
-                 font-semibold px-2.5 py-1 rounded-full shadow-xs border border-bdr/50 capitalize">
-      {{ product.category }}
-    </span>
+    {# Top-Left Badges (Category + Deal) #}
+    <div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10 pointer-events-none">
+      {% if product.category %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/95 backdrop-blur-xs text-ink border border-bdr/60 shadow-2xs">
+          {{ product.category }}
+        </span>
+      {% endif %}
 
-    {# Stock status overlay #}
-    <span class="absolute top-3 right-3">
-      {{ stock_badge(qty, size='sm') }}
-    </span>
+      {% if is_deal %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-gold text-gold-text shadow-2xs">
+          {{ icon('star', size=11, cls='fill-current') }}
+          <span>Deal</span>
+        </span>
+      {% endif %}
+    </div>
+
+    {# Top-Right Badges (Low stock) #}
+    <div class="absolute top-2.5 right-2.5 flex flex-col items-end gap-1.5 z-10 pointer-events-none">
+      {% if is_low_stock %}
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-danger-50 text-danger-700 border border-danger/20 shadow-2xs">
+          {{ icon('clock', size=11) }}
+          <span>Low stock</span>
+        </span>
+      {% endif %}
+    </div>
   </div>
 
-  {# Body #}
-  <div class="p-4 sm:p-5 flex-1 flex flex-col">
-    {# Location byline #}
-    {% set loc = product.location or (product.farmer.district if product.farmer else none) or (product.farmer.location if product.farmer else none) %}
-    {% if loc %}
-    <div class="flex items-center gap-1.5 text-xs text-muted mb-1.5">
-      {{ icon('map-pin', size=13, cls='shrink-0') }}
-      <span class="truncate">{{ loc }}</span>
+  {# ── CARD BODY ───────────────────────────────────────────────────────── #}
+  <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between {% if compact %}p-3 sm:p-4{% endif %}">
+    <div>
+      {# Farmer and District with pin icon #}
+      <div class="flex items-center gap-1.5 text-xs text-muted mb-2">
+        <span class="font-medium text-ink truncate max-w-[130px]">{{ farmer_name }}</span>
+        <span class="text-muted/60" aria-hidden="true">•</span>
+        <div class="flex items-center gap-1 truncate text-muted min-w-0">
+          {{ icon('map-pin', size=12, cls='shrink-0 text-leaf') }}
+          <span class="truncate">{{ location_name }}</span>
+        </div>
+      </div>
+
+      {# 2-line clamped product name + stretched link covering the card #}
+      <h3 class="font-display font-bold text-base sm:text-lg text-ink group-hover:text-leaf transition-colors line-clamp-2 leading-snug mb-2.5">
+        <a
+          href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+          class="focus:outline-none after:absolute after:inset-0 after:z-10 focus-visible:underline"
+          title="{{ product.name }}"
+        >
+          {{ product.name }}
+        </a>
+      </h3>
+
+      {# Market price benchmark tag if available #}
+      {% if below_market and below_market > 0 %}
+        <div class="mb-3">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-leaf-50 text-leaf-dark border border-leaf/20">
+            {{ icon('trending-down', size=12, cls='text-leaf') }}
+            <span>{{ below_market }}% below market</span>
+          </span>
+        </div>
+      {% endif %}
     </div>
-    {% endif %}
 
-    {# Title — the main link; stretched to cover the card via ::after #}
-    <h3 class="font-display font-bold text-base sm:text-lg text-ink
-               group-hover:text-leaf transition-colors line-clamp-1 mb-2">
-      <a
-        href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
-        class="focus:outline-none after:absolute after:inset-0 after:rounded-xl"
-        tabindex="0"
-      >
-        {{ product.name or product.title }}
-      </a>
-    </h3>
+    {# ── PRICING & STOCK ─────────────────────────────────────────────────── #}
+    <div>
+      <div class="pt-3 border-t border-bdr flex items-baseline justify-between gap-2 mb-3">
+        {# Price #}
+        <div>
+          <span class="text-[11px] uppercase tracking-wider text-muted font-medium block">Price</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span class="font-sans font-bold tabular-nums text-lg sm:text-xl text-ink {% if is_deal %}px-2 py-0.5 rounded-md bg-gold-pale text-gold-dark font-extrabold border border-gold/20{% endif %}">
+              LKR {{ "{:,.0f}".format(product.price_per_kg) }}
+            </span>
+            <span class="text-xs text-muted font-medium">/ kg</span>
+          </div>
+        </div>
 
-    {# Description #}
-    {% if product.description %}
-    <p class="text-xs text-muted line-clamp-2 mb-3">{{ product.description }}</p>
-    {% endif %}
-
-    {# Price + View button — relative z-10 to be above the overlay #}
-    <div class="pt-3 border-t border-bdr flex items-center justify-between gap-2 mt-auto">
-      <div>
-        <span class="text-[11px] text-muted block">Price per {{ product.unit or 'kg' }}</span>
-        <div class="flex items-baseline gap-1 mt-0.5">
-          <span class="font-sans font-bold tabular-nums text-lg text-leaf-dark">
-            LKR {{ "%.2f"|format(product.price_per_kg) }}
+        {# Available Stock #}
+        <div class="text-right">
+          <span class="text-[11px] uppercase tracking-wider text-muted font-medium block">Stock</span>
+          <span class="text-xs font-semibold text-inksoft mt-0.5 inline-block">
+            {{ "{:,.0f}".format(qty) }} kg available
           </span>
         </div>
       </div>
-      <a
-        href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
-        class="btn-soft btn-sm relative z-10"
-        aria-label="View details for {{ product.name or product.title }}"
-        tabindex="-1"
-      >
-        View
-        {{ icon('arrow-right', size=14) }}
-      </a>
+
+      {# ── ACTIONS (relative z-20 to sit above stretched link, NO nested <a>) ─ #}
+      <div class="flex items-center gap-2 relative z-20 pt-1">
+        {# Primary "View details" (md size) #}
+        <a
+          href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+          class="btn-secondary flex-1 {% if compact %}text-xs py-2 px-2.5{% else %}text-sm py-2.5 px-3.5{% endif %} text-center justify-center font-semibold"
+          aria-label="View details for {{ product.name }}"
+        >
+          <span>View details</span>
+          {{ icon('arrow-right', size=14) }}
+        </a>
+
+        {# Contact Actions (WhatsApp and Call 44px icon buttons) #}
+        {% if current_user.is_authenticated %}
+          {% set phone = product.farmer.phone if product.farmer else none %}
+          {% set whatsapp = product.farmer.whatsapp_number or phone if product.farmer else none %}
+
+          {% if whatsapp %}
+            <a
+              href="https://wa.me/{{ whatsapp | replace(' ', '') | replace('-', '') | replace('+', '') }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-xl bg-leaf-50 text-leaf border border-leaf/20 hover:bg-leaf hover:text-white transition-colors duration-150 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+              aria-label="WhatsApp farmer {{ farmer_name }}"
+              title="Chat on WhatsApp"
+            >
+              {{ icon('whatsapp', size=18) }}
+            </a>
+          {% endif %}
+
+          {% if phone %}
+            <a
+              href="tel:{{ phone }}"
+              class="w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-xl bg-canvas text-ink hover:bg-leaf-pale hover:text-leaf border border-bdr transition-colors duration-150 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+              aria-label="Call farmer {{ farmer_name }}"
+              title="Call farmer"
+            >
+              {{ icon('phone', size=17) }}
+            </a>
+          {% endif %}
+        {% else %}
+          {# GUEST VIEW: No phone numbers exposed in HTML source #}
+          <a
+            href="{{ url_for('auth.login', next=request.path) }}"
+            class="inline-flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-canvas hover:bg-leaf-pale/60 text-muted hover:text-leaf text-xs font-medium border border-bdr transition-colors shrink-0"
+            aria-label="Log in to contact farmer {{ farmer_name }}"
+            title="Log in to contact farmer"
+          >
+            {{ icon('lock', size=13) }}
+            <span class="hidden sm:inline">Log in to contact</span>
+            <span class="sm:hidden">Contact</span>
+          </a>
+        {% endif %}
+      </div>
     </div>
   </div>
 </article>
