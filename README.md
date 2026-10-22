@@ -200,6 +200,9 @@ AgroLink features three primary user roles:
 - `/` - Landing home page
 - `/auth/login` - User login
 - `/auth/register` - New user registration (choose Farmer or Buyer)
+- `/profile` - User profile view (personal & farm info, contact details, map placeholder)
+- `/profile/edit` - Edit profile information & credentials
+- `/profile/password` - Change account password securely
 - `/dashboard/` - User dashboard (Farmer or Buyer)
 - `/marketplace/` - Crop marketplace listings
 - `/prices/` - Live market benchmark prices and best deals

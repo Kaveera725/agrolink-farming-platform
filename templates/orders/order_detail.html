@@ -17,7 +17,7 @@
   <!-- Product -->
   <div class="card p-6 mb-4 flex gap-4">
     <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-      <img src="{{ order.product.image_url }}" alt="{{ order.product.name }}" class="w-full h-full object-cover" />
+      <img src="{{ order.product.thumbnail_url }}" alt="{{ order.product.name }}" loading="lazy" class="w-full h-full object-cover" />
     </div>
     <div class="flex-1">
       <h3 class="font-semibold text-gray-800 text-lg flex items-center gap-2">

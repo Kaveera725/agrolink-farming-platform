@@ -128,7 +128,7 @@
       <div class="card hover:shadow-md transition flex flex-col justify-between overflow-hidden">
         <div>
           <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="block relative h-44 overflow-hidden">
-            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
+            <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition duration-300" />
             <span class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm text-leaf-dark text-xs px-2.5 py-0.5 rounded-full font-semibold">
               {{ product.category }}
             </span>

@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from extensions import db
 from models import Product
 from utils.decorators import roles_required
+from utils.uploads import save_uploaded_image, delete_uploaded_image
 
 marketplace_bp = Blueprint('marketplace', __name__, url_prefix='/marketplace')
 
@@ -80,7 +81,18 @@ def list_product():
             flash('All required fields must be filled correctly. Quantity and price must be greater than zero.', 'error')
             return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
 
-        image_url = PRODUCT_IMAGES.get(category, PRODUCT_IMAGES['Other'])
+        # Handle product image upload with fallback to category stock image
+        uploaded_file = request.files.get('image')
+        image_url = None
+        if uploaded_file and uploaded_file.filename:
+            main_url, thumb_url, err = save_uploaded_image(uploaded_file, folder='products', max_width=1200, thumb_width=400)
+            if err:
+                flash(err, 'error')
+                return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
+            image_url = main_url
+        else:
+            image_url = PRODUCT_IMAGES.get(category, PRODUCT_IMAGES['Other'])
+
         product = Product(farmer_id=current_user.id, name=name, category=category,
                           description=description, quantity_kg=quantity_kg,
                           price_per_kg=price_per_kg, location=location, image_url=image_url,
@@ -116,6 +128,23 @@ def edit_product(product_id):
             flash('Invalid input. Quantity cannot be negative and price must be greater than zero.', 'error')
             return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
 
+        # Handle image replacement
+        uploaded_file = request.files.get('image')
+        if uploaded_file and uploaded_file.filename:
+            main_url, thumb_url, err = save_uploaded_image(uploaded_file, folder='products', max_width=1200, thumb_width=400)
+            if err:
+                flash(err, 'error')
+                return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
+            # Delete old image from disk if it was a custom upload
+            delete_uploaded_image(product.image_url)
+            product.image_url = main_url
+        else:
+            # BUG-010: Do not overwrite product.image_url on edit unless it is empty or the category changed
+            # (and only update stock image if it wasn't a custom upload).
+            is_custom_upload = product.image_url and product.image_url.startswith('/static/uploads/')
+            if not product.image_url or (old_category != new_category and not is_custom_upload):
+                product.image_url = PRODUCT_IMAGES.get(new_category, PRODUCT_IMAGES.get('Other'))
+
         product.name = name
         product.description = description
         product.location = location
@@ -127,10 +156,6 @@ def edit_product(product_id):
             product.is_available = False
         else:
             product.is_available = is_available
-
-        # BUG-010: Do not overwrite product.image_url on edit unless it is empty or the category changed.
-        if not product.image_url or old_category != new_category:
-            product.image_url = PRODUCT_IMAGES.get(new_category, PRODUCT_IMAGES.get('Other'))
 
         product.category = new_category
 

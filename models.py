@@ -22,12 +22,19 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String(20))
     whatsapp_number = db.Column(db.String(20), nullable=True)
     location = db.Column(db.String(120))
+    farm_name = db.Column(db.String(120), nullable=True)
+    bio = db.Column(db.Text, nullable=True)
+    profile_image_url = db.Column(db.String(255), nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     crops = db.relationship('Crop', backref='farmer', lazy=True)
     products = db.relationship('Product', backref='farmer', lazy=True, foreign_keys='Product.farmer_id')
     orders_placed = db.relationship('Order', backref='buyer', lazy=True, foreign_keys='Order.buyer_id')
+
+    @property
+    def active_products_count(self):
+        return Product.query.filter_by(farmer_id=self.id, is_available=True, is_deleted=False).count()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -78,6 +85,24 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     orders = db.relationship('Order', backref='product', lazy=True)
+
+    @property
+    def display_image_url(self):
+        if self.image_url:
+            return self.image_url
+        from blueprints.marketplace.routes import PRODUCT_IMAGES
+        return PRODUCT_IMAGES.get(self.category, PRODUCT_IMAGES.get('Other'))
+
+    @property
+    def thumbnail_url(self):
+        if self.image_url:
+            if '/static/uploads/' in self.image_url:
+                import os
+                base, ext = os.path.splitext(self.image_url)
+                return f"{base}_thumb{ext}"
+            return self.image_url
+        from blueprints.marketplace.routes import PRODUCT_IMAGES
+        return PRODUCT_IMAGES.get(self.category, PRODUCT_IMAGES.get('Other'))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

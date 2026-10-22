@@ -14,7 +14,7 @@
   </div>
 
   <div class="card p-8">
-    <form method="POST" class="space-y-5">
+    <form method="POST" enctype="multipart/form-data" class="space-y-5">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div class="sm:col-span-2">
@@ -55,6 +55,47 @@
           <textarea name="description" rows="4" class="form-input resize-none"
             placeholder="Describe the quality, freshness, farming method, etc.">{{ product.description if product else '' }}</textarea>
         </div>
+
+        <!-- Product Image Upload with Live Preview -->
+        <div class="sm:col-span-2">
+          <label class="form-label flex items-center justify-between">
+            <span>Product Photo</span>
+            <span class="text-xs text-gray-400 font-normal">JPG, PNG, or WEBP (Max 5 MB)</span>
+          </label>
+
+          <!-- Upload Dropzone / File Picker -->
+          <div class="mt-1 flex flex-col sm:flex-row items-center gap-5 p-5 border-2 border-dashed border-gray-200 rounded-2xl hover:border-leaf/50 transition bg-gray-50/50">
+            <!-- Preview Box -->
+            <div id="image-preview-wrapper" class="relative w-32 h-32 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border border-gray-200 shadow-inner">
+              <img id="image-preview"
+                src="{{ product.display_image_url if product else '' }}"
+                alt="{{ product.name if product else 'Product preview' }}"
+                class="w-full h-full object-cover {% if not product or not product.image_url %}hidden{% endif %}" />
+              <div id="image-placeholder-icon" class="text-center p-3 {% if product and product.image_url %}hidden{% endif %}">
+                <svg class="mx-auto w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="text-[11px] text-gray-400 font-medium block mt-1">No Image</span>
+              </div>
+            </div>
+
+            <!-- File Input and Controls -->
+            <div class="flex-1 w-full space-y-2">
+              <input type="file" id="product_image_input" name="image"
+                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf-pale file:text-leaf hover:file:bg-leaf/20 cursor-pointer" />
+              <div id="file-info-text" class="text-xs text-gray-500">
+                {% if product and product.image_url %}
+                <span class="text-leaf font-medium">✓ Current image active</span> (Upload new file to replace)
+                {% else %}
+                Select an image from your device or leave blank to use the category stock image.
+                {% endif %}
+              </div>
+              <div id="file-error-text" class="text-xs text-red-500 font-medium hidden"></div>
+            </div>
+          </div>
+        </div>
+
         {% if product %}
         <div class="sm:col-span-2">
           <label class="flex items-center gap-2 cursor-pointer">
@@ -75,4 +116,60 @@
     </form>
   </div>
 </div>
+
+<script>
+  (function() {
+    const fileInput = document.getElementById('product_image_input');
+    const previewImg = document.getElementById('image-preview');
+    const placeholderIcon = document.getElementById('image-placeholder-icon');
+    const errorText = document.getElementById('file-error-text');
+    const infoText = document.getElementById('file-info-text');
+
+    if (fileInput) {
+      fileInput.addEventListener('change', function() {
+        errorText.classList.add('hidden');
+        errorText.textContent = '';
+
+        const file = this.files && this.files[0];
+        if (!file) return;
+
+        // Client-side file size check (5 MB)
+        const maxBytes = 5 * 1024 * 1024;
+        if (file.size > maxBytes) {
+          errorText.textContent = 'Selected file is ' + (file.size / (1024 * 1024)).toFixed(1) + ' MB. Maximum allowed size is 5 MB.';
+          errorText.classList.remove('hidden');
+          this.value = '';
+          return;
+        }
+
+        // Verify image type
+        const validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!validExtensions.includes(ext)) {
+          errorText.textContent = 'Invalid format. Please select a JPG, JPEG, PNG, or WEBP image.';
+          errorText.classList.remove('hidden');
+          this.value = '';
+          return;
+        }
+
+        // Live preview via FileReader
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewImg.src = e.target.result;
+          previewImg.classList.remove('hidden');
+          if (placeholderIcon) placeholderIcon.classList.add('hidden');
+          infoText.innerHTML = '<span class="text-leaf font-semibold">Ready to upload:</span> ' +
+            escapeHtml(file.name) + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text;
+      return div.innerHTML;
+    }
+  })();
+</script>
 {% endblock %}
