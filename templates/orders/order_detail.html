@@ -1,112 +1,218 @@
 {% extends "base.html" %}
-{% block title %}Order #{{ order.id }}{% endblock %}
+{% import "components/badges.html" as badges with context %}
+{% import "components/buttons.html" as buttons with context %}
+
+{% block title %}Order #{{ order.id }} — AgroLink{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="mb-6">
-    <a href="{{ url_for('orders.index') }}" class="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-      Back to orders
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
+
+  <!-- Breadcrumb -->
+  <div>
+    <a
+      href="{{ url_for('orders.index') }}"
+      class="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-600 hover:text-leaf transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-md px-1 py-0.5"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      <span>Back to Orders</span>
     </a>
-    <div class="flex items-center justify-between mt-3">
-      <h1 class="font-display text-3xl font-bold text-gray-800">Order #{{ order.id }}</h1>
-      <span class="badge-{{ order.status }} text-sm px-3 py-1">{{ order.status }}</span>
-    </div>
-    <p class="text-gray-400 text-sm mt-1">Placed on {{ order.created_at.strftime('%d %B %Y at %I:%M %p') }}</p>
   </div>
 
-  <!-- Product -->
-  <div class="card p-6 mb-4 flex gap-4">
-    <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
-      <img src="{{ order.product.thumbnail_url }}" alt="{{ order.product.name }}" loading="lazy" class="w-full h-full object-cover" />
+  <!-- Header Card -->
+  <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-xs font-mono font-bold text-gray-500 uppercase">Order ID #{{ order.id }}</span>
+        <span class="text-gray-300">•</span>
+        <span class="text-xs text-gray-500">{{ order.created_at.strftime('%d %B %Y at %I:%M %p') }}</span>
+      </div>
+      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+        Purchase Order Details
+      </h1>
     </div>
-    <div class="flex-1">
-      <h3 class="font-semibold text-gray-800 text-lg flex items-center gap-2">
-        {{ order.product.name }}
-        {% if order.product.is_deleted %}
-        <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Archived Listing</span>
-        {% endif %}
-      </h3>
-      <p class="text-sm text-gray-400">{{ order.product.category }}</p>
-      <div class="grid grid-cols-3 gap-3 mt-3">
+
+    <div>
+      {{ badges.order_status_badge(order.status) }}
+    </div>
+  </div>
+
+  <!-- PRODUCT SUMMARY CARD -->
+  <div class="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-xs flex flex-col sm:flex-row gap-5 items-center sm:items-start">
+    <div class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
+      <img
+        src="{{ order.product.thumbnail_url }}"
+        alt="{{ order.product.name }}"
+        loading="lazy"
+        class="w-full h-full object-cover"
+      />
+    </div>
+
+    <div class="flex-1 w-full space-y-3 text-center sm:text-left">
+      <div>
+        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <h2 class="font-display font-bold text-xl text-gray-900">
+            {{ order.product.name }}
+          </h2>
+          {% if order.product.is_deleted %}
+            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Archived Listing</span>
+          {% endif %}
+        </div>
+        <p class="text-xs text-gray-500 mt-0.5">{{ order.product.category }}</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-2xl text-center">
         <div>
-          <p class="text-xs text-gray-400">Quantity</p>
-          <p class="font-semibold text-gray-800">{{ order.quantity_kg }} kg</p>
+          <span class="text-[11px] font-semibold text-gray-500 uppercase block">Ordered Qty</span>
+          <span class="font-bold text-gray-900 text-sm sm:text-base">{{ "{:,.0f}".format(order.quantity_kg) }} kg</span>
         </div>
         <div>
-          <p class="text-xs text-gray-400">Unit Price</p>
-          <p class="font-semibold text-gray-800">LKR {{ "{:,.0f}".format(order.product.price_per_kg) }}</p>
+          <span class="text-[11px] font-semibold text-gray-500 uppercase block">Unit Price</span>
+          <span class="font-bold text-gray-900 text-sm sm:text-base">Rs. {{ "{:,.0f}".format(order.product.price_per_kg) }}</span>
         </div>
         <div>
-          <p class="text-xs text-gray-400">Total</p>
-          <p class="font-display font-bold text-leaf text-lg">LKR {{ "{:,.0f}".format(order.total_price) }}</p>
+          <span class="text-[11px] font-semibold text-gray-500 uppercase block">Total Due</span>
+          <span class="font-display font-bold text-leaf-dark text-sm sm:text-base">Rs. {{ "{:,.0f}".format(order.total_price) }}</span>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- People -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-    <div class="card p-5">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Farmer</p>
+  <!-- PARTICIPANTS GRID (FARMER & BUYER) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+    
+    <!-- Farmer Card -->
+    <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-3">
+      <span class="text-xs font-bold text-earth uppercase tracking-wider block">Seller (Farmer)</span>
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full bg-earth flex items-center justify-center text-white font-bold text-sm">{{ order.product.farmer.name[0].upper() }}</div>
-        <div>
-          <p class="font-semibold text-gray-800 text-sm">{{ order.product.farmer.name }}</p>
-          <p class="text-xs text-gray-400">{{ order.product.farmer.phone or 'No phone' }}</p>
+        <div class="w-10 h-10 rounded-full bg-earth-pale text-earth font-bold text-sm flex items-center justify-center shrink-0">
+          {{ order.product.farmer.name[0].upper() }}
+        </div>
+        <div class="min-w-0">
+          <p class="font-semibold text-gray-900 text-sm truncate">{{ order.product.farmer.name }}</p>
+          <p class="text-xs text-gray-500 truncate">{{ order.product.farmer.location or order.product.farmer.district or 'Sri Lanka' }}</p>
         </div>
       </div>
+
+      {% if order.product.farmer.phone %}
+        <div class="pt-2 border-t border-gray-100 flex gap-2">
+          <a
+            href="tel:{{ order.product.farmer.phone }}"
+            class="btn-secondary text-xs py-1.5 px-3 flex-1 text-center"
+          >
+            Call Seller
+          </a>
+          {% if order.product.farmer.whatsapp %}
+            <a
+              href="https://wa.me/{{ order.product.farmer.whatsapp }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-primary bg-emerald-600 hover:bg-emerald-700 text-xs py-1.5 px-3 flex-1 text-center"
+            >
+              WhatsApp
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
-    <div class="card p-5">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Buyer</p>
+
+    <!-- Buyer Card -->
+    <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-3">
+      <span class="text-xs font-bold text-sky uppercase tracking-wider block">Purchaser (Buyer)</span>
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full bg-sky flex items-center justify-center text-white font-bold text-sm">{{ order.buyer.name[0].upper() }}</div>
-        <div>
-          <p class="font-semibold text-gray-800 text-sm">{{ order.buyer.name }}</p>
-          <p class="text-xs text-gray-400">{{ order.buyer.phone or 'No phone' }}</p>
+        <div class="w-10 h-10 rounded-full bg-sky-pale text-sky font-bold text-sm flex items-center justify-center shrink-0">
+          {{ order.buyer.name[0].upper() }}
+        </div>
+        <div class="min-w-0">
+          <p class="font-semibold text-gray-900 text-sm truncate">{{ order.buyer.name }}</p>
+          <p class="text-xs text-gray-500 truncate">{{ order.buyer.phone or 'Contact via platform' }}</p>
         </div>
       </div>
+
+      {% if order.buyer.phone %}
+        <div class="pt-2 border-t border-gray-100">
+          <a
+            href="tel:{{ order.buyer.phone }}"
+            class="btn-secondary text-xs py-1.5 px-3 w-full text-center block"
+          >
+            Call Buyer
+          </a>
+        </div>
+      {% endif %}
     </div>
+
   </div>
 
-  <!-- Delivery & Notes -->
+  <!-- DELIVERY ADDRESS & NOTES -->
   {% if order.delivery_address %}
-  <div class="card p-5 mb-4">
-    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Delivery Address</p>
-    <p class="text-sm text-gray-700">{{ order.delivery_address }}</p>
-  </div>
+    <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-1">
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Delivery Destination</h3>
+      <p class="text-sm text-gray-800 leading-relaxed">{{ order.delivery_address }}</p>
+    </div>
   {% endif %}
+
   {% if order.notes %}
-  <div class="card p-5 mb-4">
-    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Order Notes</p>
-    <p class="text-sm text-gray-600 italic">{{ order.notes }}</p>
-  </div>
+    <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-1">
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Order Instructions &amp; Notes</h3>
+      <p class="text-sm text-gray-700 italic leading-relaxed">{{ order.notes }}</p>
+    </div>
   {% endif %}
 
-  <!-- Status update (farmer only) -->
+  <!-- FARMER STATUS UPDATE CONTROLS -->
   {% if current_user.role == 'farmer' and order.product.farmer_id == current_user.id %}
-  <div class="card p-6 mt-2">
-    <p class="font-semibold text-gray-800 mb-3">Update Order Status</p>
-    <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex gap-3">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <select name="status" class="form-input flex-1">
-        {% for s in ['pending','confirmed','delivered','cancelled'] %}
-        <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s|capitalize }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="btn-primary px-6">Update</button>
-    </form>
-  </div>
+    <div class="bg-white rounded-3xl p-6 border border-leaf/30 shadow-xs space-y-4">
+      <div>
+        <h3 class="font-display font-bold text-base text-gray-900">Manage Order Fulfillment</h3>
+        <p class="text-xs text-gray-500">Update status as you confirm packing, dispatch, or complete delivery.</p>
+      </div>
+
+      <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex flex-col sm:flex-row gap-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="relative flex-1">
+          <label for="status_select" class="sr-only">Order Status</label>
+          <select
+            id="status_select"
+            name="status"
+            class="w-full min-h-[46px] appearance-none px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf pr-10"
+          >
+            {% for s in ['pending','confirmed','delivered','cancelled'] %}
+              <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>
+                {{ s|capitalize }}
+              </option>
+            {% endfor %}
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary px-6 py-2.5 text-sm shadow-xs"
+        >
+          Update Status
+        </button>
+      </form>
+    </div>
   {% endif %}
 
-  <!-- Cancel (buyer only, pending) -->
+  <!-- BUYER CANCEL ORDER (Pending status only) -->
   {% if current_user.role == 'buyer' and order.status == 'pending' %}
-  <div class="mt-4">
-    <form method="POST" action="{{ url_for('orders.cancel_order', order_id=order.id) }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit" onclick="return confirm('Cancel this order?')"
-        class="w-full py-3 btn-danger rounded-xl">Cancel Order</button>
-    </form>
-  </div>
+    <div class="p-4 bg-red-50/50 rounded-2xl border border-red-200">
+      <form method="POST" action="{{ url_for('orders.cancel_order', order_id=order.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button
+          type="submit"
+          onclick="return confirm('Cancel this pending order?')"
+          class="w-full btn-danger text-sm py-2.5 text-center"
+        >
+          Cancel This Order
+        </button>
+      </form>
+    </div>
   {% endif %}
 
 </div>

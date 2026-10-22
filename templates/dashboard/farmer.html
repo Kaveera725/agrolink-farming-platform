@@ -1,144 +1,276 @@
 {% extends "base.html" %}
-{% block title %}Farmer Dashboard{% endblock %}
+{% import "components/badges.html" as badges with context %}
+{% import "components/buttons.html" as buttons with context %}
+{% import "components/cards.html" as cards with context %}
+
+{% block title %}Farmer Dashboard — AgroLink{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
 
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-    <div>
-      <h1 class="font-display text-3xl font-bold text-gray-800">Good day, {{ current_user.name.split()[0] }} 👨‍🌾</h1>
-      <p class="text-gray-500 mt-1">Manage your farm, crops, and listings from here.</p>
+  <!-- DASHBOARD HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
+    <div class="space-y-1">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-earth-pale text-earth text-xs font-semibold">
+        <span>👨‍🌾</span> Farmer Control Center
+      </div>
+      <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
+        Ayubowan, {{ current_user.name.split()[0] }}
+      </h1>
+      <p class="text-sm text-gray-600">
+        Monitor your active harvest, update crop records, and fulfill incoming buyer orders.
+      </p>
     </div>
-    <div class="flex gap-3">
-      <a href="{{ url_for('dashboard.add_crop') }}" class="btn-secondary text-sm">+ Add Crop</a>
-      <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-sm">+ List Product</a>
+
+    <!-- Quick Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <a href="{{ url_for('dashboard.add_crop') }}" class="btn-secondary text-sm">
+        <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>+ Log Crop</span>
+      </a>
+      <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-sm shadow-xs">
+        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>+ List Produce</span>
+      </a>
     </div>
   </div>
 
-  <!-- Stats -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Crops</p>
-      <p class="font-display text-3xl font-bold text-leaf mt-1">{{ crops|length }}</p>
+  <!-- STATS / METRIC CARDS -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Crops</p>
+      <p class="font-display font-extrabold text-2xl sm:text-3xl text-leaf mt-1">{{ crops|length }}</p>
+      <p class="text-xs text-gray-500 mt-1">Field records logged</p>
     </div>
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Active Listings</p>
-      <p class="font-display text-3xl font-bold text-sky mt-1">{{ products|selectattr('is_available')|list|length }}</p>
+
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Active Listings</p>
+      <p class="font-display font-extrabold text-2xl sm:text-3xl text-sky mt-1">{{ products|selectattr('is_available')|list|length }}</p>
+      <p class="text-xs text-gray-500 mt-1">Live on marketplace</p>
     </div>
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Orders Received</p>
-      <p class="font-display text-3xl font-bold text-earth mt-1">{{ orders|length }}</p>
+
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Orders Received</p>
+      <p class="font-display font-extrabold text-2xl sm:text-3xl text-earth mt-1">{{ orders|length }}</p>
+      <p class="text-xs text-gray-500 mt-1">Buyer purchase requests</p>
     </div>
-    <div class="stat-card">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Total Revenue</p>
-      <p class="font-display text-2xl font-bold text-gold mt-1">LKR {{ "{:,.0f}".format(total_revenue) }}</p>
+
+    <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/80">
+      <p class="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wider">Total Revenue</p>
+      <p class="font-display font-extrabold text-xl sm:text-2xl text-leaf-dark mt-1">Rs. {{ "{:,.0f}".format(total_revenue) }}</p>
+      <p class="text-xs text-gray-500 mt-1">Direct sales value</p>
     </div>
   </div>
 
+  <!-- TWO COLUMN SECTION: RECENT CROPS & RECENT ORDERS -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-    <!-- My Crops -->
-    <div class="card">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="font-display text-lg font-bold text-gray-800">My Crops</h2>
-        <a href="{{ url_for('dashboard.crops') }}" class="text-xs text-leaf font-semibold hover:underline">View all →</a>
-      </div>
-      {% if crops %}
-      <div class="divide-y divide-gray-50">
-        {% for crop in crops[:5] %}
-        <div class="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition">
-          <div class="w-10 h-10 rounded-xl bg-leaf-pale flex items-center justify-center text-lg flex-shrink-0">🌱</div>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-800 text-sm truncate">{{ crop.crop_name }}</p>
-            <p class="text-xs text-gray-400">{{ crop.quantity_kg }} kg · Harvest: {{ crop.expected_harvest_date.strftime('%d %b %Y') }}</p>
+    <!-- MY CROPS WIDGET -->
+    <div class="bg-white rounded-3xl border border-gray-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-50/70 border-b border-gray-100">
+          <div class="flex items-center gap-2">
+            <h2 class="font-display font-bold text-lg text-gray-900">Crop Cycle Tracker</h2>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-leaf-dark">
+              {{ crops|length }}
+            </span>
           </div>
-          <span class="badge-{{ crop.status }}">{{ crop.status }}</span>
+          <a href="{{ url_for('dashboard.crops') }}" class="text-xs font-semibold text-leaf hover:underline">
+            View All Crops →
+          </a>
         </div>
-        {% endfor %}
+
+        {% if crops %}
+          <div class="divide-y divide-gray-100">
+            {% for crop in crops[:5] %}
+              <div class="flex items-center justify-between gap-3 px-6 py-4 hover:bg-gray-50/80 transition">
+                <div class="flex items-center gap-3.5 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-leaf-pale text-leaf flex items-center justify-center font-bold text-sm shrink-0">
+                    🌱
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-gray-900 text-sm truncate">{{ crop.crop_name }}</p>
+                    <p class="text-xs text-gray-500 truncate">
+                      {{ crop.quantity_kg }} kg · Harvest: {{ crop.expected_harvest_date.strftime('%d %b %Y') }}
+                    </p>
+                  </div>
+                </div>
+                {{ badges.crop_status_badge(crop.status) }}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="py-12 px-6 text-center text-gray-500 space-y-2">
+            <div class="text-4xl">🌾</div>
+            <p class="text-sm font-semibold text-gray-700">No crop logs recorded yet.</p>
+            <p class="text-xs text-gray-500">Track planting, growing and harvest stages privately.</p>
+            <div class="pt-2">
+              <a href="{{ url_for('dashboard.add_crop') }}" class="btn-secondary text-xs py-2 px-4 inline-block">
+                Add First Crop
+              </a>
+            </div>
+          </div>
+        {% endif %}
       </div>
-      {% else %}
-      <div class="py-12 text-center text-gray-400">
-        <div class="text-4xl mb-3">🌾</div>
-        <p class="text-sm">No crops recorded yet.</p>
-        <a href="{{ url_for('dashboard.add_crop') }}" class="text-leaf text-sm font-semibold hover:underline mt-1 inline-block">Add your first crop →</a>
+
+      <div class="p-4 bg-gray-50/50 border-t border-gray-100 text-center">
+        <a href="{{ url_for('dashboard.add_crop') }}" class="text-xs font-semibold text-leaf hover:underline">
+          + Add New Field Record
+        </a>
       </div>
-      {% endif %}
     </div>
 
-    <!-- Recent Orders -->
-    <div class="card">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        <h2 class="font-display text-lg font-bold text-gray-800">Recent Orders</h2>
-        <a href="{{ url_for('orders.index') }}" class="text-xs text-leaf font-semibold hover:underline">View all →</a>
-      </div>
-      {% if orders %}
-      <div class="divide-y divide-gray-50">
-        {% for order in orders %}
-        <div class="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition">
-          <div class="w-10 h-10 rounded-xl bg-gold-pale bg-yellow-50 flex items-center justify-center text-lg flex-shrink-0">📦</div>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold text-gray-800 text-sm truncate">{{ order.product.name }}</p>
-            <p class="text-xs text-gray-400">{{ order.quantity_kg }} kg · LKR {{ "{:,.0f}".format(order.total_price) }}</p>
+    <!-- RECENT ORDERS WIDGET -->
+    <div class="bg-white rounded-3xl border border-gray-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-50/70 border-b border-gray-100">
+          <div class="flex items-center gap-2">
+            <h2 class="font-display font-bold text-lg text-gray-900">Recent Buyer Orders</h2>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-pale text-sky">
+              {{ orders|length }}
+            </span>
           </div>
-          <span class="badge-{{ order.status }}">{{ order.status }}</span>
+          <a href="{{ url_for('orders.index') }}" class="text-xs font-semibold text-leaf hover:underline">
+            Manage All Orders →
+          </a>
         </div>
-        {% endfor %}
+
+        {% if orders %}
+          <div class="divide-y divide-gray-100">
+            {% for order in orders[:5] %}
+              <div class="flex items-center justify-between gap-3 px-6 py-4 hover:bg-gray-50/80 transition">
+                <div class="flex items-center gap-3.5 min-w-0">
+                  <div class="w-10 h-10 rounded-xl bg-sky-pale text-sky flex items-center justify-center font-bold text-sm shrink-0">
+                    📦
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-semibold text-gray-900 text-sm truncate">{{ order.product.name }}</p>
+                    <p class="text-xs text-gray-500 truncate">
+                      {{ order.quantity_kg }} kg · Rs. {{ "{:,.0f}".format(order.total_price) }}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  {{ badges.order_status_badge(order.status) }}
+                  <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="text-xs font-semibold text-leaf hover:underline hidden sm:inline">
+                    View →
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="py-12 px-6 text-center text-gray-500 space-y-2">
+            <div class="text-4xl">📭</div>
+            <p class="text-sm font-semibold text-gray-700">No buyer orders received yet.</p>
+            <p class="text-xs text-gray-500">Orders placed by buyers for your produce will appear here.</p>
+          </div>
+        {% endif %}
       </div>
-      {% else %}
-      <div class="py-12 text-center text-gray-400">
-        <div class="text-4xl mb-3">📭</div>
-        <p class="text-sm">No orders yet.</p>
+
+      <div class="p-4 bg-gray-50/50 border-t border-gray-100 text-center">
+        <a href="{{ url_for('orders.index') }}" class="text-xs font-semibold text-leaf hover:underline">
+          View All Incoming Orders
+        </a>
       </div>
-      {% endif %}
     </div>
 
   </div>
 
-  <!-- My Product Listings -->
-  <div class="mt-8">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="font-display text-xl font-bold text-gray-800">My Product Listings</h2>
-      <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-sm">+ New Listing</a>
+  <!-- MY PRODUCT LISTINGS GRID -->
+  <section class="space-y-4" aria-labelledby="my-listings-heading">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-3 border-b border-gray-200">
+      <div>
+        <h2 id="my-listings-heading" class="font-display text-xl sm:text-2xl font-bold text-gray-900">
+          My Marketplace Listings
+        </h2>
+        <p class="text-xs sm:text-sm text-gray-600">Active produce visible to wholesale and retail buyers.</p>
+      </div>
+
+      <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-sm py-2.5 px-4 self-start sm:self-auto">
+        <span>+ New Produce Listing</span>
+      </a>
     </div>
+
     {% if products %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {% for product in products %}
-      <div class="card hover:shadow-md transition-shadow duration-200">
-        <div class="relative h-36 overflow-hidden">
-          <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" loading="lazy" class="w-full h-full object-cover" />
-          <div class="absolute top-2 right-2">
-            {% if product.quantity_kg <= 0 %}
-            <span class="badge-cancelled bg-red-100 text-red-700">Out of Stock</span>
-            {% elif product.is_available %}
-            <span class="badge-ready">Active</span>
-            {% else %}
-            <span class="badge-cancelled">Unlisted</span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="p-4">
-          <h3 class="font-semibold text-gray-800 text-sm truncate">{{ product.name }}</h3>
-          <p class="text-xs text-gray-400 mt-0.5">{{ product.quantity_kg }} kg available</p>
-          <p class="font-bold text-leaf mt-1 text-sm">LKR {{ "{:,.0f}".format(product.price_per_kg) }}/kg</p>
-          <div class="flex gap-2 mt-3">
-            <a href="{{ url_for('marketplace.edit_product', product_id=product.id) }}" class="flex-1 text-center text-xs font-semibold text-leaf border border-leaf rounded-lg py-1.5 hover:bg-leaf-pale transition">Edit</a>
-            <form method="POST" action="{{ url_for('marketplace.delete_product', product_id=product.id) }}" class="flex-1">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" onclick="return confirm('Remove this listing?')" class="w-full text-xs font-semibold text-red-500 border border-red-200 rounded-lg py-1.5 hover:bg-red-50 transition">Remove</button>
-            </form>
-          </div>
-        </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for product in products %}
+          <article class="bg-white rounded-2xl border border-gray-200/80 shadow-xs hover:shadow-md transition overflow-hidden flex flex-col justify-between">
+            <div>
+              <!-- Thumbnail -->
+              <div class="relative h-44 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
+                <img
+                  src="{{ product.thumbnail_url }}"
+                  alt="{{ product.name }}"
+                  loading="lazy"
+                  class="w-full h-full object-cover"
+                />
+                <div class="absolute top-2.5 right-2.5">
+                  {% if product.quantity_kg <= 0 %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                      Out of Stock
+                    </span>
+                  {% elif product.is_available %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                      Active
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-gray-200 text-gray-800">
+                      Paused
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Body -->
+              <div class="p-4">
+                <h3 class="font-display font-bold text-base text-gray-900 truncate">
+                  {{ product.name }}
+                </h3>
+                <p class="text-xs text-gray-500 mt-0.5">{{ "{:,.0f}".format(product.quantity_kg) }} kg ready</p>
+                <p class="font-display font-bold text-leaf-dark text-base mt-2">
+                  Rs. {{ "{:,.0f}".format(product.price_per_kg) }} / kg
+                </p>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="p-4 pt-0 flex gap-2 border-t border-gray-100 mt-2 pt-3">
+              <a
+                href="{{ url_for('marketplace.edit_product', product_id=product.id) }}"
+                class="flex-1 btn-secondary text-xs py-2 text-center"
+              >
+                Edit
+              </a>
+              <form method="POST" action="{{ url_for('marketplace.delete_product', product_id=product.id) }}" class="flex-1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button
+                  type="submit"
+                  onclick="return confirm('Remove this produce listing?')"
+                  class="w-full btn-danger text-xs py-2 text-center"
+                >
+                  Remove
+                </button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
     {% else %}
-    <div class="card py-12 text-center text-gray-400">
-      <div class="text-4xl mb-3">🏪</div>
-      <p class="text-sm">You haven't listed any products yet.</p>
-      <a href="{{ url_for('marketplace.list_product') }}" class="text-leaf text-sm font-semibold hover:underline mt-1 inline-block">List your first product →</a>
-    </div>
+      <div class="bg-white rounded-3xl p-12 text-center border border-gray-200 max-w-md mx-auto">
+        <div class="text-4xl mb-3">🏪</div>
+        <h3 class="font-bold text-gray-900 text-base mb-1">No products listed yet</h3>
+        <p class="text-xs text-gray-500 mb-5">Start selling your harvest directly to commercial buyers.</p>
+        <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-xs py-2 px-4">
+          + Create First Listing
+        </a>
+      </div>
     {% endif %}
-  </div>
+  </section>
 
 </div>
 {% endblock %}
