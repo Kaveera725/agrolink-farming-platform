@@ -7,7 +7,7 @@
       {% if product.thumbnail_url %}
         <img
           src="{{ product.thumbnail_url }}"
-          alt="{{ product.title }}"
+          alt="{{ product.name or product.title }}"
           loading="lazy"
           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
@@ -25,11 +25,12 @@
       </span>
 
       <!-- Stock Status -->
-      {% if product.available_qty <= 0 %}
+      {% set qty = product.quantity_kg if product.quantity_kg is defined else (product.available_qty if product.available_qty is defined else 0) %}
+      {% if qty <= 0 %}
         <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
           Out of Stock
         </span>
-      {% elif product.available_qty < 50 %}
+      {% elif qty < 50 %}
         <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
           Low Stock
         </span>
@@ -40,20 +41,20 @@
     <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
       <div>
         <!-- Farmer Location / Byline -->
-        {% if product.farmer %}
+        {% if product.location or (product.farmer and (product.farmer.location or product.farmer.district)) %}
           <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
             <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
-            <span class="truncate">{{ product.farmer.location or product.farmer.district or 'Sri Lanka' }}</span>
+            <span class="truncate">{{ product.location or (product.farmer.district or product.farmer.location) }}</span>
           </div>
         {% endif %}
 
         <!-- Product Title -->
         <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
-          <a href="{{ url_for('marketplace.detail', product_id=product.id) }}" class="focus:outline-none">
-            {{ product.title }}
+          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="focus:outline-none">
+            {{ product.name or product.title }}
           </a>
         </h3>
 
@@ -76,9 +77,9 @@
         </div>
 
         <a
-          href="{{ url_for('marketplace.detail', product_id=product.id) }}"
+          href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
           class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
-          aria-label="View details for {{ product.title }}"
+          aria-label="View details for {{ product.name or product.title }}"
         >
           <span>View</span>
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
