@@ -116,7 +116,7 @@
           <span class="text-[11px] uppercase tracking-wider text-muted font-medium block">Price</span>
           <div class="flex items-baseline gap-1 mt-0.5">
             <span class="font-sans font-bold tabular-nums text-lg sm:text-xl text-ink {% if is_deal %}px-2 py-0.5 rounded-md bg-gold-pale text-gold-dark font-extrabold border border-gold/20{% endif %}">
-              LKR {{ "{:,.0f}".format(product.price_per_kg) }}
+              LKR {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }}
             </span>
             <span class="text-xs text-muted font-medium">/ kg</span>
           </div>

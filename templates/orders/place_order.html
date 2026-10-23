@@ -41,7 +41,7 @@
       </p>
       <div class="flex items-baseline gap-3 mt-1.5">
         <span class="font-display font-extrabold text-base text-leaf-dark">
-          Rs. {{ "{:,.0f}".format(product.price_per_kg) }} <span class="text-xs font-normal text-gray-500">/ kg</span>
+          Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }} <span class="text-xs font-normal text-gray-500">/ kg</span>
         </span>
         <span class="text-xs text-gray-500 font-medium">
           ({{ "{:,.0f}".format(product.quantity_kg) }} kg available)
@@ -90,7 +90,7 @@
       <div class="bg-gradient-to-br from-emerald-50/60 to-white rounded-2xl p-4 sm:p-5 border border-emerald-200/80 flex items-center justify-between">
         <div>
           <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Estimated Total Order Value</span>
-          <span class="text-xs text-gray-500">Based on Rs. {{ "{:,.0f}".format(product.price_per_kg) }}/kg</span>
+          <span class="text-xs text-gray-500">Based on Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }}/kg</span>
         </div>
         <span id="totalDisplay" class="font-display font-extrabold text-2xl text-leaf-dark">
           Rs. 0.00

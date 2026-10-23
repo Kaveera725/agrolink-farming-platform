@@ -69,11 +69,11 @@
         </div>
         <div>
           <span class="text-[11px] font-semibold text-gray-500 uppercase block">Unit Price</span>
-          <span class="font-bold text-gray-900 text-sm sm:text-base">Rs. {{ "{:,.0f}".format(order.product.price_per_kg) }}</span>
+          <span class="font-bold text-gray-900 text-sm sm:text-base">Rs. {{ "{:,.2f}".format(order.product.price_per_kg) if (order.product.price_per_kg % 1 != 0) else "{:,.0f}".format(order.product.price_per_kg) }}</span>
         </div>
         <div>
           <span class="text-[11px] font-semibold text-gray-500 uppercase block">Total Due</span>
-          <span class="font-display font-bold text-leaf-dark text-sm sm:text-base">Rs. {{ "{:,.0f}".format(order.total_price) }}</span>
+          <span class="font-display font-bold text-leaf-dark text-sm sm:text-base">Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}</span>
         </div>
       </div>
     </div>

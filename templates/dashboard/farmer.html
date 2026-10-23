@@ -225,7 +225,7 @@
                 </h3>
                 <p class="text-xs text-gray-500 mt-0.5">{{ "{:,.0f}".format(product.quantity_kg) }} kg ready</p>
                 <p class="font-display font-bold text-leaf-dark text-base mt-2">
-                  Rs. {{ "{:,.0f}".format(product.price_per_kg) }} / kg
+                  Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }} / kg
                 </p>
               </div>
             </div>

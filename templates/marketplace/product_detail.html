@@ -73,7 +73,7 @@
           <div>
             <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Direct Asking Price</span>
             <div class="flex items-baseline gap-1 mt-1">
-              <span class="font-display font-extrabold text-3xl sm:text-4xl text-leaf-dark">Rs. {{ "{:,.0f}".format(product.price_per_kg) }}</span>
+              <span class="font-display font-extrabold text-3xl sm:text-4xl text-leaf-dark">Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }}</span>
               <span class="text-xs text-gray-500">/ kg</span>
             </div>
           </div>
