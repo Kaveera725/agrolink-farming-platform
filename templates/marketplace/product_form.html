@@ -1,263 +1,885 @@
 {% extends "base.html" %}
 {% from "components/ui.html" import page_header %}
+{% from "components/icons.html" import icon %}
+
 {% block title %}{{ 'Edit Listing' if product else 'List New Produce' }} — AgroLink Marketplace{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Smooth transitions for dropzone and chips */
+  .dropzone-active {
+    border-color: var(--color-leaf, #2d7a4f) !important;
+    background-color: rgba(45, 122, 79, 0.06) !important;
+    transform: scale(1.01);
+  }
+  .category-chip.active {
+    border-color: var(--color-leaf, #2d7a4f);
+    background-color: rgba(45, 122, 79, 0.08);
+    color: var(--color-leaf-dark, #1e5637);
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-  
-  {{ page_header(
-      title=('Edit Produce Listing' if product else 'List Fresh Produce'),
-      subtitle='Post your agricultural harvest directly to commercial and wholesale buyers across Sri Lanka.',
-      breadcrumbs=[
-          {'text': 'Home', 'url': url_for('main.home')},
-          {'text': 'Marketplace', 'url': url_for('marketplace.index')},
-          {'text': ('Edit ' ~ product.name) if product else 'New Listing'}
-      ],
-      back_url=url_for('marketplace.index'),
-      back_text='Back to Marketplace'
-  ) }}
+<div class="bg-canvas min-h-screen py-8 sm:py-12 pb-28 sm:pb-16">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
-  <!-- Form Card -->
-  <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
+    {# ─── Page Header with Breadcrumbs ───────────────────────────────────── #}
+    {{ page_header(
+        title=('Edit Produce Listing' if product else 'List Fresh Produce'),
+        subtitle='Directly connect your harvest to commercial buyers, supermarkets, and restaurants across Sri Lanka.',
+        breadcrumbs=[
+            {'text': 'Home', 'url': url_for('main.home')},
+            {'text': 'Marketplace', 'url': url_for('marketplace.index')},
+            {'text': ('Edit ' ~ (product.name if product else 'Listing')) if product else 'New Produce Listing'}
+        ],
+        back_url=(url_for('marketplace.product_detail', product_id=product.id) if product else url_for('marketplace.index')),
+        back_text=('Back to Listing' if product else 'Back to Marketplace')
+    ) }}
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
+    {# ─── Main Form ──────────────────────────────────────────────────────── #}
+    <form
+      id="product-form"
+      method="POST"
+      enctype="multipart/form-data"
+      novalidate
+      class="space-y-8"
+    >
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-      <!-- Product Name -->
-      <div class="space-y-1.5">
-        <label for="product_name" class="block text-sm font-semibold text-gray-800">
-          Product / Crop Name <span class="text-red-600 font-bold">*</span>
-        </label>
-        <input
-          type="text"
-          id="product_name"
-          name="name"
-          required
-          placeholder="e.g. Fresh Red Onions, Organic Keeri Samba, Cavendish Bananas"
-          value="{{ product.name if product else '' }}"
-          class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-        />
-      </div>
+      {# Two-Column Desktop Layout (Left = Details, Right = Media & Guidance) #}
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <!-- Category Selection -->
-        <div class="space-y-1.5">
-          <label for="product_category" class="block text-sm font-semibold text-gray-800">
-            Category <span class="text-red-600 font-bold">*</span>
-          </label>
-          <div class="relative">
-            <select
-              id="product_category"
-              name="category"
-              required
-              class="w-full min-h-[46px] appearance-none px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition pr-10"
-            >
-              <option value="">Select Category...</option>
-              {% for cat in categories %}
-                <option value="{{ cat }}" {% if product and product.category == cat %}selected{% endif %}>{{ cat }}</option>
-              {% endfor %}
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+        {# ─── LEFT COLUMN: PRODUCE DETAILS (7 cols on lg) ─────────────────── #}
+        <div class="lg:col-span-7 space-y-6">
+
+          {# ── SECTION 1: BASIC INFO ──────────────────────────────────────── #}
+          <section class="card p-6 sm:p-7 bg-white rounded-3xl border border-bdr shadow-xs space-y-5">
+            <div class="flex items-center gap-3 pb-3 border-b border-bdr/60">
+              <div class="w-9 h-9 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold text-sm">
+                1
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold font-display text-ink">Basic Info</h2>
+                <p class="text-xs text-muted">What variety of agricultural produce are you offering?</p>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Location -->
-        <div class="space-y-1.5">
-          <label for="product_location" class="block text-sm font-semibold text-gray-800">
-            Harvest Location / District
-          </label>
-          <input
-            type="text"
-            id="product_location"
-            name="location"
-            placeholder="e.g. Nuwara Eliya, Dambulla, Jaffna"
-            value="{{ product.location if product else (current_user.location or current_user.district or '') }}"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
-        </div>
-
-        <!-- Quantity Available -->
-        <div class="space-y-1.5">
-          <label for="product_quantity" class="block text-sm font-semibold text-gray-800">
-            Available Quantity (kg) <span class="text-red-600 font-bold">*</span>
-          </label>
-          <input
-            type="number"
-            id="product_quantity"
-            name="quantity_kg"
-            required
-            min="0.1"
-            step="0.1"
-            placeholder="e.g. 500"
-            value="{{ product.quantity_kg if product else '' }}"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
-        </div>
-
-        <!-- Price per kg -->
-        <div class="space-y-1.5">
-          <label for="product_price" class="block text-sm font-semibold text-gray-800">
-            Asking Price per kg (Rs.) <span class="text-red-600 font-bold">*</span>
-          </label>
-          <input
-            type="number"
-            id="product_price"
-            name="price_per_kg"
-            required
-            min="0.01"
-            step="0.01"
-            placeholder="e.g. 99.90"
-            value="{{ product.price_per_kg if product else '' }}"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
-        </div>
-      </div>
-
-      <!-- Description -->
-      <div class="space-y-1.5">
-        <label for="product_description" class="block text-sm font-semibold text-gray-800">
-          Harvest Notes &amp; Quality Details
-        </label>
-        <textarea
-          id="product_description"
-          name="description"
-          rows="4"
-          placeholder="Describe harvest date, grading, packing options, organic practices, or logistics info..."
-          class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-        >{{ product.description if product else '' }}</textarea>
-      </div>
-
-      <!-- PRODUCT PHOTO UPLOAD WITH LIVE PREVIEW -->
-      <div class="space-y-2 pt-2">
-        <div class="flex items-center justify-between">
-          <label for="product_image_input" class="block text-sm font-semibold text-gray-800">
-            Real Produce Photo
-          </label>
-          <span class="text-xs text-gray-500">JPG, PNG, WebP (Max 5 MB)</span>
-        </div>
-
-        <div class="flex flex-col sm:flex-row items-center gap-5 p-5 border-2 border-dashed border-gray-300 rounded-2xl bg-gray-50/60 hover:bg-gray-50 transition">
-          <!-- Thumbnail preview frame -->
-          <div id="image-preview-wrapper" class="relative w-28 h-28 sm:w-32 sm:h-32 rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-xs flex items-center justify-center shrink-0">
-            <img
-              id="image-preview"
-              src="{{ product.display_image_url if product else '' }}"
-              alt="{{ product.name if product else 'Produce preview' }}"
-              class="w-full h-full object-cover {% if not product or not product.image_url %}hidden{% endif %}"
-            />
-            <div id="image-placeholder-icon" class="text-center p-3 {% if product and product.image_url %}hidden{% endif %}">
-              <svg class="mx-auto w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-              </svg>
-              <span class="text-[11px] text-gray-500 font-medium block mt-1">No Image</span>
+            {# Product / Crop Name #}
+            <div class="space-y-1.5">
+              <div class="flex items-baseline justify-between">
+                <label for="product_name" class="field-label text-sm font-semibold text-ink">
+                  Produce / Crop Name <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <span class="text-xs text-muted">e.g. Red Onions, Keeri Samba, Cavendish Bananas</span>
+              </div>
+              <div class="relative">
+                <input
+                  type="text"
+                  id="product_name"
+                  name="name"
+                  required
+                  autocomplete="off"
+                  placeholder="e.g. Organic Red Onions"
+                  value="{{ request.form.get('name') if request.form.get('name') is not none else (product.name if product else '') }}"
+                  class="input w-full min-h-[48px] px-4 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+                  aria-describedby="product_name-error"
+                />
+              </div>
+              <p id="product_name-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+                {{ icon('alert-triangle', size=13) }}
+                <span>Please enter a produce name (minimum 2 characters).</span>
+              </p>
             </div>
-          </div>
 
-          <!-- File Picker & Feedback -->
-          <div class="flex-1 w-full space-y-2 text-center sm:text-left">
+            {# Category as Icon Chips & Select #}
+            <div class="space-y-2">
+              <div class="flex items-baseline justify-between">
+                <label for="product_category" class="field-label text-sm font-semibold text-ink">
+                  Category <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <span class="text-xs text-muted">Select the best matching crop category</span>
+              </div>
+
+              {% set current_cat = request.form.get('category') if request.form.get('category') is not none else (product.category if product else '') %}
+
+              {# Hidden / Accessible Select (synced to chips) #}
+              <select
+                id="product_category"
+                name="category"
+                required
+                class="sr-only"
+                tabindex="-1"
+                aria-hidden="true"
+              >
+                <option value="">Select Category...</option>
+                {% for cat in categories %}
+                  <option value="{{ cat }}" {% if current_cat == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+              </select>
+
+              {# Icon Chips Grid #}
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5" role="radiogroup" aria-label="Category selection">
+                {% set category_icons = {
+                  'Vegetables': '🥬',
+                  'Fruits': '🍎',
+                  'Grains & Rice': '🌾',
+                  'Spices': '🌶️',
+                  'Pulses': '🫘',
+                  'Roots & Tubers': '🥔',
+                  'Other': '📦'
+                } %}
+                {% for cat in categories %}
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked="{{ 'true' if current_cat == cat else 'false' }}"
+                    data-category="{{ cat }}"
+                    class="category-chip flex items-center gap-2 p-2.5 rounded-xl border border-bdr bg-canvas/40 hover:bg-canvas hover:border-leaf/40 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf {{ 'active' if current_cat == cat else '' }}"
+                  >
+                    <span class="text-lg leading-none" aria-hidden="true">{{ category_icons.get(cat, '🌱') }}</span>
+                    <span class="text-xs font-medium text-ink truncate">{{ cat }}</span>
+                  </button>
+                {% endfor %}
+              </div>
+              <p id="product_category-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+                {{ icon('alert-triangle', size=13) }}
+                <span>Please select a produce category.</span>
+              </p>
+            </div>
+          </section>
+
+          {# ── SECTION 2: PRICING AND STOCK ───────────────────────────────── #}
+          <section class="card p-6 sm:p-7 bg-white rounded-3xl border border-bdr shadow-xs space-y-5">
+            <div class="flex items-center gap-3 pb-3 border-b border-bdr/60">
+              <div class="w-9 h-9 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold text-sm">
+                2
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold font-display text-ink">Pricing &amp; Stock</h2>
+                <p class="text-xs text-muted">Set competitive rates to attract fast commercial orders</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {# Asking Price per kg with LKR prefix and / kg suffix #}
+              <div class="space-y-1.5">
+                <label for="product_price" class="field-label text-sm font-semibold text-ink">
+                  Price per kg <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <div class="relative rounded-xl shadow-2xs">
+                  <span class="absolute left-0 inset-y-0 pl-3.5 flex items-center text-muted font-bold text-xs pointer-events-none select-none">
+                    LKR
+                  </span>
+                  <input
+                    type="number"
+                    id="product_price"
+                    name="price_per_kg"
+                    required
+                    min="0.01"
+                    step="0.01"
+                    placeholder="0.00"
+                    value="{{ request.form.get('price_per_kg') if request.form.get('price_per_kg') is not none else (product.price_per_kg if product else '') }}"
+                    class="input w-full min-h-[48px] pl-12 pr-14 rounded-xl border border-bdr bg-white text-ink text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+                  />
+                  <span class="absolute right-0 inset-y-0 pr-3.5 flex items-center text-muted text-xs font-semibold pointer-events-none select-none">
+                    / kg
+                  </span>
+                </div>
+                <p id="product_price-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+                  {{ icon('alert-triangle', size=13) }}
+                  <span>Price must be greater than LKR 0.00.</span>
+                </p>
+
+                {# Price Hint Slot (dynamically shows benchmark range) #}
+                <div id="price-hint-slot" class="pt-1">
+                  <!-- Price hint slot: dynamically populated when product name matches official market prices -->
+                  <div id="market-price-hint" class="hidden items-center gap-1.5 text-xs font-semibold text-leaf-dark bg-leaf-pale/80 px-3 py-1.5 rounded-lg border border-leaf/30 animate-fade-in">
+                    {{ icon('trending-up', size=14, cls='text-leaf shrink-0') }}
+                    <span id="market-price-text">Market benchmark: LKR 120 - 180 / kg</span>
+                  </div>
+                </div>
+              </div>
+
+              {# Available Quantity with quantity_stepper & kg suffix #}
+              <div class="space-y-1.5">
+                <label for="product_quantity" class="field-label text-sm font-semibold text-ink">
+                  Available Quantity <span class="text-danger font-bold" aria-hidden="true">*</span>
+                </label>
+                <div class="relative flex items-center rounded-xl border border-bdr bg-white shadow-2xs overflow-hidden focus-within:ring-2 focus-within:ring-leaf focus-within:border-leaf transition">
+                  {# Stepper Minus #}
+                  <button
+                    type="button"
+                    id="qty-decrement-btn"
+                    class="w-11 min-h-[48px] flex items-center justify-center text-muted hover:text-ink hover:bg-canvas active:bg-bdr transition shrink-0 select-none"
+                    aria-label="Decrease quantity by 50 kg"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+                    </svg>
+                  </button>
+
+                  <input
+                    type="number"
+                    id="product_quantity"
+                    name="quantity_kg"
+                    required
+                    min="{{ '0' if product else '0.1' }}"
+                    step="0.1"
+                    placeholder="e.g. 500"
+                    value="{{ request.form.get('quantity_kg') if request.form.get('quantity_kg') is not none else (product.quantity_kg if product else '') }}"
+                    class="w-full min-h-[48px] px-2 text-center text-sm font-semibold text-ink border-0 focus:outline-none focus:ring-0 bg-transparent"
+                  />
+
+                  <span class="text-xs font-semibold text-muted pr-2 select-none">kg</span>
+
+                  {# Stepper Plus #}
+                  <button
+                    type="button"
+                    id="qty-increment-btn"
+                    class="w-11 min-h-[48px] flex items-center justify-center text-muted hover:text-ink hover:bg-canvas active:bg-bdr transition shrink-0 select-none"
+                    aria-label="Increase quantity by 50 kg"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
+                <p id="product_quantity-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+                  {{ icon('alert-triangle', size=13) }}
+                  <span>Quantity must be greater than zero.</span>
+                </p>
+                <p class="text-[11px] text-muted">Use stepper or type exact harvest weight.</p>
+              </div>
+            </div>
+
+            {# Description with live character counter #}
+            <div class="space-y-1.5 pt-2">
+              <div class="flex items-baseline justify-between">
+                <label for="product_description" class="field-label text-sm font-semibold text-ink">
+                  Harvest Notes &amp; Quality Specifications
+                </label>
+                <span id="desc-char-counter" class="text-xs font-mono text-muted">
+                  0 / 1,000
+                </span>
+              </div>
+              <textarea
+                id="product_description"
+                name="description"
+                rows="4"
+                maxlength="1000"
+                placeholder="Mention variety grade, harvest date, packaging (crates/sacks), organic status, or minimum wholesale order quantity..."
+                class="textarea w-full px-4 py-3 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+              >{{ request.form.get('description') if request.form.get('description') is not none else (product.description if product else '') }}</textarea>
+            </div>
+          </section>
+
+          {# ── SECTION 3: LOCATION & LOGISTICS ────────────────────────────── #}
+          <section class="card p-6 sm:p-7 bg-white rounded-3xl border border-bdr shadow-xs space-y-5">
+            <div class="flex items-center gap-3 pb-3 border-b border-bdr/60">
+              <div class="w-9 h-9 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold text-sm">
+                3
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold font-display text-ink">Location &amp; Logistics</h2>
+                <p class="text-xs text-muted">Where can buyers pick up or arrange transport for this crop?</p>
+              </div>
+            </div>
+
+            {# Harvest District / Location with Datalist #}
+            <div class="space-y-1.5">
+              <label for="product_location" class="field-label text-sm font-semibold text-ink">
+                Harvest Location / District
+              </label>
+              <div class="relative">
+                <input
+                  type="text"
+                  id="product_location"
+                  name="location"
+                  list="districts-list"
+                  placeholder="e.g. Nuwara Eliya, Dambulla, Jaffna"
+                  value="{{ request.form.get('location') if request.form.get('location') is not none else (product.location if product else (current_user.location or current_user.district or '')) }}"
+                  class="input w-full min-h-[48px] px-4 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+                />
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-muted">
+                  {{ icon('map-pin', size=16) }}
+                </div>
+              </div>
+
+              {# Sri Lankan Districts Datalist #}
+              <datalist id="districts-list">
+                {% set district_options = districts if districts else [
+                  'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo',
+                  'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy',
+                  'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale',
+                  'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa',
+                  'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
+                ] %}
+                {% for d in district_options %}
+                  <option value="{{ d }}">{{ d }}</option>
+                {% endfor %}
+              </datalist>
+              <p class="text-[11px] text-muted">Choose your district from the suggestions to help buyers estimate transit costs.</p>
+            </div>
+
+            {# Hidden "Offer delivery" switch component slot (Placeholder for future feature) #}
+            <div id="offer-delivery-slot" class="hidden" data-feature="offer-delivery" aria-hidden="true">
+              <!-- Placeholder: Offer delivery switch component slot (will be activated when delivery feature is launched) -->
+              <div class="flex items-center justify-between p-4 rounded-2xl bg-canvas border border-bdr">
+                <div>
+                  <label for="offer_delivery_input" class="text-sm font-semibold text-ink block">Offer Farm-to-Gate Delivery</label>
+                  <p class="text-xs text-muted">Deliver directly to buyer warehouses or store locations.</p>
+                </div>
+                <input type="checkbox" id="offer_delivery_input" name="offer_delivery" class="checkbox" disabled />
+              </div>
+            </div>
+
+            {# Availability Toggle (when editing existing product) #}
+            {% if product %}
+              <div class="p-4 bg-canvas/60 rounded-2xl border border-bdr flex items-center justify-between gap-4">
+                <div class="space-y-0.5">
+                  <span class="text-sm font-bold text-ink block">Listing Active Status</span>
+                  <span class="text-xs text-muted block">Uncheck to pause buyer inquiries while keeping your details saved.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input
+                    type="checkbox"
+                    name="is_available"
+                    value="on"
+                    {% if product.is_available %}checked{% endif %}
+                    class="sr-only peer"
+                  />
+                  <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-leaf/40 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-leaf"></div>
+                </label>
+              </div>
+            {% endif %}
+          </section>
+
+        </div>
+
+        {# ─── RIGHT COLUMN: IMAGE UPLOADER & SELLING TIPS (5 cols on lg) ──── #}
+        <div class="lg:col-span-5 space-y-6">
+
+          {# ── SECTION 4: PHOTO UPLOADER ──────────────────────────────────── #}
+          <section class="card p-6 sm:p-7 bg-white rounded-3xl border border-bdr shadow-xs space-y-4">
+            <div class="flex items-center gap-3 pb-3 border-b border-bdr/60">
+              <div class="w-9 h-9 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold text-sm">
+                4
+              </div>
+              <div>
+                <h2 class="text-base sm:text-lg font-bold font-display text-ink">Produce Photo</h2>
+                <p class="text-xs text-muted">A clear, genuine image builds trust</p>
+              </div>
+            </div>
+
+            {# Hidden Native File Input #}
             <input
               type="file"
               id="product_image_input"
               name="image"
               accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-              class="block w-full text-xs text-gray-600 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf file:text-white hover:file:bg-leaf-light file:cursor-pointer cursor-pointer"
+              class="sr-only"
+              aria-label="Upload produce photo"
             />
-            <p id="file-info-text" class="text-xs text-gray-600">
-              {% if product and product.image_url %}
-                <span class="text-leaf font-semibold">✓ Current image active.</span> Upload a new file if you want to replace it.
-              {% else %}
-                Upload a genuine photo of your crops. If omitted, the category illustration will be used.
-              {% endif %}
-            </p>
-            <p id="file-error-text" class="text-xs text-red-600 font-semibold hidden"></p>
+
+            {# Dashed Drop Zone Container #}
+            <div
+              id="drop-zone"
+              tabindex="0"
+              role="button"
+              aria-label="Upload photo drop zone"
+              class="relative border-2 border-dashed border-bdr hover:border-leaf/60 rounded-2xl bg-canvas/30 p-6 text-center transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf group"
+            >
+              {# Idle State #}
+              <div id="dropzone-idle-state" class="{% if product and product.image_url and product.image_url.startswith('/static/uploads/') %}hidden{% endif %} space-y-3 py-4">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-white border border-bdr text-muted group-hover:text-leaf group-hover:border-leaf/30 shadow-xs flex items-center justify-center transition">
+                  {{ icon('image', size=28) }}
+                </div>
+                <div class="space-y-1">
+                  <p class="text-sm font-bold text-ink">
+                    <span class="text-leaf underline decoration-leaf/40 group-hover:decoration-leaf">Click to browse</span> or drag photo here
+                  </p>
+                  <p class="text-xs text-muted">Supports JPG, PNG, or WebP up to 5 MB</p>
+                </div>
+                <p class="text-[11px] text-muted italic bg-canvas/70 px-3 py-1.5 rounded-lg border border-bdr/50 inline-block">
+                  If you skip this, a default category photo is used.
+                </p>
+              </div>
+
+              {# Uploaded State (Preview + File Details + Remove) #}
+              <div
+                id="dropzone-preview-state"
+                class="{% if not (product and product.image_url and product.image_url.startswith('/static/uploads/')) %}hidden{% endif %} space-y-4"
+              >
+                <div class="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-white border border-bdr shadow-xs">
+                  <img
+                    id="preview-img"
+                    src="{{ product.display_image_url if product else '' }}"
+                    alt="Produce image preview"
+                    class="w-full h-full object-cover"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
+                  <span class="absolute bottom-2 left-3 text-[11px] font-semibold text-white bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded">
+                    Active Preview
+                  </span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-xl bg-canvas border border-bdr text-left">
+                  <div class="min-w-0 pr-2">
+                    <p id="preview-filename" class="text-xs font-bold text-ink truncate">
+                      {{ (product.image_url.split('/')[-1]) if (product and product.image_url) else 'Current Uploaded Photo' }}
+                    </p>
+                    <p id="preview-filesize" class="text-[11px] text-muted">
+                      {{ 'Uploaded image' if product else '' }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    id="remove-image-btn"
+                    class="btn-danger-outline h-8 px-2.5 text-xs inline-flex items-center gap-1 shrink-0"
+                    aria-label="Remove uploaded image"
+                  >
+                    {{ icon('trash', size=13) }}
+                    <span>Remove</span>
+                  </button>
+                </div>
+              </div>
+
+              {# Error Banner inside Drop Zone #}
+              <div id="dropzone-error-box" class="hidden mt-3 p-3 rounded-xl bg-danger-50 border border-danger/30 text-danger text-xs flex items-center gap-2 text-left">
+                {{ icon('alert-triangle', size=16, cls='shrink-0') }}
+                <span id="dropzone-error-text">File exceeds 5 MB limit. Please select a smaller photo.</span>
+              </div>
+            </div>
+          </section>
+
+          {# ── SELLING TIPS CARD ──────────────────────────────────────────── #}
+          <aside class="card p-6 bg-gradient-to-br from-white to-leaf-pale/20 rounded-3xl border border-bdr shadow-xs space-y-4">
+            <div class="flex items-center gap-2 text-leaf-dark font-display font-bold text-base">
+              {{ icon('check-circle', size=18, cls='text-leaf') }}
+              <h3>Tips for Faster Produce Sales</h3>
+            </div>
+            <ul class="space-y-3 text-xs text-muted leading-relaxed">
+              <li class="flex items-start gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-leaf mt-1.5 shrink-0"></span>
+                <span><strong>High-resolution photos:</strong> Listings with genuine farm photos receive 3× more inquiries from commercial buyers.</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-leaf mt-1.5 shrink-0"></span>
+                <span><strong>Accurate grading:</strong> Specify size, moisture content, or packaging to prevent disputes upon delivery.</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-leaf mt-1.5 shrink-0"></span>
+                <span><strong>Competitive pricing:</strong> Benchmark against current wholesale Colombo / Dambulla prices to move inventory quickly.</span>
+              </li>
+            </ul>
+          </aside>
+
+          {# Desktop Action Buttons (hidden on mobile, sticky bottom bar used instead) #}
+          <div class="hidden sm:flex items-center gap-3 pt-2">
+            <button
+              type="submit"
+              id="desktop-submit-btn"
+              class="btn-primary flex-1 py-3.5 text-base font-semibold shadow-md flex items-center justify-center gap-2"
+            >
+              <span>{{ 'Update Produce Listing' if product else 'Publish to Marketplace' }}</span>
+            </button>
+            <a
+              href="{{ url_for('marketplace.product_detail', product_id=product.id) if product else url_for('marketplace.index') }}"
+              class="btn-secondary px-6 py-3.5 text-sm font-semibold"
+            >
+              Cancel
+            </a>
           </div>
+
         </div>
+
       </div>
 
-      <!-- Availability Toggle (when editing) -->
-      {% if product %}
-        <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="is_available"
-              value="on"
-              {% if product.is_available %}checked{% endif %}
-              class="w-5 h-5 accent-leaf rounded"
-            />
-            <div>
-              <span class="text-sm font-bold text-gray-900 block">Listing is active for sale</span>
-              <span class="text-xs text-gray-500">Uncheck to pause buyer inquiries without deleting the listing.</span>
-            </div>
-          </label>
-        </div>
-      {% endif %}
-
-      <!-- Action Buttons -->
-      <div class="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-gray-100">
-        <button
-          type="submit"
-          class="btn-primary w-full sm:flex-1 py-3 text-base shadow-sm"
-        >
-          {{ 'Update Produce Listing' if product else 'Publish to Marketplace' }}
-        </button>
+      {# ─── MOBILE STICKY BOTTOM ACTION BAR (360px+ safe) ────────────────── #}
+      <div
+        id="mobile-action-bar"
+        class="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-bdr p-3 shadow-xl flex items-center gap-3 safe-bottom"
+      >
         <a
-          href="{{ url_for('marketplace.index') }}"
-          class="btn-secondary w-full sm:w-auto px-6 py-3 text-center text-sm"
+          href="{{ url_for('marketplace.product_detail', product_id=product.id) if product else url_for('marketplace.index') }}"
+          class="btn-ghost py-3 px-4 text-xs font-semibold text-muted hover:text-ink text-center"
         >
           Cancel
         </a>
+        <button
+          type="submit"
+          id="mobile-submit-btn"
+          class="btn-primary flex-1 py-3 text-sm font-bold shadow-md flex items-center justify-center gap-2"
+        >
+          <span>{{ 'Save Listing' if product else 'Publish Listing' }}</span>
+        </button>
       </div>
+
     </form>
   </div>
 </div>
 
+{# ─── Market Prices Benchmark Data Lookup ────────────────────────────────── #}
+{% set price_lookup = {} %}
+{% if market_prices %}
+  {% for mp in market_prices %}
+    {% set _ = price_lookup.update({ mp.crop_name.lower().strip(): {'buying': mp.buying_price, 'selling': mp.selling_price, 'category': mp.category} }) %}
+  {% endfor %}
+{% endif %}
+<script id="market-prices-json" type="application/json">
+  {{ price_lookup|tojson }}
+</script>
+
 <script>
   (function() {
+    'use strict';
+
+    // ── 1. Category Chips & Hidden Select Sync ──────────────────────────────
+    const categorySelect = document.getElementById('product_category');
+    const categoryChips = document.querySelectorAll('.category-chip');
+
+    categoryChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        const selectedCat = this.getAttribute('data-category');
+        if (categorySelect) {
+          categorySelect.value = selectedCat;
+          categorySelect.dispatchEvent(new Event('change'));
+        }
+        categoryChips.forEach(c => {
+          c.classList.remove('active');
+          c.setAttribute('aria-checked', 'false');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-checked', 'true');
+        markDirty();
+        validateField('product_category');
+      });
+    });
+
+    // ── 2. Quantity Stepper (+ / - Buttons) ──────────────────────────────────
+    const qtyInput = document.getElementById('product_quantity');
+    const qtyIncBtn = document.getElementById('qty-increment-btn');
+    const qtyDecBtn = document.getElementById('qty-decrement-btn');
+
+    if (qtyIncBtn && qtyInput) {
+      qtyIncBtn.addEventListener('click', function() {
+        const current = parseFloat(qtyInput.value) || 0;
+        const step = current >= 100 ? 50 : 10;
+        qtyInput.value = (current + step).toFixed(1).replace(/\.0$/, '');
+        qtyInput.dispatchEvent(new Event('input'));
+        markDirty();
+      });
+    }
+
+    if (qtyDecBtn && qtyInput) {
+      qtyDecBtn.addEventListener('click', function() {
+        const current = parseFloat(qtyInput.value) || 0;
+        const step = current > 100 ? 50 : 10;
+        const minVal = parseFloat(qtyInput.min) || 0.1;
+        const newVal = Math.max(minVal, current - step);
+        qtyInput.value = newVal.toFixed(1).replace(/\.0$/, '');
+        qtyInput.dispatchEvent(new Event('input'));
+        markDirty();
+      });
+    }
+
+    // ── 3. Live Description Character Counter ───────────────────────────────
+    const descTextarea = document.getElementById('product_description');
+    const descCounter = document.getElementById('desc-char-counter');
+
+    function updateDescCounter() {
+      if (!descTextarea || !descCounter) return;
+      const count = descTextarea.value.length;
+      descCounter.textContent = count.toLocaleString() + ' / 1,000';
+      if (count > 900) {
+        descCounter.classList.add('text-danger', 'font-bold');
+        descCounter.classList.remove('text-muted');
+      } else {
+        descCounter.classList.remove('text-danger', 'font-bold');
+        descCounter.classList.add('text-muted');
+      }
+    }
+    if (descTextarea) {
+      descTextarea.addEventListener('input', () => {
+        updateDescCounter();
+        markDirty();
+      });
+      updateDescCounter();
+    }
+
+    // ── 4. Price Hint Slot (Live Market Benchmark Matching) ─────────────────
+    let marketPriceMap = {};
+    try {
+      const jsonElem = document.getElementById('market-prices-json');
+      if (jsonElem) {
+        marketPriceMap = JSON.parse(jsonElem.textContent || '{}');
+      }
+    } catch (e) {
+      marketPriceMap = {};
+    }
+
+    const nameInput = document.getElementById('product_name');
+    const marketHintContainer = document.getElementById('market-price-hint');
+    const marketHintText = document.getElementById('market-price-text');
+
+    function updateMarketPriceHint() {
+      if (!nameInput || !marketHintContainer || !marketHintText) return;
+      const entered = (nameInput.value || '').trim().toLowerCase();
+      if (!entered || Object.keys(marketPriceMap).length === 0) {
+        marketHintContainer.classList.add('hidden');
+        marketHintContainer.classList.remove('flex');
+        return;
+      }
+
+      // Exact or partial match search
+      let matchedData = null;
+      let matchedName = '';
+      for (const [cropKey, data] of Object.entries(marketPriceMap)) {
+        if (entered === cropKey || entered.includes(cropKey) || cropKey.includes(entered)) {
+          matchedData = data;
+          matchedName = cropKey.charAt(0).toUpperCase() + cropKey.slice(1);
+          break;
+        }
+      }
+
+      if (matchedData && (matchedData.buying > 0 || matchedData.selling > 0)) {
+        const buyFormatted = matchedData.buying.toLocaleString();
+        const sellFormatted = matchedData.selling.toLocaleString();
+        marketHintText.textContent = `${matchedName} benchmark: LKR ${buyFormatted} - ${sellFormatted} / kg`;
+        marketHintContainer.classList.remove('hidden');
+        marketHintContainer.classList.add('flex');
+      } else {
+        marketHintContainer.classList.add('hidden');
+        marketHintContainer.classList.remove('flex');
+      }
+    }
+
+    if (nameInput) {
+      nameInput.addEventListener('input', () => {
+        updateMarketPriceHint();
+        markDirty();
+      });
+      updateMarketPriceHint();
+    }
+
+    // ── 5. Image Uploader with Drag-and-Drop & File Verification ─────────────
+    const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('product_image_input');
-    const previewImg = document.getElementById('image-preview');
-    const placeholderIcon = document.getElementById('image-placeholder-icon');
-    const errorText = document.getElementById('file-error-text');
-    const infoText = document.getElementById('file-info-text');
+    const idleState = document.getElementById('dropzone-idle-state');
+    const previewState = document.getElementById('dropzone-preview-state');
+    const previewImg = document.getElementById('preview-img');
+    const previewFilename = document.getElementById('preview-filename');
+    const previewFilesize = document.getElementById('preview-filesize');
+    const removeBtn = document.getElementById('remove-image-btn');
+    const errorBox = document.getElementById('dropzone-error-box');
+    const errorText = document.getElementById('dropzone-error-text');
 
-    if (fileInput) {
+    const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+    const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    function showDropError(msg) {
+      if (!errorBox || !errorText) return;
+      errorText.textContent = msg;
+      errorBox.classList.remove('hidden');
+    }
+
+    function clearDropError() {
+      if (errorBox) errorBox.classList.add('hidden');
+    }
+
+    function handleFile(file) {
+      clearDropError();
+      if (!file) return;
+
+      // Validate File Type
+      if (!VALID_TYPES.includes(file.type.toLowerCase()) && !/\.(jpe?g|png|webp)$/i.test(file.name)) {
+        showDropError('Invalid image format. Please select a JPG, PNG, or WebP photo.');
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+
+      // Validate File Size (5 MB limit)
+      if (file.size > MAX_FILE_BYTES) {
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+        showDropError(`Photo exceeds 5 MB limit (${sizeMb} MB). Please choose a compressed photo.`);
+        if (fileInput) fileInput.value = '';
+        return;
+      }
+
+      // Render Uploaded Preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        if (previewImg) previewImg.src = e.target.result;
+        if (previewFilename) previewFilename.textContent = file.name;
+        if (previewFilesize) {
+          const kb = (file.size / 1024).toFixed(0);
+          previewFilesize.textContent = kb > 1000 ? (file.size / (1024 * 1024)).toFixed(1) + ' MB' : kb + ' KB';
+        }
+        if (idleState) idleState.classList.add('hidden');
+        if (previewState) previewState.classList.remove('hidden');
+        markDirty();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    if (dropZone && fileInput) {
+      // Click dropzone to open picker (unless clicking remove button)
+      dropZone.addEventListener('click', function(e) {
+        if (e.target.closest('#remove-image-btn')) return;
+        fileInput.click();
+      });
+
+      // Keyboard Accessible (Enter/Space opens picker)
+      dropZone.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          fileInput.click();
+        }
+      });
+
+      // Drag and Drop States
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('dropzone-active');
+        });
+      });
+
+      ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('dropzone-active');
+        });
+      });
+
+      dropZone.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const files = dt && dt.files;
+        if (files && files.length > 0) {
+          fileInput.files = files;
+          handleFile(files[0]);
+        }
+      });
+
       fileInput.addEventListener('change', function() {
-        if (!errorText) return;
-        errorText.classList.add('hidden');
-        errorText.textContent = '';
-
-        const file = this.files && this.files[0];
-        if (!file) return;
-
-        // Client-side file size check (5 MB)
-        const maxBytes = 5 * 1024 * 1024;
-        if (file.size > maxBytes) {
-          errorText.textContent = 'Selected file is ' + (file.size / (1024 * 1024)).toFixed(1) + ' MB. Maximum allowed size is 5 MB.';
-          errorText.classList.remove('hidden');
-          this.value = '';
-          return;
-        }
-
-        // Live preview
-        if (previewImg && placeholderIcon) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            previewImg.classList.remove('hidden');
-            placeholderIcon.classList.add('hidden');
-          };
-          reader.readAsDataURL(file);
-        }
-
-        if (infoText) {
-          infoText.innerHTML = '<span class="text-leaf font-semibold">✓ Selected:</span> ' + file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+        if (this.files && this.files.length > 0) {
+          handleFile(this.files[0]);
         }
       });
     }
+
+    // Remove Image Button
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (fileInput) fileInput.value = '';
+        if (previewState) previewState.classList.add('hidden');
+        if (idleState) idleState.classList.remove('hidden');
+        clearDropError();
+        markDirty();
+      });
+    }
+
+    // ── 6. Client-Side Field Validation ─────────────────────────────────────
+    function validateField(fieldId) {
+      let isValid = true;
+      if (fieldId === 'product_name') {
+        const val = (nameInput.value || '').trim();
+        const err = document.getElementById('product_name-error');
+        isValid = val.length >= 2;
+        if (err) err.classList.toggle('hidden', isValid);
+      } else if (fieldId === 'product_category') {
+        const val = (categorySelect.value || '').trim();
+        const err = document.getElementById('product_category-error');
+        isValid = val.length > 0;
+        if (err) err.classList.toggle('hidden', isValid);
+      } else if (fieldId === 'product_price') {
+        const priceInput = document.getElementById('product_price');
+        const val = parseFloat(priceInput ? priceInput.value : 0);
+        const err = document.getElementById('product_price-error');
+        isValid = !isNaN(val) && val > 0;
+        if (err) err.classList.toggle('hidden', isValid);
+      } else if (fieldId === 'product_quantity') {
+        const val = parseFloat(qtyInput ? qtyInput.value : 0);
+        const err = document.getElementById('product_quantity-error');
+        isValid = !isNaN(val) && val > 0;
+        if (err) err.classList.toggle('hidden', isValid);
+      }
+      return isValid;
+    }
+
+    ['product_name', 'product_price', 'product_quantity'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('blur', () => validateField(id));
+      }
+    });
+
+    // ── 7. Unsaved Changes Guard (beforeunload) ─────────────────────────────
+    let formIsDirty = false;
+    let isSubmitting = false;
+
+    function markDirty() {
+      formIsDirty = true;
+    }
+
+    const form = document.getElementById('product-form');
+    if (form) {
+      form.querySelectorAll('input, textarea, select').forEach(input => {
+        input.addEventListener('change', markDirty);
+      });
+
+      window.addEventListener('beforeunload', function(e) {
+        if (formIsDirty && !isSubmitting) {
+          e.preventDefault();
+          e.returnValue = '';
+        }
+      });
+
+      // ── 8. Form Submission (Disable buttons, spinner feedback) ───────────
+      form.addEventListener('submit', function(e) {
+        // Run all field validations
+        const v1 = validateField('product_name');
+        const v2 = validateField('product_category');
+        const v3 = validateField('product_price');
+        const v4 = validateField('product_quantity');
+
+        if (!v1 || !v2 || !v3 || !v4) {
+          e.preventDefault();
+          // Scroll smoothly to first invalid field
+          const firstErr = form.querySelector('.text-danger:not(.hidden)');
+          if (firstErr) {
+            firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return;
+        }
+
+        isSubmitting = true;
+        formIsDirty = false;
+
+        const desktopBtn = document.getElementById('desktop-submit-btn');
+        const mobileBtn = document.getElementById('mobile-submit-btn');
+
+        [desktopBtn, mobileBtn].forEach(btn => {
+          if (btn) {
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-wait');
+            btn.innerHTML = `
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Saving Produce Listing...</span>
+            `;
+          }
+        });
+      });
+    }
+
   })();
 </script>
 {% endblock %}

@@ -144,6 +144,18 @@ def product_detail(product_id):
     return render_template('marketplace/product_detail.html', product=product, related=related)
 
 
+def _render_product_form(product=None):
+    try:
+        market_prices = MarketPrice.query.all()
+    except Exception:
+        market_prices = []
+    return render_template('marketplace/product_form.html',
+                           categories=CATEGORIES,
+                           product=product,
+                           districts=SRI_LANKAN_DISTRICTS,
+                           market_prices=market_prices)
+
+
 @marketplace_bp.route('/list', methods=['GET', 'POST'])
 @roles_required('farmer')
 def list_product():
@@ -159,11 +171,11 @@ def list_product():
                 raise ValueError("Non-finite quantity or price")
         except (ValueError, TypeError):
             flash('Invalid quantity or price.', 'error')
-            return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
+            return _render_product_form(product=None)
 
         if not name or not category or quantity_kg <= 0 or price_per_kg <= 0:
             flash('All required fields must be filled correctly. Quantity and price must be greater than zero.', 'error')
-            return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
+            return _render_product_form(product=None)
 
         # Handle product image upload with fallback to category stock image
         uploaded_file = request.files.get('image')
@@ -172,7 +184,7 @@ def list_product():
             main_url, thumb_url, err = save_uploaded_image(uploaded_file, folder='products', max_width=1200, thumb_width=400)
             if err:
                 flash(err, 'error')
-                return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
+                return _render_product_form(product=None)
             image_url = main_url
         else:
             image_url = PRODUCT_IMAGES.get(category, PRODUCT_IMAGES['Other'])
@@ -185,7 +197,7 @@ def list_product():
         db.session.commit()
         flash('Product listed successfully!', 'success')
         return redirect(url_for('marketplace.index'))
-    return render_template('marketplace/product_form.html', categories=CATEGORIES, product=None)
+    return _render_product_form(product=None)
 
 
 @marketplace_bp.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
@@ -206,11 +218,11 @@ def edit_product(product_id):
                 raise ValueError("Non-finite quantity or price")
         except (ValueError, TypeError):
             flash('Invalid quantity or price.', 'error')
-            return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
+            return _render_product_form(product=product)
 
         if not name or not new_category or quantity_kg < 0 or price_per_kg <= 0:
             flash('Invalid input. Quantity cannot be negative and price must be greater than zero.', 'error')
-            return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
+            return _render_product_form(product=product)
 
         # Handle image replacement
         uploaded_file = request.files.get('image')
@@ -218,7 +230,7 @@ def edit_product(product_id):
             main_url, thumb_url, err = save_uploaded_image(uploaded_file, folder='products', max_width=1200, thumb_width=400)
             if err:
                 flash(err, 'error')
-                return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
+                return _render_product_form(product=product)
             # Delete old image from disk if it was a custom upload
             delete_uploaded_image(product.image_url)
             product.image_url = main_url
@@ -246,7 +258,8 @@ def edit_product(product_id):
         db.session.commit()
         flash('Product updated!', 'success')
         return redirect(url_for('dashboard.index'))
-    return render_template('marketplace/product_form.html', categories=CATEGORIES, product=product)
+    return _render_product_form(product=product)
+
 
 
 @marketplace_bp.route('/product/<int:product_id>/delete', methods=['POST'])
