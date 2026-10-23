@@ -1,21 +1,18 @@
 {% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
 {% block title %}My Profile — AgroLink{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
   <!-- Breadcrumbs & Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-    <div>
-      <nav class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-        <a href="{{ url_for('dashboard.index') }}" class="hover:text-leaf transition">Dashboard</a>
-        <span>/</span>
-        <span class="text-gray-800 font-medium">My Profile</span>
-      </nav>
-      <h1 class="font-display text-3xl font-bold text-gray-900">Account Profile</h1>
-    </div>
-
-    <!-- Profile Action Buttons -->
+  {% call ui.page_header(
+    title="Account Profile",
+    breadcrumbs=[
+      {'label': 'Dashboard', 'url': url_for('dashboard.index')},
+      {'label': 'My Profile'}
+    ]
+  ) %}
     <div class="flex items-center gap-3">
       <a href="{{ url_for('profile.edit') }}" class="btn-primary text-sm flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,7 +27,7 @@
         Change Password
       </a>
     </div>
-  </div>
+  {% endcall %}
 
   <!-- Profile Overview Hero Card -->
   <div class="card p-6 sm:p-8 mb-8 bg-gradient-to-br from-white via-white to-leaf-pale/20">

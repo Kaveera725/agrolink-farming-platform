@@ -1,35 +1,25 @@
 {% extends "base.html" %}
+{% from "components/ui.html" import page_header %}
 {% block title %}{{ action }} Crop — AgroLink{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
   
-  <!-- Back Link -->
-  <div class="mb-6">
-    <a
-      href="{{ url_for('dashboard.crops') }}"
-      class="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-600 hover:text-leaf transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-md px-1 py-0.5"
-    >
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-      <span>Back to Crop Tracker</span>
-    </a>
-  </div>
+  {{ page_header(
+      title=action ~ ' Crop Record',
+      subtitle='Record your agricultural planting details to plan harvests and prepare for market listing.',
+      breadcrumbs=[
+          {'text': 'Home', 'url': url_for('main.home')},
+          {'text': 'Farmer Dashboard', 'url': url_for('dashboard.index')},
+          {'text': 'Crop Tracker', 'url': url_for('dashboard.crops')},
+          {'text': action ~ ' Crop'}
+      ],
+      back_url=url_for('dashboard.crops'),
+      back_text='Back to Crop Tracker'
+  ) }}
 
   <!-- Form Card -->
   <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
-    <div class="mb-8 pb-6 border-b border-gray-100">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
-        <span>🌱</span> Crop Cycle Tracker
-      </div>
-      <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-        {{ action }} Crop Record
-      </h1>
-      <p class="text-sm text-gray-600 mt-1">
-        Record your agricultural planting details to plan harvests and prepare for market listing.
-      </p>
-    </div>
 
     <form method="POST" class="space-y-6" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

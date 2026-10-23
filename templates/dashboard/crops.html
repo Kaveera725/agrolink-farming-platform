@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/ui.html" import page_header %}
 {% import "components/badges.html" as badges with context %}
 {% import "components/buttons.html" as buttons with context %}
 
@@ -7,27 +8,24 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
 
-  <!-- HEADER -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200">
-    <div>
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-1">
-        <span>🌱</span> Field Logs
-      </div>
-      <h1 class="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
-        Crop Cycle Tracker
-      </h1>
-      <p class="text-xs sm:text-sm text-gray-600 mt-0.5">
-        Record planting dates, monitor growth progress, and predict harvest dates.
-      </p>
-    </div>
-
-    <a href="{{ url_for('dashboard.add_crop') }}" class="btn-primary text-sm shadow-xs self-start sm:self-auto">
+  {% call page_header(
+      title='Crop Cycle Tracker',
+      subtitle='Record planting dates, monitor growth progress, and predict harvest dates.',
+      breadcrumbs=[
+          {'text': 'Home', 'url': url_for('main.home')},
+          {'text': 'Farmer Dashboard', 'url': url_for('dashboard.index')},
+          {'text': 'Crop Tracker'}
+      ],
+      back_url=url_for('dashboard.index'),
+      back_text='Back to Dashboard'
+  ) %}
+    <a href="{{ url_for('dashboard.add_crop') }}" class="btn-primary btn-sm shadow-xs self-start sm:self-auto">
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
       </svg>
       <span>+ Add Crop Record</span>
     </a>
-  </div>
+  {% endcall %}
 
   <!-- CROPS GRID -->
   {% if crops %}
@@ -87,7 +85,8 @@
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button
                 type="submit"
-                onclick="return confirm('Delete this crop record?')"
+                data-confirm="Delete this crop record?"
+                data-confirm-danger
                 class="w-full btn-danger text-xs py-2 text-center"
               >
                 Delete

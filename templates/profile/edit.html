@@ -1,28 +1,24 @@
 {% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
 {% block title %}Edit Profile — AgroLink{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
   <!-- Breadcrumbs & Header -->
-  <div class="mb-8">
-    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-2">
-      <a href="{{ url_for('dashboard.index') }}" class="hover:text-leaf transition">Dashboard</a>
-      <span>/</span>
-      <a href="{{ url_for('profile.view') }}" class="hover:text-leaf transition">My Profile</a>
-      <span>/</span>
-      <span class="text-gray-800 font-medium">Edit</span>
-    </nav>
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="font-display text-3xl font-bold text-gray-900">Edit Profile</h1>
-        <p class="text-sm text-gray-500 mt-1">Update your contact details and agricultural credentials.</p>
-      </div>
-      <a href="{{ url_for('profile.view') }}" class="btn-secondary text-sm py-2 px-4">
-        Cancel
-      </a>
-    </div>
-  </div>
+  {% call ui.page_header(
+    title="Edit Profile",
+    subtitle="Update your contact details and agricultural credentials.",
+    breadcrumbs=[
+      {'label': 'Dashboard', 'url': url_for('dashboard.index')},
+      {'label': 'My Profile', 'url': url_for('profile.view')},
+      {'label': 'Edit'}
+    ]
+  ) %}
+    <a href="{{ url_for('profile.view') }}" class="btn-secondary text-sm py-2 px-4">
+      Cancel
+    </a>
+  {% endcall %}
 
   <form method="POST" action="{{ url_for('profile.edit') }}" enctype="multipart/form-data" class="space-y-8">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

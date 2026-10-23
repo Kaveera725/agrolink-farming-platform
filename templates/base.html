@@ -3,108 +3,766 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2D6A4F" />
   <title>{% block title %}AgroLink{% endblock %} — Sri Lankan Agricultural Marketplace</title>
+  <meta name="description" content="{% block meta_description %}AgroLink connects Sri Lankan farmers and buyers directly — transparent prices, direct listings, and reliable harvest tracking.{% endblock %}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <script src="https://cdn.tailwindcss.com"></script>
+
+  {# ─── OPEN GRAPH ─── #}
+  <meta property="og:title" content="{% block og_title %}{{ self.title() }} — Sri Lankan Agricultural Marketplace{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ self.meta_description() }}{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="AgroLink">
+
+  {# ─── FAVICON (Inline SVG Leaf) ─── #}
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232D6A4F' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/%3E%3C/svg%3E">
+
+
+  {# ─── FONT PRECONNECT ─── #}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+
+  {# ─── TAILWIND CDN ─── #}
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  {# ─── TAILWIND THEME CONFIG ─── #}
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            leaf:   { DEFAULT: '#2D6A4F', light: '#40916C', dark: '#1B4332', pale: '#D8F3DC' },
-            earth:  { DEFAULT: '#8B4513', light: '#A0522D', pale: '#FDF1E8' },
-            gold:   { DEFAULT: '#D97706', light: '#F59E0B', pale: '#FFF8E7' },
-            sky:    { DEFAULT: '#1A659E', pale: '#EBF4FB' },
+            // ── Primary Brand: Leaf Green ──────────────────────────────────
+            // DEFAULT (#2D6A4F) = 5.7:1 on white  ✓ AA
+            // dark    (#1B4332) = 11.8:1 on white  ✓ AAA
+            // light   (#40916C) = 3.8:1 on white   ✓ UI components / large text only
+            // pale    (#D8F3DC) = background tint only
+            leaf: {
+              50:  '#F0FAF4',
+              100: '#D8F3DC',
+              200: '#B3E7BF',
+              300: '#84D49E',
+              400: '#52BB78',
+              500: '#40916C',
+              DEFAULT: '#2D6A4F',
+              600: '#2D6A4F',
+              700: '#1B4332',
+              800: '#163526',
+              900: '#0F271A',
+              950: '#081510',
+              light: '#40916C',
+              dark:  '#1B4332',
+              pale:  '#D8F3DC',
+            },
+            // ── Farmer persona: Earth Brown ────────────────────────────────
+            // DEFAULT (#A0522D) = 5.5:1 on white  ✓ AA
+            earth: {
+              50:  '#FDF6EE',
+              100: '#FBE8D3',
+              200: '#F6CFA3',
+              300: '#F0AD6B',
+              400: '#E88533',
+              DEFAULT: '#A0522D',
+              500: '#A0522D',
+              600: '#8B3E1F',
+              700: '#6F2E15',
+              800: '#55210E',
+              900: '#3B1507',
+              950: '#220A03',
+              light: '#C2703F',
+              pale:  '#FDF1E8',
+            },
+            // ── Buyer / Info: Sky Blue ────────────────────────────────────
+            // DEFAULT (#1A659E) = 5.3:1 on white  ✓ AA
+            sky: {
+              50:  '#EBF4FB',
+              100: '#D1E9F7',
+              200: '#A4D3EF',
+              300: '#73B9E5',
+              400: '#419AD4',
+              DEFAULT: '#1A659E',
+              500: '#1A659E',
+              600: '#155180',
+              700: '#103D62',
+              800: '#0B2B45',
+              900: '#071C2E',
+              950: '#040F1A',
+              light: '#419AD4',
+              dark:  '#103D62',
+              pale:  '#EBF4FB',
+            },
+            // ── Price / Highlight: Gold (BG ONLY, dark text) ──────────────
+            // NEVER use gold as text on white. Always use as BG with #3B2A00 text.
+            // gold bg + #3B2A00 text = 10.2:1  ✓ AAA
+            gold: {
+              50:  '#FFFDE7',
+              100: '#FFF8CC',
+              200: '#FFF0A3',
+              300: '#FFE57A',
+              400: '#FFD747',
+              DEFAULT: '#F4A226',
+              500: '#F4A226',
+              600: '#E08A10',
+              700: '#B86B08',
+              800: '#8F5005',
+              900: '#5C3202',
+              950: '#3B2A00',
+              pale: '#FFF8E7',
+              text: '#3B2A00',
+            },
+            // ── Danger / Error: Red ────────────────────────────────────────
+            // #B42318 = 5.8:1 on white  ✓ AA
+            danger: {
+              DEFAULT: '#B42318',
+              50:  '#FEF3F2',
+              100: '#FDE8E7',
+              200: '#FCCFCD',
+              300: '#FAA8A5',
+              400: '#F67672',
+              500: '#EE4943',
+              600: '#D92C28',
+              700: '#B42318',
+              800: '#941D14',
+              900: '#781910',
+              950: '#420B07',
+              pale: '#FEF3F2',
+            },
+            // ── Neutrals (green-tinted) ────────────────────────────────────
+            // canvas  = page background
+            // surface = card/panel background
+            // border  = subtle border/divider
+            canvas:  { DEFAULT: '#F7FAF5' },
+            surface: { DEFAULT: '#FFFFFF' },
+            bdr:     { DEFAULT: '#E2E8E0' },
+            // Text colors — all pass 4.5:1 on white AND on canvas (#F7FAF5)
+            // ink      = #1F2A24  → 15.8:1 on white ✓ AAA
+            // inksoft  = #3D4F44  → 8.3:1 on white  ✓ AAA
+            // muted    = #567361  → 4.6:1 on white  ✓ AA (just passes)
+            ink:     { DEFAULT: '#1F2A24' },
+            inksoft: { DEFAULT: '#3D4F44' },
+            muted:   { DEFAULT: '#567361' },
           },
+
           fontFamily: {
-            display: ['"Playfair Display"', 'Georgia', 'serif'],
-            sans:    ['"DM Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['"Playfair Display"', 'Georgia', '"Noto Sans Sinhala"', '"Noto Sans Tamil"', 'serif'],
+            sans:    ['"DM Sans"', 'system-ui', '-apple-system', '"Noto Sans Sinhala"', '"Noto Sans Tamil"', 'sans-serif'],
+          },
+
+          fontSize: {
+            // Custom clamp sizes for responsive headings
+            'h1': ['clamp(1.75rem, 4vw, 2.75rem)', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '-0.02em' }],
+            'h2': ['clamp(1.5rem, 3vw, 2rem)',      { lineHeight: '1.25', fontWeight: '700', letterSpacing: '-0.01em' }],
+            'h3': ['1.25rem',                        { lineHeight: '1.35', fontWeight: '700' }],
+            'body': ['1rem',                          { lineHeight: '1.6' }],
+            'sm-body': ['0.875rem',                   { lineHeight: '1.55' }],
+            'price': ['1.375rem',                     { lineHeight: '1.2',  fontWeight: '700', letterSpacing: '-0.01em' }],
+          },
+
+          // ── Shadow levels (green-tinted) ──────────────────────────────────
+          boxShadow: {
+            'xs':  '0 1px 2px 0 rgba(27,67,50,0.06)',
+            'sm':  '0 1px 3px 0 rgba(27,67,50,0.08), 0 1px 2px -1px rgba(27,67,50,0.06)',
+            'md':  '0 4px 6px -1px rgba(27,67,50,0.08), 0 2px 4px -2px rgba(27,67,50,0.06)',
+            'lg':  '0 10px 15px -3px rgba(27,67,50,0.08), 0 4px 6px -4px rgba(27,67,50,0.06)',
+            'xl':  '0 20px 25px -5px rgba(27,67,50,0.08), 0 8px 10px -6px rgba(27,67,50,0.05)',
+            '2xl': '0 25px 50px -12px rgba(27,67,50,0.14)',
+            'none': 'none',
+          },
+
+          // ── Border radius ──────────────────────────────────────────────────
+          borderRadius: {
+            'none': '0',
+            'sm':   '0.25rem',   // 4px  - small pill dot
+            DEFAULT:'0.375rem',  // 6px
+            'md':   '0.5rem',    // 8px
+            'lg':   '0.75rem',   // 12px - inputs & buttons
+            'xl':   '1rem',      // 16px - cards
+            '2xl':  '1.25rem',   // 20px - modals / panels
+            '3xl':  '1.5rem',
+            'full': '9999px',    // pills
+          },
+
+          // ── Transitions ────────────────────────────────────────────────────
+          transitionDuration: {
+            DEFAULT: '150ms',
+            '200':   '200ms',
+          },
+          transitionTimingFunction: {
+            DEFAULT: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            'out':   'cubic-bezier(0, 0, 0.2, 1)',
+          },
+
+          // ── Z-index ────────────────────────────────────────────────────────
+          zIndex: {
+            '1': '1',
+            '10': '10',
+            '20': '20',
+            '30': '30',
+            '40': '40',
+            '50': '50',
+            '60': '60',
+            'drawer': '70',
+            'modal':  '80',
+            'toast':  '90',
+          },
+
+          // ── Container ──────────────────────────────────────────────────────
+          maxWidth: {
+            'container': '80rem', // 1280px = 7xl
           },
         }
       }
     }
   </script>
-  <style>
-    body { font-family: 'DM Sans', sans-serif; background-color: #F8FAF7; color: #111827; }
-    .nav-link { @apply text-gray-700 hover:text-leaf font-medium transition-colors duration-150 px-2.5 py-1.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf; }
-    .btn-primary { @apply inline-flex items-center justify-center gap-2 bg-leaf text-white px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-light active:bg-leaf-dark transition-all duration-200 shadow-sm hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
-    .btn-secondary { @apply inline-flex items-center justify-center gap-2 bg-white border border-leaf/40 text-leaf px-5 py-2.5 min-h-[44px] rounded-xl font-semibold hover:bg-leaf-pale hover:border-leaf transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2; }
-    .btn-danger { @apply inline-flex items-center justify-center gap-2 bg-red-600 text-white px-4 py-2 min-h-[44px] rounded-xl font-semibold hover:bg-red-700 transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2; }
-    .card { @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden; }
-    .form-input { @apply w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition bg-white text-gray-900 min-h-[44px]; }
-    .form-label { @apply block text-sm font-semibold text-gray-800 mb-1.5; }
+
+  {# ─── DESIGN SYSTEM UTILITIES (via @apply) ─────────────────────────────── #}
+  {# External CSS is NOT processed by Tailwind CDN; all utilities live here.  #}
+  <style type="text/tailwindcss">
+    /* ── RESET & BASE ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+
+    /* Defensive SVG rule: prevent unbounded SVGs from overflowing viewport */
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+      max-width: 100%;
+    }
+
+    body {
+      @apply font-sans text-ink bg-canvas antialiased min-h-full flex flex-col overflow-x-hidden;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    /* ── TYPOGRAPHY SCALE ─────────────────────────────────────────────────── */
+    h1 { @apply font-display font-bold text-ink tracking-tight; font-size: clamp(1.75rem, 4vw, 2.75rem); line-height: 1.2; }
+    h2 { @apply font-display font-bold text-ink tracking-tight; font-size: clamp(1.5rem, 3vw, 2rem); line-height: 1.25; }
+    h3 { @apply font-display font-bold text-ink; font-size: 1.25rem; line-height: 1.35; }
+    h4 { @apply font-sans font-semibold text-ink; font-size: 1rem; line-height: 1.4; }
+    p  { @apply text-inksoft; line-height: 1.6; }
+
+    /* Visually-hidden but focusable */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0;
+      margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+      white-space: nowrap; border-width: 0;
+    }
+    .sr-only:focus-visible, .sr-only:focus {
+      position: fixed; width: auto; height: auto; padding: 0.625rem 1rem;
+      margin: 0; overflow: visible; clip: auto; white-space: normal;
+    }
+
+    /* ── PRICE NUMBERS ────────────────────────────────────────────────────── */
+    .price-value {
+      @apply font-sans font-bold tabular-nums text-ink;
+      font-size: 1.375rem;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    .price-unit   { @apply font-sans text-muted text-sm; }
+    .price-prefix { @apply font-sans font-semibold text-muted text-sm; }
+
+    /* ── LAYOUT HELPERS ───────────────────────────────────────────────────── */
+    .container-app { @apply max-w-[80rem] mx-auto px-4 sm:px-6 lg:px-8 w-full; }
+    .section-gap   { @apply py-10 sm:py-14 lg:py-20; }
+
+    /* ── NAVIGATION LINK ──────────────────────────────────────────────────── */
+    .nav-link {
+      @apply inline-flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-medium
+             text-inksoft hover:text-leaf hover:bg-leaf-pale/60
+             transition-all duration-150
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-1;
+      min-height: 44px;
+    }
+    .nav-link-active { @apply text-leaf font-semibold bg-leaf-pale/70; }
+
+    /* ── BUTTON BASE + VARIANTS ───────────────────────────────────────────── */
+    .btn {
+      @apply inline-flex items-center justify-center gap-2 font-semibold
+             rounded-lg transition-all duration-150
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+             disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+             active:scale-[0.98];
+      -webkit-user-select: none; user-select: none;
+    }
+
+    /* Sizes */
+    .btn-sm {
+      @apply inline-flex items-center justify-center gap-2 font-semibold rounded-lg text-sm px-3.5 transition-all duration-150;
+      height: 36px;
+      min-width: 36px;
+    }
+    /* Mobile hit-area wrapper for btn-sm: wrap in .btn-sm-touch */
+    .btn-sm-touch {
+      @apply inline-flex items-center justify-center;
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .btn-md {
+      @apply inline-flex items-center justify-center gap-2 font-semibold rounded-lg text-[15px] px-5 transition-all duration-150;
+      height: 44px;
+      min-width: 44px;
+    }
+    .btn-lg {
+      @apply inline-flex items-center justify-center gap-2 font-semibold rounded-lg text-base px-7 transition-all duration-150;
+      height: 52px;
+      min-width: 52px;
+    }
+
+    /* Variant: primary (solid leaf) */
+    .btn-primary {
+      @apply text-white bg-leaf shadow-sm
+             hover:bg-leaf-dark hover:shadow-md
+             active:bg-leaf-dark
+             focus-visible:ring-leaf;
+    }
+
+    /* Variant: secondary (white, leaf border) */
+    .btn-secondary {
+      @apply text-leaf bg-white border border-leaf/40 shadow-xs
+             hover:bg-leaf-pale hover:border-leaf
+             active:bg-leaf-pale
+             focus-visible:ring-leaf;
+    }
+
+    /* Variant: soft (leaf-pale bg, dark text) */
+    .btn-soft {
+      @apply text-leaf-dark bg-leaf-pale border border-leaf/20
+             hover:bg-leaf-100 hover:border-leaf/40
+             active:bg-leaf-100
+             focus-visible:ring-leaf;
+    }
+
+    /* Variant: ghost (transparent, leaf text) */
+    .btn-ghost {
+      @apply text-leaf bg-transparent
+             hover:bg-leaf-pale
+             active:bg-leaf-100
+             focus-visible:ring-leaf;
+    }
+
+    /* Variant: danger (solid red) */
+    .btn-danger {
+      @apply text-white bg-danger shadow-xs
+             hover:bg-danger-700 hover:shadow-md
+             active:bg-danger-800
+             focus-visible:ring-danger;
+    }
+
+    /* Variant: danger-soft */
+    .btn-danger-soft {
+      @apply text-danger-700 bg-danger-50 border border-danger/20
+             hover:bg-danger-100 hover:border-danger/40
+             active:bg-danger-100
+             focus-visible:ring-danger;
+    }
+
+    /* Variant: accent (gold bg, dark text — prices/deals ONLY) */
+    .btn-accent {
+      @apply bg-gold text-gold-text shadow-sm
+             hover:bg-gold-600 hover:shadow-md
+             active:bg-gold-700
+             focus-visible:ring-gold;
+    }
+
+    /* Variant: link (text only) */
+    .btn-link {
+      @apply inline-flex items-center gap-1.5 text-leaf font-semibold text-sm
+             hover:text-leaf-dark underline-offset-4 hover:underline
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded
+             transition-colors duration-150;
+    }
+
+    /* Loading state */
+    .btn[data-loading="true"] {
+      @apply opacity-70 pointer-events-none cursor-wait;
+    }
+    .btn-spinner {
+      @apply w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+    }
+
+    /* ── FORM FIELDS ──────────────────────────────────────────────────────── */
+    .field-label {
+      @apply block text-sm font-semibold text-ink mb-1;
+    }
+    .field-hint  {
+      @apply block text-xs text-muted mt-1;
+    }
+    .field-error {
+      @apply flex items-start gap-1 text-xs font-medium text-danger-700 mt-1;
+    }
+    .field-error-icon { @apply w-3.5 h-3.5 shrink-0 mt-0.5; }
+
+    .input {
+      @apply w-full border border-bdr bg-white text-ink rounded-lg px-4
+             text-base leading-none
+             placeholder:text-muted
+             focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf
+             transition-all duration-150
+             disabled:bg-canvas disabled:text-muted disabled:cursor-not-allowed;
+      height: 48px;
+      /* Prevent iOS auto-zoom: keep font-size 16px */
+      font-size: 16px;
+    }
+    .input-error {
+      @apply border-danger-500 bg-danger-50/30 text-danger-900
+             focus:ring-danger-500 focus:border-danger-500;
+    }
+    .input-readonly {
+      @apply bg-canvas text-inksoft cursor-not-allowed;
+    }
+    .input.pl-11 { padding-left: 2.75rem; }
+    .input.pl-24 { padding-left: 6rem; }
+    .input.pr-11 { padding-right: 2.75rem; }
+
+    .textarea {
+      @apply w-full border border-bdr bg-white text-ink rounded-lg px-4
+             text-base leading-relaxed
+             placeholder:text-muted
+             focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf
+             transition-all duration-150
+             disabled:bg-canvas disabled:text-muted disabled:cursor-not-allowed;
+      height: auto;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+      resize: vertical;
+      min-height: 100px;
+      font-size: 16px;
+    }
+
+    .select-wrapper { @apply relative; }
+    .select-wrapper::after {
+      content: '';
+      @apply absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none;
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid #567361;
+    }
+    .select {
+      @apply w-full border border-bdr bg-white text-ink rounded-lg px-4
+             text-base leading-none
+             placeholder:text-muted
+             focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf
+             transition-all duration-150
+             disabled:bg-canvas disabled:text-muted disabled:cursor-not-allowed
+             appearance-none pr-10;
+      height: 48px;
+      font-size: 16px;
+    }
+
+    /* Checkbox / Radio — 20px visual, 44px touch target */
+    .checkbox-wrapper, .radio-wrapper {
+      @apply inline-flex items-center gap-2.5 cursor-pointer;
+      min-height: 44px;
+    }
+    .checkbox, .radio {
+      @apply w-5 h-5 border-2 border-bdr rounded text-leaf shrink-0
+             focus:outline-none focus:ring-2 focus:ring-leaf focus:ring-offset-1
+             checked:bg-leaf checked:border-leaf
+             transition-all duration-150;
+    }
+    .radio { @apply rounded-full; }
+
+    /* Switch */
+    .switch {
+      @apply relative inline-flex items-center cursor-pointer;
+      min-height: 44px;
+    }
+    .switch input { @apply sr-only; }
+    .switch-track {
+      @apply w-11 h-6 bg-bdr rounded-full transition-colors duration-200
+             peer-checked:bg-leaf peer-focus:ring-2 peer-focus:ring-leaf peer-focus:ring-offset-1;
+    }
+    .switch-thumb {
+      @apply absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm
+             transition-transform duration-200 peer-checked:translate-x-5;
+    }
+
+    /* ── CARD BASE ────────────────────────────────────────────────────────── */
+    .card {
+      @apply bg-white rounded-xl shadow-sm border border-bdr overflow-hidden;
+    }
+    .card-hover {
+      @apply bg-white rounded-xl shadow-sm border border-bdr overflow-hidden
+             hover:shadow-md hover:border-leaf/20 transition-all duration-200;
+    }
+    .card-body    { @apply p-5 sm:p-6; }
+    .card-header  { @apply px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-bdr; }
+    .card-footer  { @apply px-5 sm:px-6 pb-5 sm:pb-6 pt-4 border-t border-bdr; }
+
+    /* ── BADGES ───────────────────────────────────────────────────────────── */
+    .badge {
+      @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border;
+    }
+    .badge-sm {
+      @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border;
+    }
+
+    /* ── ALERT BANNERS ────────────────────────────────────────────────────── */
+    .alert {
+      @apply flex items-start gap-3 px-4 py-3.5 rounded-xl text-sm border;
+    }
+    .alert-success { @apply flex items-start gap-3 px-4 py-3.5 rounded-xl text-sm border bg-leaf-50 text-leaf-dark border-leaf/20; }
+    .alert-error   { @apply flex items-start gap-3 px-4 py-3.5 rounded-xl text-sm border bg-danger-50 text-danger-700 border-danger/20; }
+    .alert-warning { @apply flex items-start gap-3 px-4 py-3.5 rounded-xl text-sm border bg-gold-50 text-gold-text border-gold/20; }
+    .alert-info    { @apply flex items-start gap-3 px-4 py-3.5 rounded-xl text-sm border bg-sky-50 text-sky-dark border-sky/20; }
+
+    /* ── MODAL OVERLAY ────────────────────────────────────────────────────── */
+    .modal-backdrop {
+      @apply fixed inset-0 bg-ink/50 backdrop-blur-sm z-[80] flex items-center justify-center p-4;
+    }
+    .modal-panel {
+      @apply relative bg-white rounded-2xl shadow-2xl w-full max-w-md
+             max-h-[90vh] overflow-y-auto;
+    }
+
+    /* ── SKELETON LOADER ──────────────────────────────────────────────────── */
+    .skeleton {
+      @apply bg-canvas rounded animate-pulse;
+    }
+
+    /* ── TABS / SEGMENTED CONTROL ─────────────────────────────────────────── */
+    .tabs { @apply flex gap-1 p-1 bg-canvas rounded-lg; }
+    .tab {
+      @apply flex-1 flex items-center justify-center px-3 py-2 rounded text-sm font-medium
+             text-muted transition-all duration-150 cursor-pointer
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf;
+      min-height: 36px;
+    }
+    .tab-active { @apply text-leaf-dark bg-white shadow-xs; }
+
+    /* ── PAGINATION ───────────────────────────────────────────────────────── */
+    .page-item {
+      @apply inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-medium
+             border border-bdr text-inksoft bg-white
+             hover:bg-leaf-pale hover:border-leaf hover:text-leaf
+             transition-all duration-150
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf;
+    }
+    .page-item-active {
+      @apply bg-leaf text-white border-leaf hover:bg-leaf-dark;
+    }
+    .page-item-disabled {
+      @apply opacity-40 cursor-not-allowed pointer-events-none;
+    }
+
+    /* ── STAT CARD ────────────────────────────────────────────────────────── */
+    .stat-card {
+      @apply bg-white rounded-xl shadow-sm border border-bdr overflow-hidden
+             hover:shadow-md hover:border-leaf/20 transition-all duration-200
+             p-5 sm:p-6 flex items-start justify-between gap-4;
+    }
+    .stat-value {
+      @apply font-display font-bold text-2xl sm:text-3xl text-ink tracking-tight tabular-nums;
+    }
+    .stat-label {
+      @apply text-xs sm:text-sm font-medium text-muted truncate;
+    }
+    .stat-icon {
+      @apply w-11 h-11 rounded-xl bg-leaf-pale/70 text-leaf
+             flex items-center justify-center shrink-0;
+    }
+
+    /* ── TABLE ────────────────────────────────────────────────────────────── */
+    .table-wrapper { @apply overflow-x-auto rounded-xl border border-bdr; }
+    .table-base    { @apply min-w-full text-sm; }
+    .table-head    { @apply bg-canvas/60; }
+    .table-th      { @apply px-4 py-3 text-left text-xs font-semibold text-muted uppercase tracking-wide; }
+    .table-td      { @apply px-4 py-3.5 text-sm text-inksoft align-middle; }
+    .table-row     { @apply border-b border-bdr last:border-0 hover:bg-leaf-50/40 transition-colors duration-150; }
+
+    /* ── QUANTITY STEPPER ─────────────────────────────────────────────────── */
+    .qty-stepper  { @apply inline-flex items-center border border-bdr rounded-lg overflow-hidden; }
+    .qty-btn      {
+      @apply flex items-center justify-center text-inksoft
+             hover:bg-leaf-pale hover:text-leaf
+             transition-colors duration-150
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-leaf;
+      width: 44px; height: 48px;
+    }
+    .qty-input    {
+      @apply w-16 h-[48px] text-center text-base font-semibold text-ink border-x border-bdr bg-white
+             focus:outline-none focus:ring-2 focus:ring-inset focus:ring-leaf tabular-nums;
+    }
+
+    /* ── MAP CONTAINER ────────────────────────────────────────────────────── */
+    .map-container {
+      @apply relative rounded-xl overflow-hidden border border-bdr bg-canvas;
+      aspect-ratio: 16/9;
+    }
+    .map-container-sq {
+      @apply relative rounded-xl overflow-hidden border border-bdr bg-canvas;
+      aspect-ratio: 1;
+    }
+    .map-placeholder  {
+      @apply absolute inset-0 flex flex-col items-center justify-center text-muted gap-2;
+    }
+
+    /* ── PRICE BREAKDOWN ──────────────────────────────────────────────────── */
+    .price-row { @apply flex items-baseline justify-between gap-4 py-2 text-sm; }
+    .price-row + .price-row { @apply border-t border-bdr/50; }
+    .price-row-total {
+      @apply flex items-baseline justify-between gap-4 py-3 border-t-2 border-leaf/20 mt-1;
+    }
+    .price-row-total .price-label { @apply font-bold text-ink text-base; }
+    .price-row-total .price-val   { @apply font-sans font-bold tabular-nums text-leaf-dark; }
+
+    /* ── TIMELINE / STEPPER ───────────────────────────────────────────────── */
+    .timeline { @apply space-y-0; }
+    .timeline-item {
+      @apply flex gap-4 pb-6 relative;
+    }
+    .timeline-item:last-child { @apply pb-0; }
+    .timeline-item:not(:last-child) .timeline-dot::after {
+      content: '';
+      @apply absolute left-[17px] top-[28px] bottom-0 w-0.5 bg-bdr;
+    }
+    .timeline-dot {
+      @apply relative flex items-center justify-center w-9 h-9 rounded-full border-2 shrink-0;
+    }
+    .timeline-dot-done    { @apply bg-leaf border-leaf text-white; }
+    .timeline-dot-active  { @apply bg-white border-leaf text-leaf ring-4 ring-leaf/15; }
+    .timeline-dot-pending { @apply bg-white border-bdr text-muted; }
+    .timeline-content { @apply flex-1 pt-1.5 min-w-0; }
+
+    /* ── EMPTY STATE ──────────────────────────────────────────────────────── */
+    .empty-state {
+      @apply flex flex-col items-center justify-center text-center px-6 py-12 sm:py-16;
+    }
+    .empty-state-icon {
+      @apply w-16 h-16 text-muted/60 mb-5;
+    }
+
+    /* ── AVATAR ───────────────────────────────────────────────────────────── */
+    .avatar {
+      @apply rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center
+             font-semibold text-leaf shrink-0;
+    }
+    .avatar-sm  { @apply rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center font-semibold text-leaf shrink-0 w-8  h-8  text-sm; }
+    .avatar-md  { @apply rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center font-semibold text-leaf shrink-0 w-10 h-10 text-base; }
+    .avatar-lg  { @apply rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center font-semibold text-leaf shrink-0 w-14 h-14 text-xl; }
+    .avatar-xl  { @apply rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center font-semibold text-leaf shrink-0 w-20 h-20 text-2xl; }
+
+    /* ── REDUCED MOTION ───────────────────────────────────────────────────── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ── FOCUS VISIBLE (global polish) ───────────────────────────────────── */
+    :focus-visible {
+      outline: 2px solid #2D6A4F;
+      outline-offset: 2px;
+    }
+    :focus:not(:focus-visible) { outline: none; }
   </style>
+
   {% block extra_head %}{% endblock %}
 </head>
-<body class="min-h-full flex flex-col antialiased text-gray-900 overflow-x-hidden">
 
-  <!-- SKIP TO CONTENT -->
-  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2.5 focus:bg-leaf focus:text-white focus:rounded-xl focus:shadow-xl focus:font-semibold focus:outline-none focus:ring-2 focus:ring-leaf-light">
-    Skip to main content
+<body class="{% if current_user.is_authenticated %}pb-20 md:pb-0{% endif %}">
+
+  {# ── SKIP TO CONTENT ─────────────────────────────────────────────────── #}
+  <a href="#main-content"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[90]
+            focus:px-4 focus:py-2.5 focus:bg-leaf focus:text-white focus:font-semibold focus:shadow-xl focus:rounded-lg">
+    Skip to content
   </a>
 
-  <!-- TOP NAVIGATION BAR -->
-  <nav class="bg-white border-b border-gray-200/80 sticky top-0 z-40 shadow-xs" aria-label="Main Navigation">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  {# ── STICKY TOP HEADER ───────────────────────────────────────────────── #}
+  <header id="main-header"
+          class="bg-white border-b border-bdr sticky top-0 z-40 transition-shadow duration-200"
+          aria-label="Main Navigation">
+    <div class="container-app">
       <div class="flex items-center justify-between h-16 sm:h-20">
-        
-        <!-- Brand & Hamburger Area -->
+
+        {# Brand & Hamburger #}
         <div class="flex items-center gap-3">
-          <!-- Mobile Drawer Toggle Button -->
+          {# Mobile Drawer Toggle #}
           <button
             id="mobile-menu-toggle"
             type="button"
-            class="md:hidden inline-flex items-center justify-center p-2.5 rounded-xl text-gray-700 hover:text-leaf hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf"
+            class="md:hidden inline-flex items-center justify-center w-11 h-11 rounded-lg
+                   text-inksoft hover:text-leaf hover:bg-leaf-pale/60
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
             aria-controls="mobile-drawer"
             aria-expanded="false"
             aria-label="Open main menu"
           >
-            <svg id="hamburger-icon" class="w-6 h-6 block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <svg id="hamburger-icon" class="w-6 h-6 block" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <svg id="close-icon" class="w-6 h-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg id="close-icon" class="w-6 h-6 hidden" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
 
-          <!-- Logo -->
-          <a href="{{ url_for('main.home') }}" class="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-lg p-1">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-leaf rounded-xl flex items-center justify-center shadow-xs">
-              <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+          {# Logo #}
+          <a href="{{ url_for('main.home') }}"
+             class="flex items-center gap-2.5 rounded-lg p-1
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 bg-leaf rounded-lg flex items-center justify-center shadow-xs shrink-0">
+              <svg class="w-5 h-5 text-white" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
               </svg>
             </div>
-            <span class="font-display font-bold text-xl sm:text-2xl text-leaf-dark tracking-tight">Agro<span class="text-leaf-light">Link</span></span>
+            <span class="font-display font-bold text-xl sm:text-2xl text-leaf-dark tracking-tight">Agro<span class="text-leaf">Link</span></span>
           </a>
         </div>
 
-        <!-- Desktop Navigation Links -->
-        <div class="hidden md:flex items-center gap-1 lg:gap-2">
-          <a href="{{ url_for('main.home') }}" class="nav-link {% if request.blueprint == 'main' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Home</a>
-          <a href="{{ url_for('marketplace.index') }}" class="nav-link {% if request.blueprint == 'marketplace' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Marketplace</a>
-          <a href="{{ url_for('prices.index') }}" class="nav-link {% if request.blueprint == 'prices' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Market Prices</a>
+        {# Desktop Navigation Links #}
+        <nav class="hidden md:flex items-center gap-1" aria-label="Desktop Navigation">
+          <a href="{{ url_for('main.home') }}"
+             class="nav-link {% if request.blueprint == 'main' and request.endpoint == 'main.home' %}nav-link-active{% endif %}">Home</a>
+          <a href="{{ url_for('marketplace.index') }}"
+             class="nav-link {% if request.blueprint == 'marketplace' %}nav-link-active{% endif %}">Marketplace</a>
+          <a href="{{ url_for('prices.index') }}"
+             class="nav-link {% if request.blueprint == 'prices' %}nav-link-active{% endif %}">Market Prices</a>
           {% if current_user.is_authenticated %}
-          <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if request.blueprint == 'dashboard' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Dashboard</a>
-          <a href="{{ url_for('orders.index') }}" class="nav-link {% if request.blueprint == 'orders' %}text-leaf font-bold bg-leaf-pale/50{% endif %}">Orders</a>
+          <a href="{{ url_for('dashboard.index') }}"
+             class="nav-link {% if request.blueprint == 'dashboard' %}nav-link-active{% endif %}">Dashboard</a>
+          <a href="{{ url_for('orders.index') }}"
+             class="nav-link {% if request.blueprint == 'orders' %}nav-link-active{% endif %}">Orders</a>
           {% endif %}
-        </div>
+        </nav>
 
-        <!-- Auth Actions / Profile Menu -->
+        {# User Menu & Extension Blocks #}
         <div class="flex items-center gap-2 sm:gap-3">
+          {# Named block for Admin link #}
+          {% block nav_admin %}
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            <a href="{{ url_for('dashboard.index') }}"
+               class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-600">
+              Admin
+            </a>
+            {% endif %}
+          {% endblock %}
+
+          {# Empty named block for future notifications #}
+          {% block nav_notifications %}{% endblock %}
+
           {% if current_user.is_authenticated %}
+          {# Desktop User Dropdown #}
           <div class="relative" id="user-menu-container">
             <button
               id="user-menu-button"
               type="button"
               aria-haspopup="true"
               aria-expanded="false"
-              class="flex items-center gap-2 p-1.5 sm:p-2 rounded-xl hover:bg-gray-100 transition text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-leaf"
+              class="flex items-center gap-2 p-1.5 sm:p-2 rounded-xl
+                     hover:bg-canvas transition text-sm text-ink
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
               aria-label="User profile and account options"
             >
-              <div class="w-8 h-8 rounded-full overflow-hidden bg-leaf-pale flex items-center justify-center border border-leaf/20 shrink-0">
+              <div class="avatar-sm border border-leaf/20">
                 {% if current_user.profile_image_url %}
                 <img src="{{ current_user.profile_image_url }}" alt="{{ current_user.name }}" class="w-full h-full object-cover" />
                 {% else %}
@@ -112,43 +770,59 @@
                 {% endif %}
               </div>
               <span class="font-medium hidden sm:inline truncate max-w-[120px]">{{ current_user.name.split()[0] }}</span>
-              <span class="text-[11px] px-2 py-0.5 rounded-full {% if current_user.role == 'farmer' %}bg-earth-pale text-earth{% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-sky-pale text-sky{% endif %} font-semibold capitalize hidden md:inline">{{ current_user.role }}</span>
-              <svg class="w-4 h-4 text-gray-400 transition-transform duration-200" id="user-menu-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span class="text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize hidden md:inline
+                {% if current_user.role == 'farmer' %}bg-earth-pale text-earth
+                {% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700
+                {% else %}bg-sky-pale text-sky{% endif %}">{{ current_user.role }}</span>
+              <svg class="w-4 h-4 text-muted transition-transform duration-200" id="user-menu-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
-            <!-- Desktop User Dropdown Menu -->
-            <div id="user-dropdown-menu" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50">
-              <div class="px-4 py-3 border-b border-gray-100">
-                <p class="text-xs text-gray-600 font-medium">Signed in as</p>
-                <p class="text-sm font-bold text-gray-900 truncate">{{ current_user.name }}</p>
-                <p class="text-xs text-gray-600 truncate">{{ current_user.email }}</p>
-                <span class="inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full {% if current_user.role == 'farmer' %}bg-earth-pale text-earth{% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700{% else %}bg-sky-pale text-sky{% endif %} font-semibold capitalize">{{ current_user.role }}</span>
+            {# Dropdown Menu #}
+            <div id="user-dropdown-menu"
+                 class="hidden absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-bdr py-2 z-50 transition-all duration-150"
+                 role="menu" aria-labelledby="user-menu-button">
+              <div class="px-4 py-3 border-b border-bdr">
+                <p class="text-xs text-muted font-medium">Signed in as</p>
+                <p class="text-sm font-bold text-ink truncate">{{ current_user.name }}</p>
+                <p class="text-xs text-muted truncate">{{ current_user.email }}</p>
+                <span class="inline-block mt-1.5 text-[11px] px-2 py-0.5 rounded-full font-semibold capitalize
+                  {% if current_user.role == 'farmer' %}bg-earth-pale text-earth
+                  {% elif current_user.role == 'admin' %}bg-purple-100 text-purple-700
+                  {% else %}bg-sky-pale text-sky{% endif %}">{{ current_user.role }}</span>
               </div>
-              <div class="py-1">
-                <a href="{{ url_for('profile.view') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
-                  <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="py-1" role="none">
+                <a href="{{ url_for('profile.view') }}"
+                   class="user-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm text-inksoft hover:bg-leaf-pale hover:text-leaf-dark font-medium transition focus:bg-leaf-pale focus:text-leaf-dark focus:outline-none"
+                   role="menuitem">
+                  <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   My Profile
                 </a>
-                <a href="{{ url_for('profile.edit') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
-                  <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <a href="{{ url_for('profile.edit') }}"
+                   class="user-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm text-inksoft hover:bg-leaf-pale hover:text-leaf-dark font-medium transition focus:bg-leaf-pale focus:text-leaf-dark focus:outline-none"
+                   role="menuitem">
+                  <svg class="w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                   Edit Profile
                 </a>
-                <a href="{{ url_for('profile.password') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-leaf-pale hover:text-leaf-dark font-medium transition">
-                  <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <a href="{{ url_for('profile.password') }}"
+                   class="user-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm text-inksoft hover:bg-leaf-pale hover:text-leaf-dark font-medium transition focus:bg-leaf-pale focus:text-leaf-dark focus:outline-none"
+                   role="menuitem">
+                  <svg class="w-4 h-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
                   Change Password
                 </a>
               </div>
-              <div class="border-t border-gray-100 py-1">
-                <a href="{{ url_for('auth.logout') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 font-medium transition">
-                  <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div class="border-t border-bdr py-1" role="none">
+                <a href="{{ url_for('auth.logout') }}"
+                   class="user-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm text-danger-700 hover:bg-danger-50 font-medium transition focus:bg-danger-50 focus:outline-none"
+                   role="menuitem">
+                  <svg class="w-4 h-4 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                   Logout
@@ -156,307 +830,656 @@
               </div>
             </div>
           </div>
+
           {% else %}
-          <a href="{{ url_for('auth.login') }}" class="btn-secondary text-sm py-2 px-3.5 sm:px-4">Log In</a>
-          <a href="{{ url_for('auth.register') }}" class="btn-primary text-sm py-2 px-3.5 sm:px-4">Sign Up</a>
+          {# Guests: Log in (secondary) and Register (primary) #}
+          <a href="{{ url_for('auth.login') }}"
+             class="btn-secondary btn-sm hidden sm:inline-flex">Log in</a>
+          <a href="{{ url_for('auth.register') }}"
+             class="btn-primary btn-sm">Register</a>
           {% endif %}
         </div>
 
       </div>
     </div>
+  </header>
 
-    <!-- MOBILE DRAWER NAVIGATION (Overlay & Offcanvas) -->
-    <div id="mobile-drawer" class="md:hidden hidden fixed inset-0 z-50 overflow-hidden" role="dialog" aria-modal="true" aria-label="Mobile Navigation">
-      <!-- Backdrop -->
-      <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-gray-900/40 backdrop-blur-xs transition-opacity duration-300"></div>
+  {# ── MOBILE SLIDE-IN DRAWER MENU ────────────────────────────────────── #}
+  <div id="mobile-drawer"
+       class="md:hidden fixed inset-0 z-[70] pointer-events-none transition-opacity duration-300 opacity-0"
+       aria-hidden="true"
+       role="dialog"
+       aria-modal="true"
+       aria-label="Mobile Navigation Menu">
+    {# Backdrop #}
+    <div id="mobile-drawer-backdrop"
+         class="fixed inset-0 bg-ink/40 backdrop-blur-sm pointer-events-auto"></div>
 
-      <!-- Drawer Content -->
-      <div class="fixed inset-y-0 left-0 max-w-[300px] w-full bg-white shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
-        <div class="space-y-6">
-          <!-- Drawer Header -->
-          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
-            <a href="{{ url_for('main.home') }}" class="flex items-center gap-2">
-              <div class="w-8 h-8 bg-leaf rounded-xl flex items-center justify-center">
-                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                </svg>
-              </div>
-              <span class="font-display font-bold text-lg text-leaf-dark">AgroLink</span>
-            </a>
-            <button id="mobile-drawer-close" type="button" class="p-2 rounded-lg text-gray-500 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-leaf" aria-label="Close menu">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    {# Drawer Panel #}
+    <div id="mobile-drawer-panel"
+         class="fixed inset-y-0 left-0 w-[300px] max-w-[85vw] bg-white shadow-2xl pointer-events-auto
+                flex flex-col justify-between overflow-y-auto transform -translate-x-full transition-transform duration-300 ease-out">
+      <div class="p-5 space-y-5">
+        {# Header #}
+        <div class="flex items-center justify-between pb-4 border-b border-bdr">
+          <a href="{{ url_for('main.home') }}" class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-leaf rounded-lg flex items-center justify-center shrink-0">
+              <svg class="w-4 h-4 text-white" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
               </svg>
-            </button>
-          </div>
-
-          <!-- Drawer Links -->
-          <nav class="flex flex-col space-y-1">
-            <a href="{{ url_for('main.home') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              Home
-            </a>
-            <a href="{{ url_for('marketplace.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-              Marketplace
-            </a>
-            <a href="{{ url_for('prices.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-              Market Prices
-            </a>
-            {% if current_user.is_authenticated %}
-            <a href="{{ url_for('dashboard.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-              Dashboard
-            </a>
-            <a href="{{ url_for('orders.index') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              Orders
-            </a>
-            <div class="pt-2 pb-1">
-              <div class="h-px bg-gray-100"></div>
             </div>
-            <a href="{{ url_for('profile.view') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-              My Profile
-            </a>
-            <a href="{{ url_for('profile.edit') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-              Edit Profile
-            </a>
-            <a href="{{ url_for('profile.password') }}" class="px-3 py-2.5 rounded-xl font-medium text-base text-gray-800 hover:bg-leaf-pale hover:text-leaf-dark transition flex items-center gap-3">
-              <svg class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-              Change Password
-            </a>
-            {% endif %}
-          </nav>
+            <span class="font-display font-bold text-lg text-leaf-dark">Agro<span class="text-leaf">Link</span></span>
+          </a>
+          <button id="mobile-drawer-close" type="button"
+                  class="w-10 h-10 flex items-center justify-center rounded-lg
+                         text-muted hover:text-ink hover:bg-canvas
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+                  aria-label="Close menu">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        <!-- Drawer Footer / Auth -->
-        <div class="pt-6 border-t border-gray-100 space-y-3">
+        {# Nav Links #}
+        <nav class="flex flex-col space-y-1" aria-label="Mobile Drawer Navigation">
+          <a href="{{ url_for('main.home') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.blueprint == 'main' and request.endpoint == 'main.home' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Home</span>
+          </a>
+          <a href="{{ url_for('marketplace.index') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.blueprint == 'marketplace' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <span>Marketplace</span>
+          </a>
+          <a href="{{ url_for('prices.index') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.blueprint == 'prices' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <span>Market Prices</span>
+          </a>
           {% if current_user.is_authenticated %}
-            <div class="flex items-center gap-3 px-1 mb-2">
-              <div class="w-9 h-9 rounded-full bg-leaf-pale flex items-center justify-center font-bold text-leaf text-sm">
-                {{ current_user.name[0].upper() }}
-              </div>
-              <div class="min-w-0">
-                <p class="text-sm font-bold text-gray-900 truncate">{{ current_user.name }}</p>
-                <p class="text-xs text-gray-600 truncate capitalize">{{ current_user.role }}</p>
-              </div>
-            </div>
-            <a href="{{ url_for('auth.logout') }}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition">
-              <svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-              Log Out
-            </a>
-          {% else %}
-            <div class="flex flex-col gap-2">
-              <a href="{{ url_for('auth.login') }}" class="btn-secondary w-full text-center">Log In</a>
-              <a href="{{ url_for('auth.register') }}" class="btn-primary w-full text-center">Sign Up</a>
-            </div>
+          <a href="{{ url_for('dashboard.index') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.blueprint == 'dashboard' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            <span>Dashboard</span>
+          </a>
+          <a href="{{ url_for('orders.index') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.blueprint == 'orders' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+            <span>Orders</span>
+          </a>
+          <div class="my-2 h-px bg-bdr"></div>
+          <a href="{{ url_for('profile.view') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.blueprint == 'profile' and request.endpoint == 'profile.view' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            <span>My Profile</span>
+          </a>
+          <a href="{{ url_for('profile.edit') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.endpoint == 'profile.edit' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            <span>Edit Profile</span>
+          </a>
+          <a href="{{ url_for('profile.password') }}"
+             class="flex items-center gap-3 px-3 py-3 rounded-lg text-base font-medium
+                    {% if request.endpoint == 'profile.password' %}bg-leaf-pale text-leaf-dark font-semibold{% else %}text-inksoft hover:bg-leaf-pale/60 hover:text-leaf-dark{% endif %} transition">
+            <svg class="w-5 h-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+            <span>Change Password</span>
+          </a>
           {% endif %}
+        </nav>
+      </div>
+
+      {# Drawer Footer #}
+      <div class="p-5 border-t border-bdr space-y-3">
+        {% if current_user.is_authenticated %}
+        <div class="flex items-center gap-3 mb-2">
+          <div class="avatar-md border border-leaf/20">
+            {% if current_user.profile_image_url %}
+            <img src="{{ current_user.profile_image_url }}" alt="{{ current_user.name }}" class="w-full h-full object-cover rounded-full" />
+            {% else %}
+            <span class="text-leaf font-bold">{{ current_user.name[0].upper() }}</span>
+            {% endif %}
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-ink truncate">{{ current_user.name }}</p>
+            <p class="text-xs text-muted truncate capitalize">{{ current_user.role }}</p>
+          </div>
         </div>
+        <a href="{{ url_for('auth.logout') }}"
+           class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg
+                  text-sm font-semibold text-danger-700 bg-danger-50 hover:bg-danger-100 transition min-h-[44px]">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Log Out
+        </a>
+        {% else %}
+        <div class="flex flex-col gap-2.5">
+          <a href="{{ url_for('auth.login') }}"
+             class="btn-secondary w-full justify-center text-center">Log in</a>
+          <a href="{{ url_for('auth.register') }}"
+             class="btn-primary w-full justify-center text-center">Register</a>
+        </div>
+        {% endif %}
       </div>
     </div>
-  </nav>
+  </div>
 
-  <!-- FLASH NOTIFICATIONS -->
+  {# ── MOBILE FIXED BOTTOM TAB BAR (Logged-in Users Only, 64px) ───────── #}
+  {% if current_user.is_authenticated %}
+  <nav class="md:hidden fixed bottom-0 inset-x-0 h-16 bg-white border-t border-bdr z-40 flex items-stretch justify-around px-1 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(27,67,50,0.06)]"
+       aria-label="Mobile Bottom Navigation">
+    {% if current_user.role == 'farmer' %}
+      {# 1. Home #}
+      <a href="{{ url_for('main.home') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'main' and request.endpoint == 'main.home' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Home</span>
+      </a>
+      {# 2. Market #}
+      <a href="{{ url_for('marketplace.index') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'marketplace' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Market</span>
+      </a>
+      {# 3. Orders #}
+      <a href="{{ url_for('orders.index') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'orders' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Orders</span>
+      </a>
+      {# 4. Dashboard #}
+      <a href="{{ url_for('dashboard.index') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'dashboard' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Dashboard</span>
+      </a>
+      {# 5. Profile #}
+      <a href="{{ url_for('profile.view') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'profile' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Profile</span>
+      </a>
+    {% else %}
+      {# Buyer / Admin / Other roles: Home, Market, Prices, Orders, Profile #}
+      {# 1. Home #}
+      <a href="{{ url_for('main.home') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'main' and request.endpoint == 'main.home' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Home</span>
+      </a>
+      {# 2. Market #}
+      <a href="{{ url_for('marketplace.index') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'marketplace' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Market</span>
+      </a>
+      {# 3. Prices #}
+      <a href="{{ url_for('prices.index') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'prices' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Prices</span>
+      </a>
+      {# 4. Orders #}
+      <a href="{{ url_for('orders.index') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'orders' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Orders</span>
+      </a>
+      {# 5. Profile #}
+      <a href="{{ url_for('profile.view') }}"
+         class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
+                {% if request.blueprint == 'profile' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+        <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        <span class="text-[11px] leading-tight">Profile</span>
+      </a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {# ── FLASH NOTIFICATIONS (AS STACKED TOASTS) ─────────────────────────── #}
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 space-y-2.5" role="region" aria-label="Notifications">
+  <div id="toast-container"
+       class="fixed top-4 sm:top-5 right-0 sm:right-6 left-0 sm:left-auto px-4 sm:px-0 z-50 flex flex-col items-center sm:items-end gap-2.5 max-w-md w-full sm:w-auto pointer-events-none"
+       aria-live="polite">
     {% for category, message in messages %}
+    {% set is_error = category in ['error', 'danger'] %}
+    {% set is_warning = category == 'warning' %}
+    {% set is_success = category == 'success' %}
     <div
-      class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium shadow-xs transition
-      {% if category == 'success' %}bg-emerald-50 text-emerald-900 border border-emerald-200
-      {% elif category == 'error' %}bg-red-50 text-red-900 border border-red-200
-      {% elif category == 'warning' %}bg-amber-50 text-amber-900 border border-amber-200
-      {% else %}bg-sky-pale text-sky border border-sky/30{% endif %}"
-      role="{% if category in ['error', 'warning'] %}alert{% else %}status{% endif %}"
+      class="toast-item pointer-events-auto w-full sm:w-96 flex items-start gap-3 p-4 rounded-xl border shadow-lg bg-white transition-all duration-300
+        {% if is_success %}border-leaf/30 text-leaf-dark
+        {% elif is_error %}border-danger/30 text-danger-800
+        {% elif is_warning %}border-gold/40 text-gold-text
+        {% else %}border-sky/30 text-sky-800{% endif %}"
+      role="{% if is_error or is_warning %}alert{% else %}status{% endif %}"
+      data-auto-dismiss="{% if is_success or category == 'info' %}5000{% else %}false{% endif %}"
     >
-      <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-        {% if category == 'success' %}<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-        {% else %}<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>{% endif %}
-      </svg>
-      <span class="flex-1">{{ message }}</span>
+      {# Status Icon #}
+      <div class="shrink-0 mt-0.5">
+        {% if is_success %}
+        <svg class="w-5 h-5 text-leaf" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        {% elif is_error %}
+        <svg class="w-5 h-5 text-danger" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        {% elif is_warning %}
+        <svg class="w-5 h-5 text-gold-text" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        {% else %}
+        <svg class="w-5 h-5 text-sky" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>
+        {% endif %}
+      </div>
+
+      {# Message Body #}
+      <div class="flex-1 text-sm font-medium leading-snug">
+        {{ message }}
+      </div>
+
+      {# Close Button #}
+      <button type="button"
+              class="toast-close text-muted hover:text-ink p-1 -mr-1 -mt-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf transition-colors"
+              aria-label="Dismiss notification">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
     {% endfor %}
   </div>
   {% endif %}
   {% endwith %}
 
-  <!-- MAIN CONTENT CONTAINER -->
+  {# ── MAIN CONTENT ─────────────────────────────────────────────────────── #}
   <main id="main-content" class="flex-1 w-full max-w-full">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- FOOTER -->
-  <footer class="bg-leaf-dark text-white mt-16 sm:mt-24 border-t border-emerald-950">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
-        <!-- Col 1: About -->
+  {# ── SLIMMER 3-COLUMN FOOTER ─────────────────────────────────────────── #}
+  <footer class="bg-leaf-dark text-white mt-16 sm:mt-24 border-t border-leaf-900">
+    <div class="container-app py-10 sm:py-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10">
+
+        {# Col 1: Brand & Mission #}
         <div class="space-y-3">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 bg-leaf-light rounded-xl flex items-center justify-center shadow-xs">
-              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            <div class="w-8 h-8 bg-leaf rounded-lg flex items-center justify-center shadow-xs">
+              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
               </svg>
             </div>
-            <span class="font-display font-bold text-xl text-white">AgroLink</span>
+            <span class="font-display font-bold text-xl text-white">Agro<span class="text-leaf-300">Link</span></span>
           </div>
-          <p class="text-green-200/90 text-sm leading-relaxed max-w-sm">
-            Empowering Sri Lankan agriculture through transparent pricing, direct marketplace connections, and dependable harvest tracking.
+          <p class="text-leaf-200 text-sm leading-relaxed max-w-sm">
+            Empowering Sri Lankan agriculture through transparent prices, direct farmer-buyer trade, and reliable harvest tracking.
           </p>
         </div>
 
-        <!-- Col 2: Quick Links -->
+        {# Col 2: Platform Links #}
         <div>
-          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Platform Links</h4>
-          <ul class="space-y-2 text-sm text-green-200">
-            <li><a href="{{ url_for('main.home') }}" class="hover:text-white transition inline-block py-1">Home</a></li>
-            <li><a href="{{ url_for('marketplace.index') }}" class="hover:text-white transition inline-block py-1">Browse Marketplace</a></li>
-            <li><a href="{{ url_for('prices.index') }}" class="hover:text-white transition inline-block py-1">Live Market Prices</a></li>
+          <h4 class="font-sans font-semibold text-xs text-white/90 mb-3 uppercase tracking-wider">Platform</h4>
+          <ul class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-leaf-200">
+            <li><a href="{{ url_for('main.home') }}" class="hover:text-white transition py-0.5 inline-block">Home</a></li>
+            <li><a href="{{ url_for('marketplace.index') }}" class="hover:text-white transition py-0.5 inline-block">Marketplace</a></li>
+            <li><a href="{{ url_for('prices.index') }}" class="hover:text-white transition py-0.5 inline-block">Market Prices</a></li>
             {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('dashboard.index') }}" class="hover:text-white transition inline-block py-1">My Dashboard</a></li>
-            <li><a href="{{ url_for('profile.view') }}" class="hover:text-white transition inline-block py-1">Account Profile</a></li>
+            <li><a href="{{ url_for('dashboard.index') }}" class="hover:text-white transition py-0.5 inline-block">Dashboard</a></li>
+            <li><a href="{{ url_for('orders.index') }}" class="hover:text-white transition py-0.5 inline-block">Orders</a></li>
+            <li><a href="{{ url_for('profile.view') }}" class="hover:text-white transition py-0.5 inline-block">My Profile</a></li>
             {% else %}
-            <li><a href="{{ url_for('auth.register') }}" class="hover:text-white transition inline-block py-1">Create Account</a></li>
-            <li><a href="{{ url_for('auth.login') }}" class="hover:text-white transition inline-block py-1">Sign In</a></li>
+            <li><a href="{{ url_for('auth.login') }}" class="hover:text-white transition py-0.5 inline-block">Log in</a></li>
+            <li><a href="{{ url_for('auth.register') }}" class="hover:text-white transition py-0.5 inline-block">Register</a></li>
             {% endif %}
           </ul>
         </div>
 
-        <!-- Col 3: Academic / Info -->
+        {# Col 3: Academic Credits #}
         <div>
-          <h4 class="font-display font-semibold text-base mb-3.5 text-white">Academic Project</h4>
-          <p class="text-sm text-green-200 leading-relaxed">
+          <h4 class="font-sans font-semibold text-xs text-white/90 mb-3 uppercase tracking-wider">Academic Project</h4>
+          <p class="text-xs text-leaf-200 leading-relaxed">
             BSc (Hons) in Software Engineering<br>
-            Kingston University London &amp; Esoft Campus Sri Lanka
+            Kingston University London &amp; Esoft Metro Campus Sri Lanka
           </p>
-          <div class="mt-4 pt-3 border-t border-emerald-900/60 text-xs text-green-300">
-            <span>Production ready agricultural trading framework</span>
+          <div class="mt-3 pt-3 border-t border-leaf-700/60 text-xs text-leaf-300 flex flex-col gap-0.5">
+            <span>Author: <strong>S E Coulton</strong></span>
+            <span>Student ID: <strong>131044</strong></span>
           </div>
         </div>
+
       </div>
 
-      <div class="border-t border-emerald-900 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-green-300 gap-2">
-        <p>© 2024 AgroLink Marketplace — S E Coulton (Esoft ID: 131044)</p>
-        <p class="text-green-400 font-medium">Built for Sri Lankan farmers &amp; buyers</p>
+      {# Sub-bar #}
+      <div class="border-t border-leaf-700 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between text-xs text-leaf-300 gap-2">
+        <p>© 2024 AgroLink Marketplace — All rights reserved.</p>
+        <p class="text-leaf-200">Built for Sri Lankan farmers &amp; buyers</p>
       </div>
     </div>
   </footer>
 
-  <!-- GLOBAL SCRIPTS -->
+  {# ── GLOBAL MODAL CONTAINER (for confirm dialogs) ─────────────────────── #}
+  <div id="confirm-modal-root"></div>
+
+  {# ── GLOBAL SCRIPTS ───────────────────────────────────────────────────── #}
   <script>
     (function() {
-      // 1. CSRF Header setup for all dynamic fetch requests
+      // 1. Header scroll shadow
+      const header = document.getElementById('main-header');
+      if (header) {
+        function checkScroll() {
+          if (window.scrollY > 8) {
+            header.classList.add('shadow-sm');
+          } else {
+            header.classList.remove('shadow-sm');
+          }
+        }
+        window.addEventListener('scroll', checkScroll, { passive: true });
+        checkScroll();
+      }
+
+      // 2. CSRF Header patching for all fetch() calls
       const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       if (token && window.fetch) {
         const _fetch = window.fetch;
         window.fetch = function(url, options = {}) {
-          options = options || {};
           const method = (options.method || 'GET').toUpperCase();
           if (!['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
             options.headers = options.headers || {};
             if (options.headers instanceof Headers) {
               if (!options.headers.has('X-CSRFToken')) options.headers.set('X-CSRFToken', token);
             } else if (Array.isArray(options.headers)) {
-              if (!options.headers.some(([k]) => k.toLowerCase() === 'x-csrftoken')) {
+              if (!options.headers.some(([k]) => k.toLowerCase() === 'x-csrftoken'))
                 options.headers.push(['X-CSRFToken', token]);
-              }
             } else {
-              if (!options.headers['X-CSRFToken']) {
-                options.headers['X-CSRFToken'] = token;
-              }
+              if (!options.headers['X-CSRFToken']) options.headers['X-CSRFToken'] = token;
             }
           }
           return _fetch(url, options);
         };
       }
 
-      // 2. Desktop User dropdown menu interaction
-      const menuBtn = document.getElementById('user-menu-button');
+      // 3. Desktop User dropdown menu with keyboard support
+      const menuBtn  = document.getElementById('user-menu-button');
       const dropdown = document.getElementById('user-dropdown-menu');
-      const chevron = document.getElementById('user-menu-chevron');
+      const chevron  = document.getElementById('user-menu-chevron');
       if (menuBtn && dropdown) {
+        const menuItems = Array.from(dropdown.querySelectorAll('[role="menuitem"]'));
+
+        function openMenu() {
+          dropdown.classList.remove('hidden');
+          menuBtn.setAttribute('aria-expanded', 'true');
+          if (chevron) chevron.classList.add('rotate-180');
+        }
+
+        function closeMenu(focusButton = false) {
+          dropdown.classList.add('hidden');
+          menuBtn.setAttribute('aria-expanded', 'false');
+          if (chevron) chevron.classList.remove('rotate-180');
+          if (focusButton) menuBtn.focus();
+        }
+
         menuBtn.addEventListener('click', function(e) {
           e.stopPropagation();
-          const isHidden = dropdown.classList.contains('hidden');
-          if (isHidden) {
-            dropdown.classList.remove('hidden');
-            menuBtn.setAttribute('aria-expanded', 'true');
-            if (chevron) chevron.classList.add('rotate-180');
-          } else {
-            dropdown.classList.add('hidden');
-            menuBtn.setAttribute('aria-expanded', 'false');
-            if (chevron) chevron.classList.remove('rotate-180');
+          dropdown.classList.contains('hidden') ? openMenu() : closeMenu();
+        });
+
+        menuBtn.addEventListener('keydown', function(e) {
+          if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openMenu();
+            if (menuItems.length > 0) menuItems[0].focus();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            openMenu();
+            if (menuItems.length > 0) menuItems[menuItems.length - 1].focus();
+          } else if (e.key === 'Escape') {
+            closeMenu();
+          }
+        });
+
+        dropdown.addEventListener('keydown', function(e) {
+          const currentIndex = menuItems.indexOf(document.activeElement);
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const nextIndex = (currentIndex + 1) % menuItems.length;
+            menuItems[nextIndex].focus();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const prevIndex = (currentIndex - 1 + menuItems.length) % menuItems.length;
+            menuItems[prevIndex].focus();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeMenu(true);
+          } else if (e.key === 'Tab') {
+            closeMenu();
           }
         });
 
         document.addEventListener('click', function(e) {
-          if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-            dropdown.classList.add('hidden');
-            menuBtn.setAttribute('aria-expanded', 'false');
-            if (chevron) chevron.classList.remove('rotate-180');
-          }
-        });
-
-        document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
-            dropdown.classList.add('hidden');
-            menuBtn.setAttribute('aria-expanded', 'false');
-            if (chevron) chevron.classList.remove('rotate-180');
-          }
+          if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) closeMenu();
         });
       }
 
-      // 3. Mobile Navigation Drawer interaction
-      const drawerToggle = document.getElementById('mobile-menu-toggle');
-      const drawer = document.getElementById('mobile-drawer');
-      const drawerClose = document.getElementById('mobile-drawer-close');
+      // 4. Mobile Navigation Slide-in Drawer
+      const drawerToggle   = document.getElementById('mobile-menu-toggle');
+      const drawer         = document.getElementById('mobile-drawer');
+      const drawerPanel    = document.getElementById('mobile-drawer-panel');
+      const drawerClose    = document.getElementById('mobile-drawer-close');
       const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
-      const hamburgerIcon = document.getElementById('hamburger-icon');
-      const closeIcon = document.getElementById('close-icon');
+      const hamburgerIcon  = document.getElementById('hamburger-icon');
+      const closeIconEl    = document.getElementById('close-icon');
 
       function openDrawer() {
-        if (!drawer) return;
-        drawer.classList.remove('hidden');
+        if (!drawer || !drawerPanel) return;
+        drawer.classList.remove('opacity-0', 'pointer-events-none');
+        drawer.setAttribute('aria-hidden', 'false');
+        drawerPanel.classList.remove('-translate-x-full');
         drawerToggle?.setAttribute('aria-expanded', 'true');
         if (hamburgerIcon) hamburgerIcon.classList.add('hidden');
-        if (closeIcon) closeIcon.classList.remove('hidden');
+        if (closeIconEl) closeIconEl.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+        drawerClose?.focus();
       }
 
-      function closeDrawer() {
-        if (!drawer) return;
-        drawer.classList.add('hidden');
+      function closeDrawer(focusTrigger = false) {
+        if (!drawer || !drawerPanel) return;
+        drawerPanel.classList.add('-translate-x-full');
+        drawer.classList.add('opacity-0', 'pointer-events-none');
+        drawer.setAttribute('aria-hidden', 'true');
         drawerToggle?.setAttribute('aria-expanded', 'false');
         if (hamburgerIcon) hamburgerIcon.classList.remove('hidden');
-        if (closeIcon) closeIcon.classList.add('hidden');
+        if (closeIconEl) closeIconEl.classList.add('hidden');
         document.body.style.overflow = '';
+        if (focusTrigger && drawerToggle) drawerToggle.focus();
       }
 
-      if (drawerToggle && drawer) {
+      if (drawerToggle) {
         drawerToggle.addEventListener('click', function(e) {
           e.stopPropagation();
-          const isOpen = !drawer.classList.contains('hidden');
-          if (isOpen) {
-            closeDrawer();
-          } else {
-            openDrawer();
-          }
+          drawer?.classList.contains('pointer-events-none') ? openDrawer() : closeDrawer();
         });
       }
-
-      if (drawerClose) {
-        drawerClose.addEventListener('click', closeDrawer);
-      }
-
-      if (drawerBackdrop) {
-        drawerBackdrop.addEventListener('click', closeDrawer);
-      }
-
+      if (drawerClose)    drawerClose.addEventListener('click', () => closeDrawer(true));
+      if (drawerBackdrop) drawerBackdrop.addEventListener('click', () => closeDrawer(true));
       document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && drawer && !drawer.classList.contains('hidden')) {
-          closeDrawer();
+        if (e.key === 'Escape' && drawer && !drawer.classList.contains('pointer-events-none')) {
+          closeDrawer(true);
+        }
+      });
+
+      // 5. Toast auto-dismiss and close handling
+      document.querySelectorAll('.toast-item').forEach(function(toast) {
+        const autoDismiss = toast.getAttribute('data-auto-dismiss');
+        const closeBtn = toast.querySelector('.toast-close');
+
+        function dismissToast() {
+          toast.classList.add('opacity-0', 'translate-y-[-8px]', 'scale-95');
+          setTimeout(() => toast.remove(), 300);
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', dismissToast);
+
+        if (autoDismiss && autoDismiss !== 'false') {
+          const timeoutMs = parseInt(autoDismiss, 10) || 5000;
+          setTimeout(dismissToast, timeoutMs);
+        }
+      });
+
+      // 6. Accessible modal confirm dialog (AgroConfirm) with focus trap
+      window.AgroConfirm = function(message, isDanger, onConfirm) {
+        const root = document.getElementById('confirm-modal-root');
+        if (!root) { if (onConfirm) onConfirm(); return; }
+        const prevActive = document.activeElement;
+        const btnClass = isDanger ? 'btn-danger' : 'btn-primary';
+
+        root.innerHTML = `
+          <div role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-msg"
+               class="modal-backdrop" id="confirm-overlay">
+            <div class="modal-panel p-6 space-y-5" id="confirm-modal-panel">
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isDanger ? 'bg-danger-50 text-danger-700' : 'bg-sky-50 text-sky'}">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 id="confirm-title" class="text-base font-bold text-ink">${isDanger ? 'Confirm Deletion' : 'Confirm Action'}</h2>
+                  <p id="confirm-msg" class="text-sm text-inksoft mt-1 leading-normal">${message}</p>
+                </div>
+              </div>
+              <div class="flex items-center justify-end gap-3 pt-2">
+                <button id="confirm-cancel" class="btn-secondary btn-sm" type="button">Cancel</button>
+                <button id="confirm-ok" class="${btnClass} btn-sm" type="button">${isDanger ? 'Yes, Delete' : 'Confirm'}</button>
+              </div>
+            </div>
+          </div>`;
+
+        const cancelBtn = document.getElementById('confirm-cancel');
+        const okBtn     = document.getElementById('confirm-ok');
+        const panel     = document.getElementById('confirm-modal-panel');
+        const overlay   = document.getElementById('confirm-overlay');
+
+        function close() {
+          root.innerHTML = '';
+          document.body.style.overflow = '';
+          document.removeEventListener('keydown', handleKey);
+          if (prevActive && prevActive.focus) prevActive.focus();
+        }
+
+        function handleKey(e) {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            close();
+            return;
+          }
+          if (e.key === 'Tab') {
+            const focusables = panel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusables.length === 0) return;
+            const first = focusables[0];
+            const last  = focusables[focusables.length - 1];
+            if (e.shiftKey) {
+              if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+              }
+            } else {
+              if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+              }
+            }
+          }
+        }
+
+        cancelBtn.addEventListener('click', close);
+        okBtn.addEventListener('click', function() {
+          close();
+          if (onConfirm) onConfirm();
+        });
+        overlay.addEventListener('click', function(e) {
+          if (e.target === this) close();
+        });
+
+        document.addEventListener('keydown', handleKey);
+        document.body.style.overflow = 'hidden';
+        okBtn.focus();
+      };
+
+      // 7. Global confirm interceptor for [data-confirm] buttons and forms
+      document.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-confirm]');
+        if (!btn) return;
+        e.preventDefault();
+        const msg      = btn.getAttribute('data-confirm');
+        const isDanger = btn.hasAttribute('data-confirm-danger');
+        const formId   = btn.getAttribute('data-confirm-form');
+        const href     = btn.getAttribute('data-confirm-href') || btn.getAttribute('href');
+        const parentForm = btn.closest('form');
+
+        window.AgroConfirm(msg, isDanger, function() {
+          if (formId) {
+            const f = document.getElementById(formId);
+            if (f) f.submit();
+          } else if (parentForm && (btn.type === 'submit' || !btn.type)) {
+            parentForm.submit();
+          } else if (href && href !== '#') {
+            window.location.href = href;
+          }
+        });
+      });
+
+      document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.hasAttribute('data-confirm') && !form.dataset.confirmed) {
+          e.preventDefault();
+          const msg = form.getAttribute('data-confirm');
+          const isDanger = form.hasAttribute('data-confirm-danger');
+          window.AgroConfirm(msg, isDanger, function() {
+            form.dataset.confirmed = 'true';
+            form.submit();
+          });
         }
       });
     })();

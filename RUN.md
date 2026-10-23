@@ -6,10 +6,10 @@ Quick, ordered step-by-step instructions to run the AgroLink application on your
 
 ## Prerequisites Checklist
 - [x] Python 3.10+ installed
-- [x] PostgreSQL service running
+- [x] PostgreSQL service running (e.g. `postgresql-x64-18`)
 - [x] Virtual environment created (`venv`)
 - [x] Dependencies installed (`pip install -r requirements.txt`)
-- [x] `.env` configuration file present
+- [x] `.env` configuration file present with `DATABASE_URL` and `SECRET_KEY`
 
 ---
 
@@ -24,7 +24,7 @@ cd "c:\Users\anush\OneDrive\Desktop\Projects for money\AgroLink"
 ---
 
 ### Step 2: Ensure PostgreSQL Service is Running
-Check that the PostgreSQL service (`postgresql-x64-18` or your version) is active:
+Check that the PostgreSQL service (`postgresql-x64-18` or your installed version) is active:
 ```powershell
 Get-Service postgresql*
 ```
@@ -44,19 +44,21 @@ Activate the project's Python virtual environment:
 > ```powershell
 > Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 > ```
+> *(Or invoke tools directly with `.\venv\Scripts\python.exe` and `.\venv\Scripts\flask.exe`)*
 
 ---
 
 ### Step 4: Verify or Apply Database Migrations
-Ensure the database schema is up-to-date with all tables, constraints, and newly added columns (`farm_name`, `bio`):
+Ensure the database schema is up-to-date with all tables, constraints, and newly added columns (`farm_name`, `bio`, `profile_image_url` on `users` table):
 ```powershell
 flask db upgrade
 ```
+*(Or: `.\venv\Scripts\flask.exe db upgrade`)*
 
 ---
 
 ### Step 5: (Optional) Seed Market Benchmark Prices
-If starting with a fresh database or missing market benchmark data, run:
+If starting with a fresh database or missing market benchmark data, populate indicative wholesale prices:
 ```powershell
 flask seed-prices
 ```
@@ -68,7 +70,7 @@ Run the development server:
 ```powershell
 python app.py
 ```
-*(Alternatively: `flask run`)*
+*(Or: `.\venv\Scripts\python.exe app.py`)*
 
 You will see output confirming the server is live:
 ```text
@@ -100,14 +102,25 @@ You can log in immediately using these pre-configured demo credentials:
 
 ## Essential Application Routes
 
+### Public Pages
 - **Home Page**: `http://127.0.0.1:5000/`
 - **Marketplace**: `http://127.0.0.1:5000/marketplace/`
-- **Market Prices**: `http://127.0.0.1:5000/prices/`
+- **Market Prices Board**: `http://127.0.0.1:5000/prices/`
+- **Best Price Comparison**: `http://127.0.0.1:5000/prices/bids`
+- **Sign In**: `http://127.0.0.1:5000/auth/login`
+- **Create Account**: `http://127.0.0.1:5000/auth/register`
+
+### Authenticated Pages (Farmer / Buyer)
 - **User Dashboard**: `http://127.0.0.1:5000/dashboard/`
+- **Crop Planning & Yields (Farmer)**: `http://127.0.0.1:5000/dashboard/crops`
+- **List Produce (Farmer)**: `http://127.0.0.1:5000/marketplace/list`
 - **My Profile**: `http://127.0.0.1:5000/profile`
-- **Edit Profile**: `http://127.0.0.1:5000/profile/edit`
+- **Edit Profile & Photo**: `http://127.0.0.1:5000/profile/edit`
 - **Change Password**: `http://127.0.0.1:5000/profile/password`
-- **Order History**: `http://127.0.0.1:5000/orders/`
+- **Orders & Deliveries**: `http://127.0.0.1:5000/orders/`
+
+### Development & Design System
+- **Design System Styleguide**: `http://127.0.0.1:5000/_styleguide/` *(Available in development mode)*
 
 ---
 
@@ -118,3 +131,13 @@ To stop the server in terminal:
   ```powershell
   deactivate
   ```
+
+---
+
+## Troubleshooting Quick Tips
+1. **PowerShell execution policy error**: Run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` in your PowerShell window.
+2. **Port 5000 already in use**: Find and kill the process using port 5000:
+   ```powershell
+   Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }
+   ```
+3. **Database connection error**: Verify PostgreSQL service status (`Get-Service postgresql*`) and check that `DATABASE_URL` in `.env` matches your local database credentials.

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "components/ui.html" import page_header %}
 {% import "components/badges.html" as badges with context %}
 {% import "components/buttons.html" as buttons with context %}
 
@@ -7,18 +8,17 @@
 {% block content %}
 <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
 
-  <!-- Breadcrumb -->
-  <div>
-    <a
-      href="{{ url_for('orders.index') }}"
-      class="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-600 hover:text-leaf transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded-md px-1 py-0.5"
-    >
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-      </svg>
-      <span>Back to Orders</span>
-    </a>
-  </div>
+  {{ page_header(
+      title='Order #' ~ order.id,
+      subtitle='Placed on ' ~ order.created_at.strftime('%d %B %Y at %I:%M %p') ~ ' · ' ~ order.product.name,
+      breadcrumbs=[
+          {'text': 'Home', 'url': url_for('main.home')},
+          {'text': 'Orders', 'url': url_for('orders.index')},
+          {'text': 'Order #' ~ order.id}
+      ],
+      back_url=url_for('orders.index'),
+      back_text='Back to Orders'
+  ) }}
 
   <!-- Header Card -->
   <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -69,11 +69,11 @@
         </div>
         <div>
           <span class="text-[11px] font-semibold text-gray-500 uppercase block">Unit Price</span>
-          <span class="font-bold text-gray-900 text-sm sm:text-base">Rs. {{ "{:,.0f}".format(order.product.price_per_kg) }}</span>
+          <span class="font-bold text-gray-900 text-sm sm:text-base">Rs. {{ "{:,.2f}".format(order.product.price_per_kg) if (order.product.price_per_kg % 1 != 0) else "{:,.0f}".format(order.product.price_per_kg) }}</span>
         </div>
         <div>
           <span class="text-[11px] font-semibold text-gray-500 uppercase block">Total Due</span>
-          <span class="font-display font-bold text-leaf-dark text-sm sm:text-base">Rs. {{ "{:,.0f}".format(order.total_price) }}</span>
+          <span class="font-display font-bold text-leaf-dark text-sm sm:text-base">Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}</span>
         </div>
       </div>
     </div>
@@ -206,7 +206,8 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button
           type="submit"
-          onclick="return confirm('Cancel this pending order?')"
+          data-confirm="Cancel this pending order?"
+          data-confirm-danger
           class="w-full btn-danger text-sm py-2.5 text-center"
         >
           Cancel This Order

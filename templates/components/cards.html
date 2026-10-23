@@ -1,170 +1,267 @@
-{# AgroLink Reusable Card Macros #}
+{#
+  AgroLink Card Macros
+  ─────────────────────────────────────────────────────────────────────────
+  Usage: {% from 'components/cards.html' import product_card, farmer_profile_card,
+                  stat_metric_card with context %}
+#}
+{% from 'components/icons.html' import icon %}
+{% from 'components/badges.html' import stock_badge %}
 
-{% macro product_card(product) %}
-  <article class="group bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100/90 overflow-hidden transition-all duration-300 flex flex-col h-full focus-within:ring-2 focus-within:ring-leaf focus-within:ring-offset-2">
-    <!-- Image Header -->
-    <div class="relative h-48 sm:h-52 w-full bg-gray-50 overflow-hidden flex items-center justify-center">
-      {% if product.thumbnail_url %}
-        <img
-          src="{{ product.thumbnail_url }}"
-          alt="{{ product.name or product.title }}"
-          loading="lazy"
-          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-      {% else %}
-        <div class="w-full h-full bg-emerald-50 flex items-center justify-center">
-          <svg class="w-16 h-16 text-leaf/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-          </svg>
-        </div>
+{# ─── product_card() ─────────────────────────────────────────────────────── #}
+{#
+  Shared product card macro for home, marketplace, and related products.
+  Features:
+  - 4:3 aspect ratio image with hover zoom
+  - Overlay badges (Deal, Low stock) and category pill
+  - 2-line clamped title, farmer name + district with pin icon
+  - Big price with gold-pale accent chip for deals, stock available, and % below market chip
+  - Stretched link technique (NO nested anchors; inner actions use relative z-20)
+  - 44px icon buttons for WhatsApp and Call (shown ONLY to authenticated users)
+  - Guests see "Log in to contact" — farmer phone numbers NEVER exposed to guests
+  - Compact variant for 2-column mobile layouts
+#}
+{% macro product_card(product, compact=false) %}
+{%- set qty = product.quantity_kg if product.quantity_kg is defined else 0 -%}
+{%- set is_deal = product.is_deal if product.is_deal is defined else (product.price_per_kg is defined and product.price_per_kg < 100) -%}
+{%- set is_low_stock = product.is_low_stock if product.is_low_stock is defined else (qty <= 50) -%}
+{%- set below_market = product.below_market_pct if product.below_market_pct is defined else none -%}
+{%- set farmer_name = product.farmer.name if (product.farmer and product.farmer.name) else 'Local Grower' -%}
+{%- set location_name = product.location or (product.farmer.location if product.farmer else none) or (product.farmer.district if product.farmer else none) or 'Sri Lanka' -%}
+
+<article class="group relative bg-white rounded-2xl shadow-sm hover:shadow-md border border-bdr transition-all duration-300 flex flex-col h-full overflow-hidden focus-within:ring-2 focus-within:ring-leaf">
+  
+  {# ── 4:3 IMAGE WITH OVERLAYS ─────────────────────────────────────────── #}
+  <div class="relative aspect-[4/3] w-full bg-canvas overflow-hidden flex items-center justify-center shrink-0">
+    {% if product.thumbnail_url or product.display_image_url %}
+      <img
+        src="{{ product.thumbnail_url or product.display_image_url }}"
+        alt="{{ product.name }}"
+        loading="lazy"
+        onerror="this.onerror=null; this.src='/static/images/categories/{{ (product.category or 'other')|lower|replace('&', '')|replace(' ', '') }}.svg'; this.classList.add('p-8', 'opacity-60');"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+      />
+    {% else %}
+      <div class="w-full h-full bg-leaf-50 flex items-center justify-center">
+        {{ icon('sprout', size=48, cls='text-leaf/30') }}
+      </div>
+    {% endif %}
+
+    {# Top-Left Badges (Category + Deal) #}
+    <div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10 pointer-events-none">
+      {% if product.category %}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/95 backdrop-blur-xs text-ink border border-bdr/60 shadow-2xs">
+          {{ product.category }}
+        </span>
       {% endif %}
 
-      <!-- Category Pill -->
-      <span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-gray-800 text-xs font-semibold px-2.5 py-1 rounded-full shadow-xs border border-gray-200/50 capitalize">
-        {{ product.category }}
-      </span>
-
-      <!-- Stock Status -->
-      {% set qty = product.quantity_kg if product.quantity_kg is defined else (product.available_qty if product.available_qty is defined else 0) %}
-      {% if qty <= 0 %}
-        <span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
-          Out of Stock
-        </span>
-      {% elif qty < 50 %}
-        <span class="absolute top-3 right-3 bg-amber-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
-          Low Stock
+      {% if is_deal %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-gold text-gold-text shadow-2xs">
+          {{ icon('star', size=11, cls='fill-current') }}
+          <span>Deal</span>
         </span>
       {% endif %}
     </div>
 
-    <!-- Body Content -->
-    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-      <div>
-        <!-- Farmer Location / Byline -->
-        {% if product.location or (product.farmer and (product.farmer.location or product.farmer.district)) %}
-          <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
-            <svg class="w-3.5 h-3.5 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            <span class="truncate">{{ product.location or (product.farmer.district or product.farmer.location) }}</span>
-          </div>
-        {% endif %}
+    {# Top-Right Badges (Low stock) #}
+    <div class="absolute top-2.5 right-2.5 flex flex-col items-end gap-1.5 z-10 pointer-events-none">
+      {% if is_low_stock %}
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-danger-50 text-danger-700 border border-danger/20 shadow-2xs">
+          {{ icon('clock', size=11) }}
+          <span>Low stock</span>
+        </span>
+      {% endif %}
+    </div>
+  </div>
 
-        <!-- Product Title -->
-        <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 group-hover:text-leaf transition-colors line-clamp-1 mb-2">
-          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="focus:outline-none">
-            {{ product.name or product.title }}
-          </a>
-        </h3>
-
-        <!-- Description Preview -->
-        {% if product.description %}
-          <p class="text-xs text-gray-600 line-clamp-2 mb-3">
-            {{ product.description }}
-          </p>
-        {% endif %}
+  {# ── CARD BODY ───────────────────────────────────────────────────────── #}
+  <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between {% if compact %}p-3 sm:p-4{% endif %}">
+    <div>
+      {# Farmer and District with pin icon #}
+      <div class="flex items-center gap-1.5 text-xs text-muted mb-2">
+        <span class="font-medium text-ink truncate max-w-[130px]">{{ farmer_name }}</span>
+        <span class="text-muted/60" aria-hidden="true">•</span>
+        <div class="flex items-center gap-1 truncate text-muted min-w-0">
+          {{ icon('map-pin', size=12, cls='shrink-0 text-leaf') }}
+          <span class="truncate">{{ location_name }}</span>
+        </div>
       </div>
 
-      <!-- Pricing & Actions -->
-      <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 mt-auto">
-        <div>
-          <span class="text-xs text-gray-600 block">Price</span>
-          <div class="flex items-baseline gap-1">
-            <span class="font-display font-bold text-lg text-leaf-dark">Rs. {{ "%.2f"|format(product.price_per_kg) }}</span>
-            <span class="text-xs text-gray-600">/ {{ product.unit or 'kg' }}</span>
-          </div>
-        </div>
-
+      {# 2-line clamped product name + stretched link covering the card #}
+      <h3 class="font-display font-bold text-base sm:text-lg text-ink group-hover:text-leaf transition-colors line-clamp-2 leading-snug mb-2.5">
         <a
           href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
-          class="inline-flex items-center justify-center gap-1 text-xs sm:text-sm font-semibold text-leaf bg-leaf-pale hover:bg-leaf hover:text-white px-3.5 py-2 rounded-xl transition-all duration-200"
-          aria-label="View details for {{ product.name or product.title }}"
+          class="focus:outline-none after:absolute after:inset-0 after:z-10 focus-visible:underline"
+          title="{{ product.name }}"
         >
-          <span>View</span>
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
+          {{ product.name }}
         </a>
-      </div>
-    </div>
-  </article>
-{% endmacro %}
+      </h3>
 
-{% macro stat_metric_card(title, value, subtitle=none, icon_svg=none, trend=none) %}
-  <div class="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 hover:border-gray-200 transition-all flex items-start justify-between gap-4">
-    <div class="flex-1 min-w-0">
-      <p class="text-xs sm:text-sm font-medium text-gray-600 truncate">{{ title }}</p>
-      <p class="font-display font-bold text-2xl sm:text-3xl text-gray-900 mt-1 tracking-tight truncate">{{ value }}</p>
-      {% if subtitle %}
-        <p class="text-xs text-gray-600 mt-1 truncate">{{ subtitle }}</p>
-      {% endif %}
-      {% if trend %}
-        <div class="mt-2 flex items-center gap-1 text-xs font-semibold {{ trend.color_class or 'text-leaf' }}">
-          <span>{{ trend.text }}</span>
+      {# Market price benchmark tag if available #}
+      {% if below_market and below_market > 0 %}
+        <div class="mb-3">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-leaf-50 text-leaf-dark border border-leaf/20">
+            {{ icon('trending-down', size=12, cls='text-leaf') }}
+            <span>{{ below_market }}% below market</span>
+          </span>
         </div>
       {% endif %}
     </div>
-    {% if icon_svg %}
-      <div class="w-12 h-12 rounded-xl bg-leaf-pale/70 text-leaf flex items-center justify-center shrink-0">
-        {{ icon_svg|safe }}
-      </div>
-    {% endif %}
-  </div>
-{% endmacro %}
 
-{% macro farmer_profile_card(farmer) %}
-  <div class="bg-gradient-to-br from-white to-earth-pale/30 rounded-2xl p-5 sm:p-6 shadow-sm border border-earth/20">
-    <div class="flex items-center gap-3.5 mb-4">
-      <div class="w-14 h-14 rounded-full bg-earth-pale flex items-center justify-center overflow-hidden border-2 border-white shadow-sm shrink-0">
-        {% if farmer.profile_image_url %}
-          <img src="{{ farmer.profile_image_url }}" alt="{{ farmer.name }}" class="w-full h-full object-cover" />
-        {% else %}
-          <span class="font-display font-bold text-lg text-earth">{{ farmer.name[0].upper() }}</span>
-        {% endif %}
-      </div>
-      <div class="min-w-0 flex-1">
-        <div class="flex items-center gap-2">
-          <h4 class="font-display font-bold text-base sm:text-lg text-gray-900 truncate">{{ farmer.name }}</h4>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-earth-pale text-earth">Farmer</span>
+    {# ── PRICING & STOCK ─────────────────────────────────────────────────── #}
+    <div>
+      <div class="pt-3 border-t border-bdr flex items-baseline justify-between gap-2 mb-3">
+        {# Price #}
+        <div>
+          <span class="text-[11px] uppercase tracking-wider text-muted font-medium block">Price</span>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span class="font-sans font-bold tabular-nums text-lg sm:text-xl text-ink {% if is_deal %}px-2 py-0.5 rounded-md bg-gold-pale text-gold-dark font-extrabold border border-gold/20{% endif %}">
+              LKR {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }}
+            </span>
+            <span class="text-xs text-muted font-medium">/ kg</span>
+          </div>
         </div>
-        {% if farmer.farm_name %}
-          <p class="text-xs sm:text-sm font-medium text-earth-light truncate flex items-center gap-1 mt-0.5">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-            {{ farmer.farm_name }}
-          </p>
-        {% endif %}
-      </div>
-    </div>
 
-    <!-- Farmer Metadata Badges -->
-    <div class="grid grid-cols-2 gap-2 text-xs py-3 border-t border-b border-earth/10 my-3">
-      <div>
-        <span class="text-gray-600 block">District</span>
-        <span class="font-semibold text-gray-800">{{ farmer.district or farmer.location or 'Sri Lanka' }}</span>
+        {# Available Stock #}
+        <div class="text-right">
+          <span class="text-[11px] uppercase tracking-wider text-muted font-medium block">Stock</span>
+          <span class="text-xs font-semibold text-inksoft mt-0.5 inline-block">
+            {{ "{:,.0f}".format(qty) }} kg available
+          </span>
+        </div>
       </div>
-      <div>
-        <span class="text-gray-600 block">Member Since</span>
-        <span class="font-semibold text-gray-800">
-          {% if farmer.created_at %}
-            {{ farmer.created_at.strftime('%b %Y') }}
-          {% else %}
-            2024
+
+      {# ── ACTIONS (relative z-20 to sit above stretched link, NO nested <a>) ─ #}
+      <div class="flex items-center gap-2 relative z-20 pt-1">
+        {# Primary "View details" (md size) #}
+        <a
+          href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+          class="btn-secondary flex-1 {% if compact %}text-xs py-2 px-2.5{% else %}text-sm py-2.5 px-3.5{% endif %} text-center justify-center font-semibold"
+          aria-label="View details for {{ product.name }}"
+        >
+          <span>View details</span>
+          {{ icon('arrow-right', size=14) }}
+        </a>
+
+        {# Contact Actions (WhatsApp and Call 44px icon buttons) #}
+        {% if current_user.is_authenticated %}
+          {% set phone = product.farmer.phone if product.farmer else none %}
+          {% set whatsapp = product.farmer.whatsapp_number or phone if product.farmer else none %}
+
+          {% if whatsapp %}
+            <a
+              href="https://wa.me/{{ whatsapp | replace(' ', '') | replace('-', '') | replace('+', '') }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-xl bg-leaf-50 text-leaf border border-leaf/20 hover:bg-leaf hover:text-white transition-colors duration-150 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+              aria-label="WhatsApp farmer {{ farmer_name }}"
+              title="Chat on WhatsApp"
+            >
+              {{ icon('whatsapp', size=18) }}
+            </a>
           {% endif %}
-        </span>
+
+          {% if phone %}
+            <a
+              href="tel:{{ phone }}"
+              class="w-11 h-11 min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-xl bg-canvas text-ink hover:bg-leaf-pale hover:text-leaf border border-bdr transition-colors duration-150 shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf"
+              aria-label="Call farmer {{ farmer_name }}"
+              title="Call farmer"
+            >
+              {{ icon('phone', size=17) }}
+            </a>
+          {% endif %}
+        {% else %}
+          {# GUEST VIEW: No phone numbers exposed in HTML source #}
+          <a
+            href="{{ url_for('auth.login', next=request.path) }}"
+            class="inline-flex items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-canvas hover:bg-leaf-pale/60 text-muted hover:text-leaf text-xs font-medium border border-bdr transition-colors shrink-0"
+            aria-label="Log in to contact farmer {{ farmer_name }}"
+            title="Log in to contact farmer"
+          >
+            {{ icon('lock', size=13) }}
+            <span class="hidden sm:inline">Log in to contact</span>
+            <span class="sm:hidden">Contact</span>
+          </a>
+        {% endif %}
       </div>
     </div>
+  </div>
+</article>
+{% endmacro %}
 
-    {% if farmer.bio %}
-      <p class="text-xs text-gray-600 italic line-clamp-3 mb-3">
-        "{{ farmer.bio }}"
-      </p>
+{# ─── stat_metric_card() — dashboard metric tile ─────────────────────────── #}
+{% macro stat_metric_card(title, value, subtitle=none, icon_svg=none, trend=none, icon_name=none) %}
+<div class="stat-card">
+  <div class="flex-1 min-w-0">
+    <p class="stat-label">{{ title }}</p>
+    <p class="stat-value mt-1 truncate">{{ value }}</p>
+    {% if subtitle %}
+    <p class="text-xs text-muted mt-1 truncate">{{ subtitle }}</p>
     {% endif %}
+    {% if trend %}
+    <div class="mt-2 flex items-center gap-1 text-xs font-semibold {{ trend.color_class or 'text-leaf' }}">
+      <span>{{ trend.text }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% if icon_name %}
+  <div class="stat-icon">{{ icon(icon_name, size=22) }}</div>
+  {% elif icon_svg %}
+  <div class="stat-icon">{{ icon_svg|safe }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
 
-    <!-- Notice: Public verification without email leakage -->
-    <div class="flex items-center gap-1.5 text-[11px] text-leaf-dark/80 bg-leaf-pale/50 px-2.5 py-1.5 rounded-lg">
-      <svg class="w-3.5 h-3.5 text-leaf shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-      <span>Verified AgroLink Farmer Partner</span>
+{# ─── farmer_profile_card() — public verified profile card ───────────────── #}
+{% macro farmer_profile_card(farmer) %}
+<div class="bg-gradient-to-br from-white to-earth-50/40 rounded-xl p-5 sm:p-6 shadow-sm border border-earth/15">
+  {# Header #}
+  <div class="flex items-center gap-3.5 mb-4">
+    <div class="w-14 h-14 rounded-full overflow-hidden bg-earth-100 flex items-center justify-center
+                border-2 border-white shadow-sm shrink-0">
+      {% if farmer.profile_image_url %}
+        <img src="{{ farmer.profile_image_url }}" alt="{{ farmer.name }}" class="w-full h-full object-cover" />
+      {% else %}
+        <span class="font-display font-bold text-lg text-earth">{{ farmer.name[0].upper() }}</span>
+      {% endif %}
+    </div>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center gap-2 flex-wrap">
+        <h4 class="font-display font-bold text-base text-ink truncate">{{ farmer.name }}</h4>
+        <span class="badge badge-sm bg-earth-100 text-earth border-earth/20">Farmer</span>
+      </div>
+      {% if farmer.farm_name %}
+      <p class="text-xs text-earth font-medium truncate flex items-center gap-1 mt-0.5">
+        {{ icon('store', size=13, cls='shrink-0') }}
+        {{ farmer.farm_name }}
+      </p>
+      {% endif %}
     </div>
   </div>
+
+  {# Metadata grid #}
+  <div class="grid grid-cols-2 gap-3 py-3 border-t border-b border-earth/10 my-3 text-xs">
+    <div>
+      <span class="text-muted block">District</span>
+      <span class="font-semibold text-inksoft">{{ farmer.district or farmer.location or 'Sri Lanka' }}</span>
+    </div>
+    <div>
+      <span class="text-muted block">Member Since</span>
+      <span class="font-semibold text-inksoft">
+        {% if farmer.created_at %}{{ farmer.created_at.strftime('%b %Y') }}{% else %}2024{% endif %}
+      </span>
+    </div>
+  </div>
+
+  {% if farmer.bio %}
+  <p class="text-xs text-muted italic line-clamp-3 mb-3">"{{ farmer.bio }}"</p>
+  {% endif %}
+
+  {# Verified badge #}
+  <div class="flex items-center gap-1.5 text-[11px] text-leaf-dark/80 bg-leaf-50 px-2.5 py-1.5 rounded-lg">
+    {{ icon('shield-check', size=14, cls='text-leaf shrink-0') }}
+    <span>Verified AgroLink Farmer Partner</span>
+  </div>
+</div>
 {% endmacro %}

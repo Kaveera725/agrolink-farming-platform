@@ -1,20 +1,91 @@
-{# AgroLink Reusable Accessible Form Field Macros #}
+{#
+  AgroLink Form Field Macros
+  ─────────────────────────────────────────────────────────────────────────
+  Usage: {% from 'components/forms.html' import field, select, textarea_field,
+                  checkbox, radio_card, switch, file_field with context %}
 
-{% macro input_field(id, name, label, type='text', value='', required=false, placeholder='', hint='', error='', step='', min='', max='', readonly=false, disabled=false, autocomplete='') %}
-  <div class="space-y-1.5 w-full">
-    <div class="flex items-center justify-between">
-      <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
-        {{ label }}
-        {% if required %}
-          <span class="text-red-600 font-bold ml-0.5" aria-hidden="true">*</span>
-          <span class="sr-only">(required)</span>
-        {% endif %}
-      </label>
-      {% if hint and not error %}
-        <span class="text-xs text-gray-600" id="{{ id }}-hint">{{ hint }}</span>
-      {% endif %}
-    </div>
+  All fields:
+  • 48px height (prevents iOS auto-zoom), font-size 16px
+  • Required/Optional marker, helper text, error message with icon
+  • Leaf focus ring, error border
+  • Correct autocomplete and inputmode attributes
+#}
+{% from 'components/icons.html' import icon %}
 
+{# ─── Error message fragment ─────────────────────────────────────────────── #}
+{% macro _error(error, field_id) %}
+{% if error %}
+<p class="field-error" id="{{ field_id }}-error" role="alert">
+  {{ icon('alert-triangle', size=14, cls='field-error-icon shrink-0') }}
+  <span>{{ error }}</span>
+</p>
+{% endif %}
+{% endmacro %}
+
+{# ─── Hint fragment ──────────────────────────────────────────────────────── #}
+{% macro _hint(hint, field_id) %}
+{% if hint %}
+<p class="field-hint" id="{{ field_id }}-hint">{{ hint }}</p>
+{% endif %}
+{% endmacro %}
+
+{# ─── Label fragment ─────────────────────────────────────────────────────── #}
+{% macro _label(label, field_id, required, optional, hint, error) %}
+<div class="flex items-baseline justify-between gap-2 mb-1">
+  <label for="{{ field_id }}" class="field-label">
+    {{ label }}
+    {% if required %}
+      <span class="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
+      <span class="sr-only">(required)</span>
+    {% endif %}
+  </label>
+  {% if optional and not required %}
+    <span class="text-xs text-muted font-normal">Optional</span>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# ─── Prefix/Suffix wrapper ──────────────────────────────────────────────── #}
+{% macro _affixed(prefix, suffix) %}
+{% if prefix or suffix %}
+<div class="relative">
+  {% if prefix %}
+  <span class="absolute left-0 inset-y-0 flex items-center pl-4 text-muted text-sm font-medium pointer-events-none select-none">{{ prefix }}</span>
+  {% endif %}
+{% endif %}
+{% endmacro %}
+
+{# ─── field() — main text/number/tel/email/password input ─────────────────── #}
+{% macro field(
+    id,
+    name,
+    label,
+    type='text',
+    value='',
+    required=false,
+    optional=false,
+    placeholder='',
+    hint='',
+    error='',
+    step='',
+    min='',
+    max='',
+    maxlength='',
+    readonly=false,
+    disabled=false,
+    autocomplete='',
+    inputmode='',
+    prefix='',
+    suffix='',
+    extra_cls=''
+  ) %}
+<div class="space-y-1 w-full">
+  {{ _label(label, id, required, optional, hint, error) }}
+
+  <div class="relative">
+    {% if prefix %}
+    <span class="absolute left-0 inset-y-0 flex items-center pl-4 text-muted text-sm font-medium pointer-events-none select-none z-10" aria-hidden="true">{{ prefix }}</span>
+    {% endif %}
     <input
       type="{{ type }}"
       id="{{ id }}"
@@ -25,153 +96,341 @@
       {% if step %}step="{{ step }}"{% endif %}
       {% if min %}min="{{ min }}"{% endif %}
       {% if max %}max="{{ max }}"{% endif %}
+      {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
       {% if readonly %}readonly{% endif %}
       {% if disabled %}disabled{% endif %}
       {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
-      {% if hint or error %}aria-describedby="{% if error %}{{ id }}-error{% else %}{{ id }}-hint{% endif %}"{% endif %}
-      {% if error %}aria-invalid="true"{% endif %}
-      class="w-full min-h-[44px] px-4 py-2.5 rounded-xl border {% if error %}border-red-500 bg-red-50/30 text-red-900{% else %}border-gray-300 bg-white text-gray-900{% endif %} text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition disabled:bg-gray-100 disabled:text-gray-600 {% if readonly %}bg-gray-50 text-gray-600 cursor-not-allowed{% endif %}"
+      {% if inputmode %}inputmode="{{ inputmode }}"{% endif %}
+      {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% elif hint %}aria-describedby="{{ id }}-hint"{% endif %}
+      class="input {{ 'input-error' if error }} {{ 'input-readonly' if readonly }} {{ 'pl-12' if prefix }} {{ 'pr-12' if suffix }} {{ extra_cls }}"
     />
-
-    {% if error %}
-      <p class="text-xs font-medium text-red-600 flex items-center gap-1 mt-1" id="{{ id }}-error" role="alert">
-        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-        <span>{{ error }}</span>
-      </p>
+    {% if suffix %}
+    <span class="absolute right-0 inset-y-0 flex items-center pr-4 text-muted text-sm font-medium pointer-events-none select-none" aria-hidden="true">{{ suffix }}</span>
     {% endif %}
   </div>
+
+  {{ _hint(hint, id) }}
+  {{ _error(error, id) }}
+</div>
 {% endmacro %}
 
-{% macro textarea_field(id, name, label, value='', required=false, rows=3, placeholder='', hint='', error='') %}
-  <div class="space-y-1.5 w-full">
-    <div class="flex items-center justify-between">
-      <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
-        {{ label }}
-        {% if required %}
-          <span class="text-red-600 font-bold ml-0.5" aria-hidden="true">*</span>
-          <span class="sr-only">(required)</span>
-        {% endif %}
-      </label>
-      {% if hint and not error %}
-        <span class="text-xs text-gray-600" id="{{ id }}-hint">{{ hint }}</span>
-      {% endif %}
-    </div>
-
-    <textarea
+{# ─── password_field() — with show/hide toggle ─────────────────────────── #}
+{% macro password_field(
+    id,
+    name,
+    label,
+    value='',
+    required=false,
+    optional=false,
+    placeholder='',
+    hint='',
+    error='',
+    autocomplete='current-password',
+    extra_cls=''
+  ) %}
+<div class="space-y-1 w-full">
+  {{ _label(label, id, required, optional, hint, error) }}
+  <div class="relative">
+    <input
+      type="password"
       id="{{ id }}"
       name="{{ name }}"
-      rows="{{ rows }}"
+      value="{{ value if value is not none else '' }}"
       {% if required %}required{% endif %}
       {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
-      {% if hint or error %}aria-describedby="{% if error %}{{ id }}-error{% else %}{{ id }}-hint{% endif %}"{% endif %}
-      {% if error %}aria-invalid="true"{% endif %}
-      class="w-full px-4 py-2.5 rounded-xl border {% if error %}border-red-500 bg-red-50/30 text-red-900{% else %}border-gray-300 bg-white text-gray-900{% endif %} text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-    >{{ value if value is not none else '' }}</textarea>
-
-    {% if error %}
-      <p class="text-xs font-medium text-red-600 flex items-center gap-1 mt-1" id="{{ id }}-error" role="alert">
-        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-        <span>{{ error }}</span>
-      </p>
-    {% endif %}
+      autocomplete="{{ autocomplete }}"
+      {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% elif hint %}aria-describedby="{{ id }}-hint"{% endif %}
+      class="input pr-12 {{ 'input-error' if error }} {{ extra_cls }}"
+    />
+    <button
+      type="button"
+      class="absolute right-0 inset-y-0 flex items-center pr-3 text-muted hover:text-inksoft
+             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf rounded"
+      onclick="(function(btn){
+        var inp = document.getElementById('{{ id }}');
+        var isHidden = inp.type === 'password';
+        inp.type = isHidden ? 'text' : 'password';
+        btn.querySelector('.icon-eye').classList.toggle('hidden', isHidden);
+        btn.querySelector('.icon-eye-off').classList.toggle('hidden', !isHidden);
+        btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      })(this)"
+      aria-label="Show password"
+      tabindex="0"
+    >
+      <span class="icon-eye">{{ icon('eye', size=18) }}</span>
+      <span class="icon-eye-off hidden">{{ icon('eye-off', size=18) }}</span>
+    </button>
   </div>
+  {{ _hint(hint, id) }}
+  {{ _error(error, id) }}
+</div>
 {% endmacro %}
 
-{% macro select_field(id, name, label, options=[], selected='', required=false, hint='', error='') %}
-  <div class="space-y-1.5 w-full">
-    <div class="flex items-center justify-between">
-      <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
-        {{ label }}
-        {% if required %}
-          <span class="text-red-600 font-bold ml-0.5" aria-hidden="true">*</span>
-          <span class="sr-only">(required)</span>
-        {% endif %}
-      </label>
-      {% if hint and not error %}
-        <span class="text-xs text-gray-600" id="{{ id }}-hint">{{ hint }}</span>
+{# ─── textarea_field() ──────────────────────────────────────────────────── #}
+{% macro textarea_field(
+    id,
+    name,
+    label,
+    value='',
+    required=false,
+    optional=false,
+    rows=4,
+    placeholder='',
+    hint='',
+    error='',
+    maxlength='',
+    extra_cls=''
+  ) %}
+<div class="space-y-1 w-full">
+  {{ _label(label, id, required, optional, hint, error) }}
+  <textarea
+    id="{{ id }}"
+    name="{{ name }}"
+    rows="{{ rows }}"
+    {% if required %}required{% endif %}
+    {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+    {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% elif hint %}aria-describedby="{{ id }}-hint"{% endif %}
+    class="textarea {{ 'input-error' if error }} {{ extra_cls }}"
+  >{{ value if value is not none else '' }}</textarea>
+  {{ _hint(hint, id) }}
+  {{ _error(error, id) }}
+</div>
+{% endmacro %}
+
+{# ─── select_field() ────────────────────────────────────────────────────── #}
+{# options: list of strings, [value, label] pairs, or dicts with .value/.label #}
+{% macro select_field(
+    id,
+    name,
+    label,
+    options=[],
+    selected='',
+    required=false,
+    optional=false,
+    hint='',
+    error='',
+    placeholder_opt='',
+    extra_cls=''
+  ) %}
+<div class="space-y-1 w-full">
+  {{ _label(label, id, required, optional, hint, error) }}
+  <div class="select-wrapper">
+    <select
+      id="{{ id }}"
+      name="{{ name }}"
+      {% if required %}required{% endif %}
+      {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% elif hint %}aria-describedby="{{ id }}-hint"{% endif %}
+      class="select {{ 'input-error' if error }} {{ extra_cls }}"
+    >
+      {% if placeholder_opt %}
+        <option value="" {% if not selected %}selected{% endif %} disabled>{{ placeholder_opt }}</option>
       {% endif %}
+      {% for opt in options %}
+        {% if opt is mapping %}
+          <option value="{{ opt.value }}" {% if (selected|string) == (opt.value|string) %}selected{% endif %}>{{ opt.label }}</option>
+        {% elif opt is sequence and not opt is string %}
+          <option value="{{ opt[0] }}" {% if (selected|string) == (opt[0]|string) %}selected{% endif %}>{{ opt[1] }}</option>
+        {% else %}
+          <option value="{{ opt }}" {% if (selected|string) == (opt|string) %}selected{% endif %}>{{ opt|capitalize }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+  </div>
+  {{ _hint(hint, id) }}
+  {{ _error(error, id) }}
+</div>
+{% endmacro %}
+
+{# ─── checkbox() ────────────────────────────────────────────────────────── #}
+{% macro checkbox(id, name, label, checked=false, required=false, hint='', error='', value='1') %}
+<div class="space-y-1">
+  <label class="checkbox-wrapper" for="{{ id }}">
+    <input
+      type="checkbox"
+      id="{{ id }}"
+      name="{{ name }}"
+      value="{{ value }}"
+      {% if checked %}checked{% endif %}
+      {% if required %}required{% endif %}
+      {% if error %}aria-invalid="true" aria-describedby="{{ id }}-error"{% elif hint %}aria-describedby="{{ id }}-hint"{% endif %}
+      class="checkbox"
+    />
+    <span class="text-sm font-medium text-inksoft leading-tight">{{ label }}</span>
+  </label>
+  {{ _hint(hint, id) }}
+  {{ _error(error, id) }}
+</div>
+{% endmacro %}
+
+{# ─── radio_card() — styled radio button card ─────────────────────────────── #}
+{% macro radio_card(id, name, value, label, description='', checked=false) %}
+<label for="{{ id }}"
+  class="flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer
+         transition-all duration-150
+         {% if checked %}border-leaf bg-leaf-50{% else %}border-bdr hover:border-leaf/40 hover:bg-canvas{% endif %}">
+  <input
+    type="radio"
+    id="{{ id }}"
+    name="{{ name }}"
+    value="{{ value }}"
+    {% if checked %}checked{% endif %}
+    class="mt-0.5 w-4 h-4 text-leaf border-bdr focus:ring-leaf focus:ring-2 shrink-0"
+  />
+  <div class="min-w-0">
+    <span class="block text-sm font-semibold text-ink">{{ label }}</span>
+    {% if description %}
+    <span class="block text-xs text-muted mt-0.5">{{ description }}</span>
+    {% endif %}
+  </div>
+</label>
+{% endmacro %}
+
+{# ─── switch() ──────────────────────────────────────────────────────────── #}
+{% macro switch(id, name, label, checked=false, hint='') %}
+<div class="flex items-center justify-between gap-3 py-1">
+  <div>
+    <label for="{{ id }}" class="text-sm font-semibold text-ink cursor-pointer">{{ label }}</label>
+    {% if hint %}<p class="text-xs text-muted mt-0.5">{{ hint }}</p>{% endif %}
+  </div>
+  <label class="switch" for="{{ id }}">
+    <input
+      type="checkbox"
+      role="switch"
+      id="{{ id }}"
+      name="{{ name }}"
+      {% if checked %}checked{% endif %}
+      class="peer sr-only"
+      aria-checked="{{ 'true' if checked else 'false' }}"
+    />
+    <span class="switch-track"></span>
+    <span class="switch-thumb"></span>
+  </label>
+</div>
+{% endmacro %}
+
+{# ─── file_field() — image upload with live preview ───────────────────────── #}
+{% macro file_field(
+    id,
+    name,
+    label,
+    current_url=none,
+    hint='JPG, PNG or WebP — max 5 MB',
+    accept='image/jpeg,image/png,image/webp,image/jpg',
+    required=false,
+    optional=false,
+    error=''
+  ) %}
+<div class="space-y-1 w-full">
+  {{ _label(label, id, required, optional, hint, error) }}
+  <div class="flex flex-col sm:flex-row items-center gap-4 p-4
+              border-2 border-dashed {{ 'border-danger/50 bg-danger-50/30' if error else 'border-bdr' }}
+              rounded-xl bg-canvas/50 hover:bg-canvas transition">
+    {# Preview Frame #}
+    <div class="relative w-24 h-24 rounded-xl overflow-hidden bg-white border border-bdr
+                flex items-center justify-center shrink-0 shadow-xs">
+      <img
+        id="{{ id }}-preview"
+        src="{{ current_url if current_url else '' }}"
+        alt="Preview"
+        class="w-full h-full object-cover {{ 'hidden' if not current_url }}"
+      />
+      <div id="{{ id }}-empty" class="flex flex-col items-center text-center p-2 {{ 'hidden' if current_url }}">
+        {{ icon('image', size=32, cls='text-muted/50') }}
+        <span class="text-[10px] text-muted block mt-1">No Image</span>
+      </div>
     </div>
 
-    <div class="relative">
-      <select
+    {# Input Area #}
+    <div class="flex-1 text-center sm:text-left min-w-0">
+      <input
+        type="file"
         id="{{ id }}"
         name="{{ name }}"
+        accept="{{ accept }}"
         {% if required %}required{% endif %}
-        {% if hint or error %}aria-describedby="{% if error %}{{ id }}-error{% else %}{{ id }}-hint{% endif %}"{% endif %}
+        aria-describedby="{{ id }}-hint"
         {% if error %}aria-invalid="true"{% endif %}
-        class="w-full min-h-[44px] appearance-none px-4 py-2.5 rounded-xl border {% if error %}border-red-500 bg-red-50/30 text-red-900{% else %}border-gray-300 bg-white text-gray-900{% endif %} text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition pr-10"
-      >
-        {% for opt in options %}
-          {% if opt is mapping %}
-            <option value="{{ opt.value }}" {% if (selected|string) == (opt.value|string) %}selected{% endif %}>{{ opt.label }}</option>
-          {% elif opt is sequence and not opt is string %}
-            <option value="{{ opt[0] }}" {% if (selected|string) == (opt[0]|string) %}selected{% endif %}>{{ opt[1] }}</option>
-          {% else %}
-            <option value="{{ opt }}" {% if (selected|string) == (opt|string) %}selected{% endif %}>{{ opt|capitalize }}</option>
-          {% endif %}
-        {% endfor %}
-      </select>
-      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-        </svg>
-      </div>
+        class="block w-full text-sm text-muted
+               file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
+               file:text-sm file:font-semibold file:bg-leaf file:text-white
+               hover:file:bg-leaf-dark file:cursor-pointer cursor-pointer
+               file:transition-colors file:duration-150"
+        onchange="(function(e){
+          var file = e.target.files[0];
+          if (!file) return;
+          var preview = document.getElementById('{{ id }}-preview');
+          var empty   = document.getElementById('{{ id }}-empty');
+          var reader  = new FileReader();
+          reader.onload = function(ev) {
+            preview.src = ev.target.result;
+            preview.classList.remove('hidden');
+            if (empty) empty.classList.add('hidden');
+          };
+          reader.readAsDataURL(file);
+        })(event)"
+      />
+      <p class="text-xs text-muted mt-2" id="{{ id }}-hint">{{ hint }}</p>
     </div>
-
-    {% if error %}
-      <p class="text-xs font-medium text-red-600 flex items-center gap-1 mt-1" id="{{ id }}-error" role="alert">
-        <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-        <span>{{ error }}</span>
-      </p>
-    {% endif %}
   </div>
+  {{ _error(error, id) }}
+</div>
 {% endmacro %}
 
-{% macro image_upload_field(id, name, label, current_url=none, hint="JPG, PNG or WebP up to 5 MB") %}
-  <div class="space-y-2 w-full">
-    <label for="{{ id }}" class="block text-sm font-semibold text-gray-800">
-      {{ label }}
-    </label>
+{# ─── quantity_stepper() ────────────────────────────────────────────────── #}
+{% macro quantity_stepper(id, name, value=1, min=1, max=9999, step=1) %}
+<div class="qty-stepper" role="group" aria-label="Quantity">
+  <button
+    type="button"
+    class="qty-btn"
+    aria-label="Decrease quantity"
+    onclick="(function(btn){
+      var inp = document.getElementById('{{ id }}');
+      var v = parseFloat(inp.value) || {{ min }};
+      var s = parseFloat('{{ step }}') || 1;
+      var m = parseFloat('{{ min }}');
+      if (v - s >= m) { inp.value = Math.round((v - s) * 1000) / 1000; inp.dispatchEvent(new Event('change')); }
+    })(this)"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <input
+    type="number"
+    id="{{ id }}"
+    name="{{ name }}"
+    value="{{ value }}"
+    min="{{ min }}"
+    max="{{ max }}"
+    step="{{ step }}"
+    inputmode="numeric"
+    class="qty-input"
+    aria-label="Quantity value"
+  />
+  <button
+    type="button"
+    class="qty-btn"
+    aria-label="Increase quantity"
+    onclick="(function(btn){
+      var inp = document.getElementById('{{ id }}');
+      var v = parseFloat(inp.value) || 0;
+      var s = parseFloat('{{ step }}') || 1;
+      var m = parseFloat('{{ max }}');
+      if (v + s <= m) { inp.value = Math.round((v + s) * 1000) / 1000; inp.dispatchEvent(new Event('change')); }
+    })(this)"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</div>
+{% endmacro %}
 
-    <div class="flex flex-col sm:flex-row items-center gap-4 p-4 border border-dashed border-gray-300 rounded-2xl bg-gray-50/50 hover:bg-gray-50 transition">
-      <!-- Preview Frame -->
-      <div class="relative w-24 h-24 rounded-xl overflow-hidden bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-xs">
-        <img
-          id="{{ id }}-preview"
-          src="{{ current_url if current_url else '' }}"
-          alt="Preview"
-          class="w-full h-full object-cover {% if not current_url %}hidden{% endif %}"
-        />
-        <div id="{{ id }}-empty" class="text-center p-2 {% if current_url %}hidden{% endif %}">
-          <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
-          <span class="text-[10px] text-gray-600 block mt-1">No Image</span>
-        </div>
-      </div>
+{# ─── Backward-compatible aliases ────────────────────────────────────────── #}
+{% macro input_field(id, name, label, type='text', value='', required=false, placeholder='', hint='', error='', step='', min='', max='', readonly=false, disabled=false, autocomplete='') %}
+  {{ field(id, name, label, type=type, value=value, required=required,
+           placeholder=placeholder, hint=hint, error=error,
+           step=step, min=min, max=max, readonly=readonly,
+           disabled=disabled, autocomplete=autocomplete) }}
+{% endmacro %}
 
-      <!-- Input and Info -->
-      <div class="flex-1 text-center sm:text-left min-w-0">
-        <input
-          type="file"
-          id="{{ id }}"
-          name="{{ name }}"
-          accept="image/jpeg,image/png,image/webp,image/jpg"
-          aria-describedby="{{ id }}-hint"
-          class="block w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-leaf file:text-white hover:file:bg-leaf-light file:cursor-pointer cursor-pointer"
-          onchange="(function(e){
-            const file = e.target.files[0];
-            if (file) {
-              const preview = document.getElementById('{{ id }}-preview');
-              const empty = document.getElementById('{{ id }}-empty');
-              preview.src = URL.createObjectURL(file);
-              preview.classList.remove('hidden');
-              if (empty) empty.classList.add('hidden');
-            }
-          })(event)"
-        />
-        <p class="text-xs text-gray-600 mt-1.5" id="{{ id }}-hint">{{ hint }}</p>
-      </div>
-    </div>
-  </div>
+{% macro image_upload_field(id, name, label, current_url=none, hint='JPG, PNG or WebP up to 5 MB') %}
+  {{ file_field(id, name, label, current_url=current_url, hint=hint) }}
 {% endmacro %}
