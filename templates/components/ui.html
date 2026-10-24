@@ -372,3 +372,77 @@
   {% endif %}
 </div>
 {% endmacro %}
+
+{# ─── confirm_dialog() — Accessible modal confirmation dialog ──────────────── #}
+{% macro confirm_dialog(
+    id='confirm-dialog',
+    title='Confirm Action',
+    message='Are you sure you want to proceed?',
+    confirm_text='Confirm',
+    cancel_text='Cancel',
+    confirm_variant='danger',
+    form_action='',
+    csrf_token_val='',
+    extra_cls=''
+) %}
+<div
+  id="{{ id }}"
+  class="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs hidden items-center justify-center p-4 transition-all"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="{{ id }}-title"
+>
+  <div class="card p-6 sm:p-8 bg-white max-w-md w-full rounded-3xl shadow-2xl space-y-4 {{ extra_cls }}">
+    <div class="w-12 h-12 rounded-2xl {% if confirm_variant == 'danger' %}bg-danger-50 text-danger{% else %}bg-leaf-pale text-leaf-dark{% endif %} flex items-center justify-center">
+      {{ icon('trash' if confirm_variant == 'danger' else 'info', size=22) }}
+    </div>
+
+    <div>
+      <h3 id="{{ id }}-title" class="font-display font-bold text-xl text-ink">
+        {{ title }}
+      </h3>
+      <p id="{{ id }}-desc" class="text-sm text-muted mt-1.5 leading-relaxed">
+        {{ message }}
+      </p>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-3 border-t border-bdr">
+      <button
+        type="button"
+        id="{{ id }}-cancel-btn"
+        class="btn-secondary text-sm py-2.5 px-4"
+        onclick="(function(){
+          var m = document.getElementById('{{ id }}');
+          if (m) { m.classList.add('hidden'); m.classList.remove('flex'); m.setAttribute('aria-hidden', 'true'); }
+        })()"
+      >
+        {{ cancel_text }}
+      </button>
+
+      {% if form_action %}
+      <form method="POST" action="{{ form_action }}" id="{{ id }}-form">
+        {% if csrf_token_val %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token_val }}">
+        {% endif %}
+        <button
+          type="submit"
+          id="{{ id }}-submit-btn"
+          class="btn-{{ confirm_variant }} text-sm py-2.5 px-4 shadow-sm"
+        >
+          {{ confirm_text }}
+        </button>
+      </form>
+      {% else %}
+      <button
+        type="button"
+        id="{{ id }}-confirm-btn"
+        class="btn-{{ confirm_variant }} text-sm py-2.5 px-4 shadow-sm"
+      >
+        {{ confirm_text }}
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}

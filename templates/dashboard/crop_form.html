@@ -1,175 +1,554 @@
 {% extends "base.html" %}
-{% from "components/ui.html" import page_header %}
-{% block title %}{{ action }} Crop — AgroLink{% endblock %}
+{% from "components/ui.html" import page_header, confirm_dialog %}
+{% from "components/icons.html" import icon %}
+
+{% block title %}{{ action }} Crop Cycle — AgroLink{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Category Chips active styling */
+  .crop-type-chip.active {
+    border-color: var(--color-leaf, #2d7a4f);
+    background-color: rgba(45, 122, 79, 0.08);
+    color: var(--color-leaf-dark, #1e5637);
+    font-weight: 700;
+  }
+  /* Status Segmented Control active button styling */
+  .segmented-btn.active {
+    background-color: #ffffff;
+    color: var(--color-ink, #1f2937);
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-  
-  {{ page_header(
-      title=action ~ ' Crop Record',
-      subtitle='Record your agricultural planting details to plan harvests and prepare for market listing.',
-      breadcrumbs=[
-          {'text': 'Home', 'url': url_for('main.home')},
-          {'text': 'Farmer Dashboard', 'url': url_for('dashboard.index')},
-          {'text': 'Crop Tracker', 'url': url_for('dashboard.crops')},
-          {'text': action ~ ' Crop'}
-      ],
-      back_url=url_for('dashboard.crops'),
-      back_text='Back to Crop Tracker'
-  ) }}
+<div class="bg-canvas min-h-screen py-8 sm:py-12 pb-24 sm:pb-16">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 
-  <!-- Form Card -->
-  <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
+    {# ─── Page Header with Breadcrumbs ───────────────────────────────────── #}
+    {{ page_header(
+        title=action ~ ' Crop Cycle Record',
+        subtitle='Keep track of planting dates, anticipate harvest schedules, and forecast marketable produce yields.',
+        breadcrumbs=[
+            {'text': 'Home', 'url': url_for('main.home')},
+            {'text': 'Farmer Dashboard', 'url': url_for('dashboard.index')},
+            {'text': 'Crop Tracker', 'url': url_for('dashboard.crops')},
+            {'text': (action ~ ' ' ~ (crop.crop_name if crop else 'Record'))}
+        ],
+        back_url=url_for('dashboard.crops'),
+        back_text='Back to Crop Tracker'
+    ) }}
 
-    <form method="POST" class="space-y-6" novalidate>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {# ─── Main Crop Form Card ─────────────────────────────────────────────── #}
+    <div class="card p-6 sm:p-10 bg-white rounded-3xl border border-bdr shadow-xs space-y-8">
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <!-- Crop Name -->
-        <div class="space-y-1.5 sm:col-span-2">
-          <label for="crop_name" class="block text-sm font-semibold text-gray-800">
-            Crop Variety / Name <span class="text-red-600 font-bold">*</span>
-          </label>
+      <form id="crop-form" method="POST" novalidate class="space-y-7">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        {# ── Field 1: Crop Name ───────────────────────────────────────────── #}
+        <div class="space-y-1.5">
+          <div class="flex items-baseline justify-between">
+            <label for="crop_name" class="field-label text-sm font-semibold text-ink">
+              Crop Variety / Plant Name <span class="text-danger font-bold" aria-hidden="true">*</span>
+            </label>
+            <span class="text-xs text-muted">e.g. Big Onion, Keeri Samba Paddy, Green Chilli</span>
+          </div>
           <input
             type="text"
             id="crop_name"
             name="crop_name"
             required
-            placeholder="e.g. Big Onion, Keeri Samba Paddy, Green Chilli"
-            value="{{ crop.crop_name if crop else '' }}"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            autocomplete="off"
+            placeholder="e.g. Red Bell Peppers (Greenhouse)"
+            value="{{ request.form.get('crop_name') if request.form.get('crop_name') is not none else (crop.crop_name if crop else '') }}"
+            class="input w-full min-h-[48px] px-4 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            aria-describedby="crop_name-error"
           />
+          <p id="crop_name-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+            {{ icon('alert-triangle', size=13) }}
+            <span>Please enter the crop or plant variety name.</span>
+          </p>
         </div>
 
-        <!-- Crop Type -->
-        <div class="space-y-1.5">
-          <label for="crop_type" class="block text-sm font-semibold text-gray-800">
-            Category Type <span class="text-red-600 font-bold">*</span>
+        {# ── Field 2: Crop Type as Chips ──────────────────────────────────── #}
+        <div class="space-y-2">
+          <div class="flex items-baseline justify-between">
+            <label for="crop_type" class="field-label text-sm font-semibold text-ink">
+              Crop Category <span class="text-danger font-bold" aria-hidden="true">*</span>
+            </label>
+            <span class="text-xs text-muted">Select matching category</span>
+          </div>
+
+          {% set current_crop_type = request.form.get('crop_type') if request.form.get('crop_type') is not none else (crop.crop_type if crop else '') %}
+
+          {# Hidden / Accessible Select (synced to chips) #}
+          <select
+            id="crop_type"
+            name="crop_type"
+            required
+            class="sr-only"
+            tabindex="-1"
+            aria-hidden="true"
+          >
+            <option value="">Select Category...</option>
+            {% for t in ['Vegetables','Fruits','Grains & Rice','Spices','Pulses','Roots & Tubers','Other'] %}
+              <option value="{{ t }}" {% if current_crop_type == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+
+          {# Chips Grid #}
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" role="radiogroup" aria-label="Crop Category Chips">
+            {% set crop_icons = {
+              'Vegetables': '🥬',
+              'Fruits': '🍎',
+              'Grains & Rice': '🌾',
+              'Spices': '🌶️',
+              'Pulses': '🫘',
+              'Roots & Tubers': '🥔',
+              'Other': '📦'
+            } %}
+            {% for t in ['Vegetables','Fruits','Grains & Rice','Spices','Pulses','Roots & Tubers','Other'] %}
+              <button
+                type="button"
+                role="radio"
+                aria-checked="{{ 'true' if current_crop_type == t else 'false' }}"
+                data-crop-type="{{ t }}"
+                class="crop-type-chip flex items-center gap-2 p-2.5 rounded-xl border border-bdr bg-canvas/40 hover:bg-canvas hover:border-leaf/40 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-leaf {{ 'active' if current_crop_type == t else '' }}"
+              >
+                <span class="text-lg leading-none" aria-hidden="true">{{ crop_icons.get(t, '🌱') }}</span>
+                <span class="text-xs font-medium text-ink truncate">{{ t }}</span>
+              </button>
+            {% endfor %}
+          </div>
+          <p id="crop_type-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+            {{ icon('alert-triangle', size=13) }}
+            <span>Please select a crop category.</span>
+          </p>
+        </div>
+
+        {# ── Field 3: Status as Segmented Control with Icons ──────────────── #}
+        <div class="space-y-2">
+          <label class="field-label text-sm font-semibold text-ink block">
+            Growth Stage Status <span class="text-danger font-bold" aria-hidden="true">*</span>
           </label>
-          <div class="relative">
-            <select
-              id="crop_type"
-              name="crop_type"
-              required
-              class="w-full min-h-[46px] appearance-none px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition pr-10"
+
+          {% set current_status = request.form.get('status') if request.form.get('status') is not none else (crop.status if crop else 'growing') %}
+          <input
+            type="hidden"
+            id="crop_status"
+            name="status"
+            value="{{ current_status }}"
+          />
+
+          {# Segmented Control Wrapper #}
+          <div
+            class="flex items-center p-1.5 rounded-2xl bg-canvas border border-bdr gap-1 text-xs sm:text-sm font-medium"
+            role="radiogroup"
+            aria-label="Growth Stage Segmented Control"
+          >
+            {# Option 1: Growing #}
+            <button
+              type="button"
+              role="radio"
+              aria-checked="{{ 'true' if current_status == 'growing' else 'false' }}"
+              data-status-val="growing"
+              class="segmented-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-muted hover:text-ink transition {{ 'active text-leaf-dark' if current_status == 'growing' else '' }}"
             >
-              <option value="">Select Category...</option>
-              {% for t in ['Vegetables','Fruits','Grains & Rice','Spices','Pulses','Roots & Tubers','Other'] %}
-                <option value="{{ t }}" {% if crop and crop.crop_type == t %}selected{% endif %}>{{ t }}</option>
-              {% endfor %}
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
+              <span>Growing</span>
+            </button>
+
+            {# Option 2: Ready #}
+            <button
+              type="button"
+              role="radio"
+              aria-checked="{{ 'true' if current_status == 'ready' else 'false' }}"
+              data-status-val="ready"
+              class="segmented-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-muted hover:text-ink transition {{ 'active text-emerald-700' if current_status == 'ready' else '' }}"
+            >
+              <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Ready</span>
+            </button>
+
+            {# Option 3: Harvested #}
+            <button
+              type="button"
+              role="radio"
+              aria-checked="{{ 'true' if current_status == 'harvested' else 'false' }}"
+              data-status-val="harvested"
+              class="segmented-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-muted hover:text-ink transition {{ 'active text-earth' if current_status == 'harvested' else '' }}"
+            >
+              <svg class="w-4 h-4 text-earth" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              <span>Harvested</span>
+            </button>
+          </div>
+        </div>
+
+        {# ── Field 4 & 5: Quantity with "kg" Suffix & Harvest Date ────────── #}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {# Estimated Yield with kg suffix #}
+          <div class="space-y-1.5">
+            <label for="crop_quantity" class="field-label text-sm font-semibold text-ink">
+              Estimated Yield <span class="text-danger font-bold" aria-hidden="true">*</span>
+            </label>
+            <div class="relative rounded-xl shadow-2xs">
+              <input
+                type="number"
+                id="crop_quantity"
+                name="quantity_kg"
+                required
+                min="0.1"
+                step="0.1"
+                placeholder="e.g. 500"
+                value="{{ request.form.get('quantity_kg') if request.form.get('quantity_kg') is not none else (crop.quantity_kg if crop else '') }}"
+                class="input w-full min-h-[48px] px-4 pr-12 rounded-xl border border-bdr bg-white text-ink text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+              />
+              <span class="absolute right-0 inset-y-0 pr-3.5 flex items-center text-muted text-sm font-bold pointer-events-none select-none">
+                kg
+              </span>
+            </div>
+            <p id="crop_quantity-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+              {{ icon('alert-triangle', size=13) }}
+              <span>Estimated yield must be at least 0.1 kg.</span>
+            </p>
+          </div>
+
+          {# Expected Harvest Date with live "Ready in N days" helper #}
+          <div class="space-y-1.5">
+            <label for="expected_harvest_date" class="field-label text-sm font-semibold text-ink">
+              Expected Harvest Date <span class="text-danger font-bold" aria-hidden="true">*</span>
+            </label>
+            <div class="relative rounded-xl shadow-2xs">
+              <input
+                type="date"
+                id="expected_harvest_date"
+                name="expected_harvest_date"
+                required
+                value="{{ request.form.get('expected_harvest_date') if request.form.get('expected_harvest_date') is not none else (crop.expected_harvest_date.isoformat() if crop and crop.expected_harvest_date else '') }}"
+                class="input w-full min-h-[48px] px-4 rounded-xl border border-bdr bg-white text-ink text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+              />
+            </div>
+            <p id="expected_harvest_date-error" class="hidden text-xs font-semibold text-danger flex items-center gap-1 mt-1">
+              {{ icon('alert-triangle', size=13) }}
+              <span>Please pick a valid harvest date.</span>
+            </p>
+
+            {# Live Countdown Helper #}
+            <div id="harvest-countdown-box" class="hidden items-center gap-1.5 text-xs font-semibold text-leaf pt-1 animate-fade-in">
+              {{ icon('calendar', size=14, cls='shrink-0 text-leaf') }}
+              <span id="harvest-countdown-text">Ready in 30 days</span>
             </div>
           </div>
         </div>
 
-        <!-- Quantity -->
+        {# ── Field 6: Field / Plot Location ───────────────────────────────── #}
         <div class="space-y-1.5">
-          <label for="crop_quantity" class="block text-sm font-semibold text-gray-800">
-            Estimated Yield (kg) <span class="text-red-600 font-bold">*</span>
-          </label>
-          <input
-            type="number"
-            id="crop_quantity"
-            name="quantity_kg"
-            required
-            min="0.1"
-            step="0.1"
-            placeholder="e.g. 800"
-            value="{{ crop.quantity_kg if crop else '' }}"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
-        </div>
-
-        <!-- Expected Harvest Date -->
-        <div class="space-y-1.5">
-          <label for="expected_harvest_date" class="block text-sm font-semibold text-gray-800">
-            Expected Harvest Date <span class="text-red-600 font-bold">*</span>
-          </label>
-          <input
-            type="date"
-            id="expected_harvest_date"
-            name="expected_harvest_date"
-            required
-            value="{{ crop.expected_harvest_date.isoformat() if crop else '' }}"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
-        </div>
-
-        <!-- Field Location -->
-        <div class="space-y-1.5">
-          <label for="field_location" class="block text-sm font-semibold text-gray-800">
-            Field / Plot Name
-          </label>
-          <input
-            type="text"
-            id="field_location"
-            name="field_location"
-            placeholder="e.g. North Acre, Anuradhapura"
-            value="{{ crop.field_location if crop else '' }}"
-            class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          />
-        </div>
-
-        <!-- Status -->
-        <div class="space-y-1.5 sm:col-span-2">
-          <label for="crop_status" class="block text-sm font-semibold text-gray-800">
-            Growth Stage
+          <label for="field_location" class="field-label text-sm font-semibold text-ink">
+            Field / Plot Name or Location
           </label>
           <div class="relative">
-            <select
-              id="crop_status"
-              name="status"
-              class="w-full min-h-[46px] appearance-none px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition pr-10"
-            >
-              {% for s in ['growing','ready','harvested'] %}
-                <option value="{{ s }}" {% if crop and crop.status == s %}selected{% elif not crop and s == 'growing' %}selected{% endif %}>
-                  {{ s|capitalize }}
-                </option>
-              {% endfor %}
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
+            <input
+              type="text"
+              id="field_location"
+              name="field_location"
+              placeholder="e.g. North Plot #2, Anuradhapura East, Polonnaruwa"
+              value="{{ request.form.get('field_location') if request.form.get('field_location') is not none else (crop.field_location if crop else '') }}"
+              class="input w-full min-h-[48px] px-4 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            />
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-muted">
+              {{ icon('map-pin', size=16) }}
             </div>
           </div>
+          <p class="text-[11px] text-muted">Identifies where on your farm or leasehold this planting cycle is situated.</p>
         </div>
 
-        <!-- Notes -->
-        <div class="space-y-1.5 sm:col-span-2">
-          <label for="crop_notes" class="block text-sm font-semibold text-gray-800">
-            Field Notes &amp; Fertilizer / Pest Observations
+        {# ── Field 7: Notes ───────────────────────────────────────────────── #}
+        <div class="space-y-1.5">
+          <label for="crop_notes" class="field-label text-sm font-semibold text-ink">
+            Cultivation Notes &amp; Observations
           </label>
           <textarea
             id="crop_notes"
             name="notes"
             rows="3"
-            placeholder="Notes on watering, fertilizer application, weather conditions, or readiness..."
-            class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-          >{{ crop.notes if crop else '' }}</textarea>
+            placeholder="Record watering cycles, bio-fertilizer applications, weather issues, or expected quality..."
+            class="textarea w-full px-4 py-3 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          >{{ request.form.get('notes') if request.form.get('notes') is not none else (crop.notes if crop else '') }}</textarea>
         </div>
-      </div>
 
-      <!-- Actions -->
-      <div class="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-gray-100">
-        <button
-          type="submit"
-          class="btn-primary w-full sm:flex-1 py-3 text-base shadow-sm"
-        >
-          {{ action }} Crop Record
-        </button>
-        <a
-          href="{{ url_for('dashboard.crops') }}"
-          class="btn-secondary w-full sm:w-auto px-6 py-3 text-center text-sm"
-        >
-          Cancel
-        </a>
-      </div>
-    </form>
+        {# ── Submit & Navigation Actions ──────────────────────────────────── #}
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-bdr">
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <button
+              type="submit"
+              id="submit-crop-btn"
+              class="btn-primary flex-1 sm:flex-none py-3 px-8 text-base font-semibold shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>{{ action }} Crop Record</span>
+            </button>
+            <a
+              href="{{ url_for('dashboard.crops') }}"
+              class="btn-secondary py-3 px-6 text-sm font-semibold text-center"
+            >
+              Cancel
+            </a>
+          </div>
+
+          {# Delete Action on Edit Mode (Uses confirm_dialog) #}
+          {% if crop %}
+            <button
+              type="button"
+              id="open-delete-crop-modal-btn"
+              class="btn-danger-outline py-2.5 px-4 text-xs font-semibold inline-flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              {{ icon('trash', size=14) }}
+              <span>Delete Record</span>
+            </button>
+          {% endif %}
+        </div>
+
+      </form>
+    </div>
+
   </div>
 </div>
+
+{# ─── Accessible Delete Confirmation Modal (Uses confirm_dialog macro) ──── #}
+{% if crop %}
+  {{ confirm_dialog(
+      id='delete-crop-modal',
+      title='Delete Crop Record?',
+      message='Are you sure you want to delete the log for ' ~ crop.crop_name ~ '? This action removes all harvest forecasts and cannot be undone.',
+      confirm_text='Yes, Delete Crop',
+      cancel_text='Cancel',
+      confirm_variant='danger',
+      form_action=url_for('dashboard.delete_crop', crop_id=crop.id),
+      csrf_token_val=csrf_token()
+  ) }}
+{% endif %}
+
+<script>
+  (function() {
+    'use strict';
+
+    // ── 1. Crop Type Chips Sync ─────────────────────────────────────────────
+    const typeSelect = document.getElementById('crop_type');
+    const typeChips = document.querySelectorAll('.crop-type-chip');
+
+    typeChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        const val = this.getAttribute('data-crop-type');
+        if (typeSelect) {
+          typeSelect.value = val;
+          typeSelect.dispatchEvent(new Event('change'));
+        }
+        typeChips.forEach(c => {
+          c.classList.remove('active');
+          c.setAttribute('aria-checked', 'false');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-checked', 'true');
+        markDirty();
+        validateCropField('crop_type');
+      });
+    });
+
+    // ── 2. Growth Stage Status Segmented Control ────────────────────────────
+    const statusHidden = document.getElementById('crop_status');
+    const statusBtns = document.querySelectorAll('.segmented-btn');
+
+    statusBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const val = this.getAttribute('data-status-val');
+        if (statusHidden) statusHidden.value = val;
+        statusBtns.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-checked', 'false');
+        });
+        this.classList.add('active');
+        this.setAttribute('aria-checked', 'true');
+        markDirty();
+      });
+    });
+
+    // ── 3. Harvest Date Live Countdown ("Ready in N days") ──────────────────
+    const dateInput = document.getElementById('expected_harvest_date');
+    const countdownBox = document.getElementById('harvest-countdown-box');
+    const countdownText = document.getElementById('harvest-countdown-text');
+
+    function updateHarvestCountdown() {
+      if (!dateInput || !countdownBox || !countdownText) return;
+      const dateVal = dateInput.value;
+      if (!dateVal) {
+        countdownBox.classList.add('hidden');
+        countdownBox.classList.remove('flex');
+        return;
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const target = new Date(dateVal + 'T00:00:00');
+      if (isNaN(target.getTime())) {
+        countdownBox.classList.add('hidden');
+        countdownBox.classList.remove('flex');
+        return;
+      }
+
+      const diffMs = target.getTime() - today.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffDays > 0) {
+        countdownText.textContent = `Ready for harvest in ${diffDays} day${diffDays === 1 ? '' : 's'}`;
+        countdownText.className = 'text-leaf font-semibold';
+      } else if (diffDays === 0) {
+        countdownText.textContent = 'Scheduled harvest date is TODAY!';
+        countdownText.className = 'text-emerald-700 font-bold';
+      } else {
+        const ago = Math.abs(diffDays);
+        countdownText.textContent = `Harvest date was ${ago} day${ago === 1 ? '' : 's'} ago`;
+        countdownText.className = 'text-earth font-semibold';
+      }
+
+      countdownBox.classList.remove('hidden');
+      countdownBox.classList.add('flex');
+    }
+
+    if (dateInput) {
+      dateInput.addEventListener('input', () => {
+        updateHarvestCountdown();
+        markDirty();
+        validateCropField('expected_harvest_date');
+      });
+      dateInput.addEventListener('change', updateHarvestCountdown);
+      updateHarvestCountdown();
+    }
+
+    // ── 4. Client-side Form Validation ──────────────────────────────────────
+    function validateCropField(fieldId) {
+      let isValid = true;
+      if (fieldId === 'crop_name') {
+        const el = document.getElementById('crop_name');
+        const err = document.getElementById('crop_name-error');
+        isValid = el && el.value.trim().length >= 2;
+        if (err) err.classList.toggle('hidden', isValid);
+      } else if (fieldId === 'crop_type') {
+        const el = document.getElementById('crop_type');
+        const err = document.getElementById('crop_type-error');
+        isValid = el && el.value.trim().length > 0;
+        if (err) err.classList.toggle('hidden', isValid);
+      } else if (fieldId === 'crop_quantity') {
+        const el = document.getElementById('crop_quantity');
+        const err = document.getElementById('crop_quantity-error');
+        const val = parseFloat(el ? el.value : 0);
+        isValid = !isNaN(val) && val > 0;
+        if (err) err.classList.toggle('hidden', isValid);
+      } else if (fieldId === 'expected_harvest_date') {
+        const el = document.getElementById('expected_harvest_date');
+        const err = document.getElementById('expected_harvest_date-error');
+        isValid = el && el.value.trim().length > 0;
+        if (err) err.classList.toggle('hidden', isValid);
+      }
+      return isValid;
+    }
+
+    ['crop_name', 'crop_quantity'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('blur', () => validateCropField(id));
+    });
+
+    // ── 5. Unsaved Changes & Submission Spinner ─────────────────────────────
+    let formIsDirty = false;
+    let isSubmitting = false;
+
+    function markDirty() {
+      formIsDirty = true;
+    }
+
+    const form = document.getElementById('crop-form');
+    if (form) {
+      form.querySelectorAll('input, textarea, select').forEach(input => {
+        input.addEventListener('change', markDirty);
+      });
+
+      window.addEventListener('beforeunload', function(e) {
+        if (formIsDirty && !isSubmitting) {
+          e.preventDefault();
+          e.returnValue = '';
+        }
+      });
+
+      form.addEventListener('submit', function(e) {
+        const v1 = validateCropField('crop_name');
+        const v2 = validateCropField('crop_type');
+        const v3 = validateCropField('crop_quantity');
+        const v4 = validateCropField('expected_harvest_date');
+
+        if (!v1 || !v2 || !v3 || !v4) {
+          e.preventDefault();
+          const firstErr = form.querySelector('.text-danger:not(.hidden)');
+          if (firstErr) {
+            firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return;
+        }
+
+        isSubmitting = true;
+        formIsDirty = false;
+
+        const submitBtn = document.getElementById('submit-crop-btn');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-75', 'cursor-wait');
+          submitBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span>Saving Crop Record...</span>
+          `;
+        }
+      });
+    }
+
+    // ── 6. Delete Confirmation Modal Controller ─────────────────────────────
+    const openDeleteBtn = document.getElementById('open-delete-crop-modal-btn');
+    const deleteModal = document.getElementById('delete-crop-modal');
+
+    if (openDeleteBtn && deleteModal) {
+      openDeleteBtn.addEventListener('click', function() {
+        deleteModal.classList.remove('hidden');
+        deleteModal.classList.add('flex');
+        deleteModal.setAttribute('aria-hidden', 'false');
+      });
+
+      // Escape key to dismiss modal
+      window.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+          deleteModal.classList.add('hidden');
+          deleteModal.classList.remove('flex');
+          deleteModal.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      // Backdrop click to close
+      deleteModal.addEventListener('click', function(e) {
+        if (e.target === deleteModal) {
+          deleteModal.classList.add('hidden');
+          deleteModal.classList.remove('flex');
+          deleteModal.setAttribute('aria-hidden', 'true');
+        }
+      });
+    }
+
+  })();
+</script>
 {% endblock %}
