@@ -1,8 +1,8 @@
+from datetime import date, datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db
 from models import Crop, Product, Order, User
-from datetime import date
 from utils.decorators import roles_required
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -11,23 +11,69 @@ dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 @dashboard_bp.route('/')
 @login_required
 def index():
+    # Sri Lanka Local Time is UTC+5:30
+    now_lk = datetime.utcnow() + timedelta(hours=5, minutes=30)
+    if now_lk.hour < 12:
+        greeting = "Good morning"
+    elif now_lk.hour < 17:
+        greeting = "Good afternoon"
+    else:
+        greeting = "Good evening"
+
+    today_date = now_lk.date()
+
     if current_user.role == 'farmer':
         crops = Crop.query.filter_by(farmer_id=current_user.id).order_by(Crop.created_at.desc()).all()
+        # Annotate crops with harvest countdown and overdue status
+        for c in crops:
+            if c.expected_harvest_date:
+                diff = (c.expected_harvest_date - today_date).days
+                c.days_remaining = diff
+                c.is_overdue = (diff < 0 and c.status != 'harvested')
+            else:
+                c.days_remaining = None
+                c.is_overdue = False
+
         products = Product.query.filter_by(farmer_id=current_user.id, is_deleted=False).order_by(Product.created_at.desc()).all()
-        orders_received = Order.query.join(Product).filter(
+        all_orders = Order.query.join(Product).filter(
             Product.farmer_id == current_user.id
-        ).order_by(Order.created_at.desc()).limit(5).all()
+        ).order_by(Order.created_at.desc()).all()
+        pending_orders = [o for o in all_orders if o.status == 'pending']
         total_revenue = sum(
-            o.total_price for o in Order.query.join(Product)
-            .filter(Product.farmer_id == current_user.id, Order.status != 'cancelled').all()
+            o.total_price for o in all_orders if o.status != 'cancelled'
         )
         return render_template('dashboard/farmer.html',
                                crops=crops, products=products,
-                               orders=orders_received, total_revenue=total_revenue)
+                               orders=all_orders, pending_orders=pending_orders,
+                               total_revenue=total_revenue, greeting=greeting,
+                               today=today_date)
     else:
-        orders = Order.query.filter_by(buyer_id=current_user.id).order_by(Order.created_at.desc()).all()
-        total_spent = sum(o.total_price for o in orders if o.status != 'cancelled')
-        return render_template('dashboard/buyer.html', orders=orders, total_spent=total_spent)
+        all_orders = Order.query.filter_by(buyer_id=current_user.id).order_by(Order.created_at.desc()).all()
+        active_orders = [o for o in all_orders if o.status in ('pending', 'confirmed')]
+        completed_orders = [o for o in all_orders if o.status == 'delivered']
+        past_orders = [o for o in all_orders if o.status in ('delivered', 'cancelled')]
+        total_spent = sum(o.total_price for o in all_orders if o.status != 'cancelled')
+
+        # Best deals today for buyer dashboard
+        try:
+            from blueprints.marketplace.routes import annotate_product_deals
+            candidate_products = Product.query.filter_by(is_available=True, is_deleted=False).order_by(Product.created_at.desc()).limit(12).all()
+            annotate_product_deals(candidate_products)
+            best_deals = [p for p in candidate_products if getattr(p, 'is_deal', False)]
+            if len(best_deals) < 4:
+                seen_ids = {p.id for p in best_deals}
+                for p in candidate_products:
+                    if p.id not in seen_ids and len(best_deals) < 6:
+                        best_deals.append(p)
+        except Exception:
+            best_deals = []
+
+        return render_template('dashboard/buyer.html',
+                               orders=all_orders, active_orders=active_orders,
+                               completed_orders=completed_orders, past_orders=past_orders,
+                               total_spent=total_spent, best_deals=best_deals,
+                               greeting=greeting)
+
 
 
 # ── CROP MANAGEMENT ──────────────────────────────────────────────────────────
