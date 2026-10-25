@@ -125,11 +125,12 @@ def update_status(order_id):
 
         db.session.commit()
         flash(f'Order status updated to {new_status}.', 'success')
-        return redirect(url_for('orders.order_detail', order_id=order_id))
+        return redirect(request.form.get('next') or url_for('orders.order_detail', order_id=order_id))
     except (IntegrityError, OperationalError, DataError):
         db.session.rollback()
         flash('Stock changed, please retry.', 'error')
-        return redirect(url_for('orders.order_detail', order_id=order_id))
+        return redirect(request.form.get('next') or url_for('orders.order_detail', order_id=order_id))
+
 
 
 @orders_bp.route('/<int:order_id>/cancel', methods=['POST'])
