@@ -18,27 +18,38 @@ def create_app(debug=None):
 
 
     env = os.getenv('FLASK_ENV', os.getenv('ENV', 'development')).lower()
-    secret_key = os.getenv('SECRET_KEY')
+    if env == 'production':
+        app.config.from_object('config.ProductionConfig')
+    elif env == 'testing':
+        app.config.from_object('config.TestingConfig')
+    else:
+        app.config.from_object('config.DevelopmentConfig')
+
+    secret_key = app.config.get('SECRET_KEY')
     if not secret_key:
         if env == 'production':
             raise RuntimeError(
                 "CRITICAL SECURITY CONFIGURATION ERROR: SECRET_KEY environment variable is required in production mode."
             )
         secret_key = secrets.token_hex(32)
+        app.config['SECRET_KEY'] = secret_key
         warnings.warn(
             "Insecure configuration: SECRET_KEY is not set. Generated a temporary random key for development.",
             UserWarning,
             stacklevel=2
         )
 
-    app.config['SECRET_KEY'] = secret_key
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-        'DATABASE_URL',
-        'postgresql://agrolink_db_user:agrolink_db_user_password@localhost:5432/agrolink_db'
-    )
-    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB maximum request / file size
+    # Expose only safe Google Maps credentials and status to templates
+    @app.context_processor
+    def inject_maps_config():
+        browser_key = app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip()
+        map_id = app.config.get('GOOGLE_MAPS_MAP_ID', '').strip()
+        maps_enabled = bool(browser_key and map_id)
+        return {
+            'maps_enabled': maps_enabled,
+            'maps_browser_key': browser_key if maps_enabled else '',
+            'maps_map_id': map_id if maps_enabled else '',
+        }
 
     # Ensure static upload directories exist automatically at startup
     uploads_base = os.path.join(app.root_path, 'static', 'uploads')
