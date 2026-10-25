@@ -213,6 +213,47 @@ def create_app(debug=None):
         db.session.commit()
         click.echo(f"Admin user '{email}' created successfully.")
 
+    @app.cli.command('maps-check')
+    def maps_check_command():
+        """Run diagnostics on Google Maps environment configuration and server reachability."""
+        from services.maps import get_server_key, is_placeholder_value, test_geocoding_api
+
+        click.echo("==================================================")
+        click.echo(" AgroLink Google Maps Configuration Diagnostic    ")
+        click.echo("==================================================")
+
+        # (a) & (b) Check configuration variables
+        vars_to_check = [
+            ("GOOGLE_MAPS_BROWSER_KEY", app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip()),
+            ("GOOGLE_MAPS_MAP_ID", app.config.get('GOOGLE_MAPS_MAP_ID', '').strip()),
+            ("GOOGLE_MAPS_SERVER_KEY", get_server_key()),
+        ]
+
+        click.echo("\n[1] Environment Variables Status:")
+        for var_name, var_val in vars_to_check:
+            if not var_val:
+                click.echo(f"  * {var_name}: MISSING")
+            elif is_placeholder_value(var_val):
+                click.echo(f"  * {var_name}: placeholder, replace with real value (length: {len(var_val)})")
+            else:
+                click.echo(f"  * {var_name}: present (length: {len(var_val)})")
+
+        # (c) Real Geocoding API check using SERVER key
+        click.echo("\n[2] Geocoding API Server-Side Check:")
+        status, err_msg = test_geocoding_api()
+        if status == 'OK':
+            click.echo("  * Status: OK (Kandy, Sri Lanka resolved successfully)")
+        else:
+            msg_suffix = f" - {err_msg}" if err_msg else ""
+            click.echo(f"  * Status: {status}{msg_suffix}")
+
+        # (d) Exact browser-key referrers to allow
+        click.echo("\n[3] Required HTTP Referrers for Browser Key:")
+        click.echo("  In Google Cloud Console (Credentials -> Browser Key -> Website restrictions):")
+        click.echo("  * http://localhost:5000/*")
+        click.echo("  * http://127.0.0.1:5000/*")
+        click.echo("==================================================\n")
+
     return app
 
 
