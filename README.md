@@ -130,11 +130,97 @@ FLASK_APP=app.py
 FLASK_ENV=development
 SECRET_KEY=agrolink-super-secret-key-2024
 DATABASE_URL=postgresql://postgres:<YOUR_POSTGRES_PASSWORD>@localhost:5432/agrolink_db
+
+# Google Maps Platform Credentials (safe browser key, server key, and map ID)
+GOOGLE_MAPS_BROWSER_KEY=
+GOOGLE_MAPS_SERVER_KEY=
+GOOGLE_MAPS_MAP_ID=
 ```
 
 ---
 
-## 4. Database Migrations & CLI Management
+## 4. Google Maps Setup
+
+AgroLink features a decoupled, secure Google Maps foundation designed for Sri Lankan agricultural logistics.
+
+### 4.1 Google Cloud Project & Billing
+1. Navigate to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new Google Cloud Project (e.g. `agrolink-platform`).
+3. Link an active **Billing Account** to the project (Google Maps Platform requires an active billing account linked to the project, even within the free monthly tier).
+
+### 4.2 Enable the 4 Required APIs
+In the Google Cloud Console, open **APIs & Services** $\rightarrow$ **Library** and enable:
+1. **Maps JavaScript API**: Used for client-side interactive map rendering, vector maps, and Advanced Markers.
+2. **Places API (New)**: Powers location autocomplete searches restricted to Sri Lanka (`lk`).
+3. **Geocoding API**: Reverse geocoding (coordinates to street addresses) and forward address resolution.
+4. **Distance Matrix API**: Server-side farm-to-buyer distance calculations and route estimation.
+
+### 4.3 Configure the 2 API Keys & Security Restrictions
+To strictly protect your credentials and quota, configure two separate API keys under **APIs & Services** $\rightarrow$ **Credentials**:
+
+#### Key 1: Browser Key (`GOOGLE_MAPS_BROWSER_KEY`)
+- **Purpose**: Client-facing frontend JavaScript and templates.
+- **Application Restriction**: Select **Websites (HTTP referrers)** and add:
+  - `http://localhost:5000/*`
+  - `http://127.0.0.1:5000/*`
+  - `https://your-production-domain.com/*`
+- **API Restriction**: Restrict key to:
+  - `Maps JavaScript API`
+  - `Places API (New)`
+
+#### Key 2: Server Key (`GOOGLE_MAPS_SERVER_KEY`)
+- **Purpose**: Backend server-to-server operations ONLY (`services/maps.py`).
+- **Security Rule**: NEVER exposed to Jinja templates, frontend JavaScript, or API responses.
+- **Application Restriction**: Select **IP addresses** (set your backend server IP addresses; leave unrestricted or IP-bound in development).
+- **API Restriction**: Restrict key to:
+  - `Geocoding API`
+  - `Distance Matrix API`
+
+### 4.4 Create a Map ID (`GOOGLE_MAPS_MAP_ID`)
+Modern Google Maps `AdvancedMarkerElement` requires a registered Map ID:
+1. Go to **Google Maps Platform** $\rightarrow$ **Map Management**.
+2. Click **Create Map ID**.
+3. Name: `AgroLink Map`.
+4. Map type: **JavaScript** $\rightarrow$ **Vector** (or Raster).
+5. Copy the generated Map ID string into `GOOGLE_MAPS_MAP_ID` in your `.env`.
+
+### 4.5 Set Environment Variables
+Add the credentials to your `.env` file (never commit real keys to git):
+```ini
+GOOGLE_MAPS_BROWSER_KEY=your_restricted_browser_key_here
+GOOGLE_MAPS_SERVER_KEY=your_restricted_server_key_here
+GOOGLE_MAPS_MAP_ID=your_map_id_here
+```
+
+### 4.6 How to Test: Developer Diagnostics Bench (`/_maps_test`)
+A dedicated diagnostics bench is available in development mode (`app.debug = True`):
+
+1. Start the development server (`python app.py`).
+2. Navigate to:
+   ```
+   http://127.0.0.1:5000/_maps_test
+   ```
+3. **Verify Interactive Features**:
+   - Status badges confirm key and Map ID presence without printing the raw secrets.
+   - Interactive map is centered on Sri Lanka (`7.8731, 80.7718`).
+   - Pin is an `AdvancedMarkerElement` that can be dragged across Sri Lanka.
+   - Places search is scoped to Sri Lanka (`country: 'lk'`).
+   - "Use my location" centers map to current device GPS coordinates.
+   - Live read-out displays coordinates, address, and in-country boundary validation.
+4. **Verify Failure Diagnostics & Fallback**:
+   - Use the built-in simulator to test and verify clear failure messages for:
+     - `RefererNotAllowedMapError` (website restriction mismatch)
+     - `ApiNotActivatedMapError` (missing enabled API in Google Cloud)
+     - `BillingNotEnabledMapError` (unlinked billing account)
+     - `InvalidKeyMapError` (invalid key)
+     - `missing key` (missing `GOOGLE_MAPS_BROWSER_KEY`)
+     - `missing map id` (missing `GOOGLE_MAPS_MAP_ID`)
+   - Notice banner: *"Map is unavailable, enter your location manually"* appears whenever maps are disabled or loading fails.
+   - Form fields (Latitude, Longitude, Address) remain fully editable and functional.
+
+---
+
+## 5. Database Migrations & CLI Management
 
 AgroLink uses **Flask-Migrate** (Alembic) for structured schema migrations and CLI commands for administrative maintenance.
 
@@ -159,7 +245,7 @@ flask create-admin
 
 ---
 
-## 5. Run the Application
+## 6. Run the Application
 
 With your virtual environment activated and database running:
 
@@ -182,7 +268,7 @@ http://127.0.0.1:5000/
 
 ---
 
-## 6. Application Structure & Roles
+## 7. Application Structure & Roles
 
 AgroLink features three primary user roles:
 - **Farmer**: Manage crops, list products for sale, view market prices and incoming orders.
@@ -211,7 +297,7 @@ AgroLink features three primary user roles:
 
 ---
 
-## 7. Common Troubleshooting
+## 8. Common Troubleshooting
 
 | Issue | Cause | Solution |
 | :--- | :--- | :--- |
@@ -222,7 +308,7 @@ AgroLink features three primary user roles:
 
 ---
 
-## 8. Version Control & Development
+## 9. Version Control & Development
 
 ```powershell
 # Check modified files
