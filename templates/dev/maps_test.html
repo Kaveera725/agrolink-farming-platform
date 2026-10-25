@@ -34,6 +34,9 @@
           <p class="text-xs sm:text-sm text-amber-800">
             This route is strictly available in debug mode (<code class="font-mono bg-amber-100 px-1.5 py-0.5 rounded text-amber-900">app.debug = True</code>).
           </p>
+          <p class="text-xs sm:text-sm text-amber-950 mt-1 font-medium">
+            Make sure to check and configure credentials in <code class="font-mono bg-amber-200/70 px-1.5 py-0.5 rounded text-amber-950 font-bold">.env</code> (not <code class="font-mono">.env.example</code>), and restart the app after editing it.
+          </p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -126,7 +129,7 @@
         <div class="flex-1 text-sm">
           <h4 class="font-bold text-rose-900">Failure Type: Missing Browser Key (missing key)</h4>
           <p class="mt-1 text-rose-800">
-            The environment variable <code class="font-mono bg-rose-100 px-1 py-0.5 rounded text-rose-900">GOOGLE_MAPS_BROWSER_KEY</code> is missing or empty in <code class="font-mono">.env</code>. The interactive map cannot load.
+            The environment variable <code class="font-mono bg-rose-100 px-1 py-0.5 rounded text-rose-900">GOOGLE_MAPS_BROWSER_KEY</code> is missing or empty. Ensure it is added to <code class="font-mono font-bold">.env</code> (not <code class="font-mono">.env.example</code>), and restart the app.
           </p>
           <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-rose-700">Map is unavailable, enter your location manually.</p>
         </div>
@@ -141,7 +144,7 @@
         <div class="flex-1 text-sm">
           <h4 class="font-bold text-amber-900">Failure Type: Missing Map ID (missing map id)</h4>
           <p class="mt-1 text-amber-800">
-            The environment variable <code class="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900">GOOGLE_MAPS_MAP_ID</code> is missing or empty in <code class="font-mono">.env</code>. Modern Google Maps Advanced Markers require a configured Map ID.
+            The environment variable <code class="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900">GOOGLE_MAPS_MAP_ID</code> is missing or empty. Ensure it is added to <code class="font-mono font-bold">.env</code> (not <code class="font-mono">.env.example</code>), and restart the app.
           </p>
           <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-700">Map is unavailable, enter your location manually.</p>
         </div>
