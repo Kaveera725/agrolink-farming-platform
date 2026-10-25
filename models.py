@@ -25,6 +25,10 @@ class User(UserMixin, db.Model):
     farm_name = db.Column(db.String(120), nullable=True)
     bio = db.Column(db.Text, nullable=True)
     profile_image_url = db.Column(db.String(255), nullable=True)
+    latitude = db.Column(db.Numeric(9, 6), nullable=True)
+    longitude = db.Column(db.Numeric(9, 6), nullable=True)
+    address_text = db.Column(db.String(255), nullable=True)
+    location_updated_at = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

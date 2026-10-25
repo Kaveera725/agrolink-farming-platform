@@ -3,6 +3,13 @@
 
 {% block title %}Create Account — AgroLink Sri Lanka{% endblock %}
 
+{% block extra_head %}
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="min-h-[calc(100vh-4.5rem)] flex items-center justify-center py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
   <div class="w-full max-w-6xl bg-white rounded-3xl shadow-xl border border-bdr overflow-hidden lg:grid lg:grid-cols-12 min-h-[750px]">
@@ -461,25 +468,20 @@
                 </p>
               </div>
 
-              {# Clearly marked slot where the map picker will go later #}
-              <div class="p-4 sm:p-5 rounded-2xl border-2 border-dashed border-bdr bg-canvas/40 space-y-2">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf flex items-center justify-center shrink-0">
-                      {{ icon('map-pin', size=18) }}
-                    </div>
-                    <div>
-                      <span class="text-sm font-bold text-ink block">Interactive GPS Map Location</span>
-                      <span class="text-xs text-muted block">Direct farm-gate and store pinpointing</span>
-                    </div>
-                  </div>
-                  <span class="badge-sm bg-gold-pale text-gold-text border-gold/30 shrink-0">
-                    Coming in Phase 2
-                  </span>
-                </div>
-                <p class="text-xs text-muted leading-relaxed pl-10">
-                  Exact GPS map coordinates will let verified transport trucks calculate direct farm-to-door mileage and travel time automatically.
-                </p>
+              {# Interactive Location Picker Component #}
+              <div class="pt-2">
+                {% set initial_lat = form_data.latitude if form_data and 'latitude' in form_data else '' %}
+                {% set initial_lng = form_data.longitude if form_data and 'longitude' in form_data else '' %}
+                {% set initial_addr = form_data.address_text if form_data and 'address_text' in form_data else '' %}
+                {% set is_farmer_role = not form_data or form_data.role == 'farmer' %}
+                {% with picker_id='reg-location-picker',
+                        initial_lat=initial_lat,
+                        initial_lng=initial_lng,
+                        initial_address=initial_addr,
+                        required=is_farmer_role,
+                        role_hint=('farmer' if is_farmer_role else 'buyer') %}
+                  {% include 'partials/location_picker.html' %}
+                {% endwith %}
               </div>
             </div>
           </div>
@@ -801,6 +803,20 @@
         return;
       }
 
+      // Check farmer location pin requirement
+      const roleFarmer = document.getElementById('role-farmer');
+      if (roleFarmer && roleFarmer.checked) {
+        const latVal = document.getElementById('reg-location-picker-latitude')?.value;
+        const lngVal = document.getElementById('reg-location-picker-longitude')?.value;
+        if (!latVal || !lngVal) {
+          e.preventDefault();
+          const wrap = document.getElementById('reg-location-picker-wrapper');
+          if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          alert('Farmers must pin their farm location on the map before continuing.');
+          return;
+        }
+      }
+
       // Show spinner and disable button
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -814,4 +830,9 @@
     evaluatePassword();
   })();
 </script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+<script src="{{ url_for('static', filename='js/location-picker.js') }}"></script>
 {% endblock %}

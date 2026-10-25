@@ -6,6 +6,7 @@ from models import Product, User, MarketPrice
 from utils.decorators import roles_required
 from utils.uploads import save_uploaded_image, delete_uploaded_image
 from blueprints.profile.routes import SRI_LANKAN_DISTRICTS
+from utils.geo import haversine_km, format_distance_km
 
 marketplace_bp = Blueprint('marketplace', __name__, url_prefix='/marketplace')
 
@@ -103,17 +104,57 @@ def index():
     if availability == 'in_stock':
         query = query.filter(Product.quantity_kg > 0)
 
-    # Sort options: price_asc (default, lowest first), price_desc (highest first), newest
+    # Sort options: price_asc (default, lowest first), price_desc (highest first), newest, nearest
     if sort in ('price_desc', 'price_high_low'):
         query = query.order_by(Product.price_per_kg.desc())
     elif sort == 'newest':
         query = query.order_by(Product.created_at.desc(), Product.id.desc())
+    elif sort == 'nearest':
+        # Handled in memory to sort by distance (or pinned farmers first)
+        query = query.order_by(Product.id.desc())
     else:
         sort = 'price_asc'
         query = query.order_by(Product.price_per_kg.asc())
 
     products = query.all()
     annotate_product_deals(products)
+
+    # Server-side distance calculation (one pass, no external API calls)
+    user_has_pin = bool(
+        current_user.is_authenticated
+        and current_user.latitude is not None
+        and current_user.longitude is not None
+    )
+
+    for p in products:
+        p.distance_km = None
+        p.distance_str = None
+        if user_has_pin and p.farmer and p.farmer.latitude is not None and p.farmer.longitude is not None:
+            try:
+                dist = haversine_km(
+                    current_user.latitude,
+                    current_user.longitude,
+                    p.farmer.latitude,
+                    p.farmer.longitude
+                )
+                p.distance_km = dist
+                p.distance_str = format_distance_km(dist)
+            except Exception:
+                p.distance_km = None
+                p.distance_str = None
+
+    if sort == 'nearest':
+        if user_has_pin:
+            products.sort(key=lambda p: (
+                p.distance_km is None,
+                p.distance_km if p.distance_km is not None else float('inf'),
+                p.id
+            ))
+        else:
+            products.sort(key=lambda p: (
+                not (p.farmer and p.farmer.latitude is not None and p.farmer.longitude is not None),
+                p.id
+            ))
 
     return render_template(
         'marketplace/index.html',
@@ -141,6 +182,45 @@ def product_detail(product_id):
         Product.is_deleted == False
     ).limit(4).all()
     annotate_product_deals([product] + related)
+
+    # Attach distance for authenticated users with pin
+    user_has_pin = bool(
+        current_user.is_authenticated
+        and current_user.latitude is not None
+        and current_user.longitude is not None
+    )
+
+    product.distance_km = None
+    product.distance_str = None
+    if user_has_pin and product.farmer and product.farmer.latitude is not None and product.farmer.longitude is not None:
+        try:
+            d = haversine_km(
+                current_user.latitude,
+                current_user.longitude,
+                product.farmer.latitude,
+                product.farmer.longitude
+            )
+            product.distance_km = d
+            product.distance_str = format_distance_km(d)
+        except Exception:
+            pass
+
+    for rel in related:
+        rel.distance_km = None
+        rel.distance_str = None
+        if user_has_pin and rel.farmer and rel.farmer.latitude is not None and rel.farmer.longitude is not None:
+            try:
+                d = haversine_km(
+                    current_user.latitude,
+                    current_user.longitude,
+                    rel.farmer.latitude,
+                    rel.farmer.longitude
+                )
+                rel.distance_km = d
+                rel.distance_str = format_distance_km(d)
+            except Exception:
+                pass
+
     return render_template('marketplace/product_detail.html', product=product, related=related)
 
 

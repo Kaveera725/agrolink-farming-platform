@@ -1,8 +1,10 @@
+from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db
 from utils.phone import validate_sl_phone, normalize_phone_number
 from utils.uploads import save_uploaded_image, delete_uploaded_image
+from utils.geo import parse_coord, is_in_sri_lanka
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
 
@@ -32,6 +34,9 @@ def edit():
         phone = request.form.get('phone', '').strip()
         whatsapp_number = request.form.get('whatsapp_number', '').strip()
         location = request.form.get('location', '').strip()
+        latitude_raw = request.form.get('latitude', '').strip()
+        longitude_raw = request.form.get('longitude', '').strip()
+        address_text = request.form.get('address_text', '').strip()
         farm_name = request.form.get('farm_name', '').strip() if current_user.role == 'farmer' else None
         bio = request.form.get('bio', '').strip() if current_user.role == 'farmer' else None
 
@@ -87,6 +92,43 @@ def edit():
                 form_data=request.form
             )
 
+        # Coordinate validation (utils/geo.py)
+        parsed_lat = None
+        parsed_lng = None
+        has_new_coords = False
+
+        if latitude_raw or longitude_raw:
+            if not latitude_raw or not longitude_raw:
+                flash('Please provide both latitude and longitude or select a location on the map.', 'error')
+                return render_template(
+                    'profile/edit.html',
+                    user=current_user,
+                    districts=SRI_LANKAN_DISTRICTS,
+                    form_data=request.form
+                )
+
+            parsed_lat = parse_coord(latitude_raw)
+            parsed_lng = parse_coord(longitude_raw)
+            if parsed_lat is None or parsed_lng is None:
+                flash('Invalid coordinates provided. Please select a valid location on the map.', 'error')
+                return render_template(
+                    'profile/edit.html',
+                    user=current_user,
+                    districts=SRI_LANKAN_DISTRICTS,
+                    form_data=request.form
+                )
+
+            if not is_in_sri_lanka(parsed_lat, parsed_lng):
+                flash('Location must be within Sri Lanka (latitude 5.8-9.9, longitude 79.4-82.0).', 'error')
+                return render_template(
+                    'profile/edit.html',
+                    user=current_user,
+                    districts=SRI_LANKAN_DISTRICTS,
+                    form_data=request.form
+                )
+
+            has_new_coords = True
+
         if current_user.role == 'farmer':
             if farm_name and len(farm_name) > 120:
                 flash('Farm name must be 120 characters or fewer.', 'error')
@@ -110,6 +152,20 @@ def edit():
         current_user.whatsapp_number = normalized_wa
         current_user.phone = normalized_ph
         current_user.location = location or None
+
+        if has_new_coords:
+            # Check if lat/lng changed to update timestamp
+            coords_changed = (
+                current_user.latitude != parsed_lat or
+                current_user.longitude != parsed_lng
+            )
+            current_user.latitude = parsed_lat
+            current_user.longitude = parsed_lng
+            current_user.address_text = address_text or None
+            if coords_changed:
+                current_user.location_updated_at = datetime.utcnow()
+        elif address_text:
+            current_user.address_text = address_text
 
         if current_user.role == 'farmer':
             current_user.farm_name = farm_name or None

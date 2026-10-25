@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from pathlib import Path
 from dotenv import load_dotenv
 import os
 import secrets
@@ -6,39 +7,86 @@ import warnings
 import click
 
 from extensions import db, login_manager, csrf, limiter, migrate
+from config import Config
 
-load_dotenv()
+# Explicitly load .env from project root with override=False
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(dotenv_path=env_path, override=False)
+
 
 def create_app(debug=None):
+    # Ensure fresh environment variables are loaded at app creation time
+    load_dotenv(dotenv_path=env_path, override=False)
+
     app = Flask(__name__)
     if debug is not None:
         app.debug = debug
     else:
         app.debug = os.getenv('FLASK_DEBUG', '1' if os.getenv('FLASK_ENV') == 'development' else '0') in ('1', 'true', 'True')
 
-
     env = os.getenv('FLASK_ENV', os.getenv('ENV', 'development')).lower()
-    secret_key = os.getenv('SECRET_KEY')
+    if env == 'production':
+        app.config.from_object('config.ProductionConfig')
+    elif env == 'testing':
+        app.config.from_object('config.TestingConfig')
+    else:
+        app.config.from_object('config.DevelopmentConfig')
+
+    # Read values at app creation time
+    Config.init_app(app)
+
+    secret_key = app.config.get('SECRET_KEY')
     if not secret_key:
         if env == 'production':
             raise RuntimeError(
                 "CRITICAL SECURITY CONFIGURATION ERROR: SECRET_KEY environment variable is required in production mode."
             )
         secret_key = secrets.token_hex(32)
+        app.config['SECRET_KEY'] = secret_key
         warnings.warn(
             "Insecure configuration: SECRET_KEY is not set. Generated a temporary random key for development.",
             UserWarning,
             stacklevel=2
         )
 
-    app.config['SECRET_KEY'] = secret_key
-    app.config['SESSION_COOKIE_HTTPONLY'] = True
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-        'DATABASE_URL',
-        'postgresql://agrolink_db_user:agrolink_db_user_password@localhost:5432/agrolink_db'
+    # Register geo filters and template helpers
+    from utils.geo import time_ago
+    app.jinja_env.filters['time_ago'] = time_ago
+
+    # Expose only safe Google Maps credentials and status to templates
+    @app.context_processor
+    def inject_maps_config():
+        browser_key = app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip()
+        map_id = app.config.get('GOOGLE_MAPS_MAP_ID', '').strip()
+        maps_enabled = bool(browser_key and map_id)
+        return {
+            'maps_enabled': maps_enabled,
+            'maps_browser_key': browser_key if maps_enabled else '',
+            'maps_map_id': map_id if maps_enabled else '',
+            'time_ago': time_ago,
+        }
+
+    # Startup diagnostic: Google Maps configuration presence (names only, never values)
+    from services.maps import get_server_key
+    browser_key_present = bool(app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip())
+    map_id_present = bool(app.config.get('GOOGLE_MAPS_MAP_ID', '').strip())
+    server_key_present = bool(get_server_key())
+
+    maps_status_line = (
+        f"Google Maps config: "
+        f"browser_key={'present' if browser_key_present else 'MISSING'}, "
+        f"map_id={'present' if map_id_present else 'MISSING'}, "
+        f"server_key={'present' if server_key_present else 'MISSING'}"
     )
-    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB maximum request / file size
+    app.logger.info(maps_status_line)
+    if app.debug:
+        print(maps_status_line)
+
+    if not (browser_key_present and map_id_present and server_key_present):
+        maps_warning = "Add GOOGLE_MAPS_* to .env (not .env.example) and restart the app."
+        app.logger.warning(maps_warning)
+        if app.debug:
+            print(f"WARNING: {maps_warning}")
 
     # Ensure static upload directories exist automatically at startup
     uploads_base = os.path.join(app.root_path, 'static', 'uploads')
@@ -96,10 +144,21 @@ def create_app(debug=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(profile_bp)
 
-    # Dev-only: design system styleguide (only available when debug=True)
+    # Dev-only routes and blueprints (only available when app.debug is true)
     if app.debug:
         from blueprints.styleguide.routes import styleguide_bp
         app.register_blueprint(styleguide_bp)
+
+        @app.route('/_maps_test')
+        def maps_test():
+            """DEV-ONLY: Google Maps foundation diagnostics and interactive test bench."""
+            browser_key = app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip()
+            map_id = app.config.get('GOOGLE_MAPS_MAP_ID', '').strip()
+            return render_template(
+                'dev/maps_test.html',
+                has_browser_key=bool(browser_key),
+                has_map_id=bool(map_id),
+            )
 
     # CLI Commands
     @app.cli.command('seed-prices')
@@ -158,6 +217,47 @@ def create_app(debug=None):
         db.session.add(admin)
         db.session.commit()
         click.echo(f"Admin user '{email}' created successfully.")
+
+    @app.cli.command('maps-check')
+    def maps_check_command():
+        """Run diagnostics on Google Maps environment configuration and server reachability."""
+        from services.maps import get_server_key, is_placeholder_value, test_geocoding_api
+
+        click.echo("==================================================")
+        click.echo(" AgroLink Google Maps Configuration Diagnostic    ")
+        click.echo("==================================================")
+
+        # (a) & (b) Check configuration variables
+        vars_to_check = [
+            ("GOOGLE_MAPS_BROWSER_KEY", app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip()),
+            ("GOOGLE_MAPS_MAP_ID", app.config.get('GOOGLE_MAPS_MAP_ID', '').strip()),
+            ("GOOGLE_MAPS_SERVER_KEY", get_server_key()),
+        ]
+
+        click.echo("\n[1] Environment Variables Status:")
+        for var_name, var_val in vars_to_check:
+            if not var_val:
+                click.echo(f"  * {var_name}: MISSING")
+            elif is_placeholder_value(var_val):
+                click.echo(f"  * {var_name}: placeholder, replace with real value (length: {len(var_val)})")
+            else:
+                click.echo(f"  * {var_name}: present (length: {len(var_val)})")
+
+        # (c) Real Geocoding API check using SERVER key
+        click.echo("\n[2] Geocoding API Server-Side Check:")
+        status, err_msg = test_geocoding_api()
+        if status == 'OK':
+            click.echo("  * Status: OK (Kandy, Sri Lanka resolved successfully)")
+        else:
+            msg_suffix = f" - {err_msg}" if err_msg else ""
+            click.echo(f"  * Status: {status}{msg_suffix}")
+
+        # (d) Exact browser-key referrers to allow
+        click.echo("\n[3] Required HTTP Referrers for Browser Key:")
+        click.echo("  In Google Cloud Console (Credentials -> Browser Key -> Website restrictions):")
+        click.echo("  * http://localhost:5000/*")
+        click.echo("  * http://127.0.0.1:5000/*")
+        click.echo("==================================================\n")
 
     return app
 

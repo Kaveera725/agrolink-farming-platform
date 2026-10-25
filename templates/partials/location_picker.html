@@ -1,0 +1,191 @@
+{#
+  AgroLink Reusable Location Picker Partial (partials/location_picker.html)
+  
+  Parameters:
+    picker_id: Unique prefix for DOM IDs (default: 'location-picker')
+    initial_lat: Pre-filled latitude value
+    initial_lng: Pre-filled longitude value
+    initial_address: Pre-filled address string
+    required: Boolean (True if farmer must provide a pin)
+    role_hint: 'farmer' or 'buyer' (customizes help text)
+#}
+{% set p_id = picker_id | default('location-picker') %}
+{% set lat_val = initial_lat if initial_lat is defined and initial_lat is not none else '' %}
+{% set lng_val = initial_lng if initial_lng is defined and initial_lng is not none else '' %}
+{% set addr_val = initial_address if initial_address is defined and initial_address is not none else '' %}
+
+<div class="space-y-3" id="{{ p_id }}-wrapper">
+  
+  <!-- Header & Guidance -->
+  <div class="flex items-center justify-between">
+    <label class="form-label mb-0 flex items-center gap-1.5">
+      <span>{{ 'Farm Location Pin' if role_hint == 'farmer' else 'Location Pin' }}</span>
+      {% if required %}
+      <span class="text-rose-600 font-bold" title="Required">*</span>
+      {% else %}
+      <span class="text-xs text-gray-500 font-normal">(Optional for buyers)</span>
+      {% endif %}
+    </label>
+    <span class="text-xs text-gray-500">Region: Sri Lanka</span>
+  </div>
+
+  <p class="text-xs text-gray-600">
+    {% if role_hint == 'farmer' %}
+    Pin your exact farm or harvest collection point so buyers and logistics drivers can locate you and compute accurate transport distances.
+    {% else %}
+    Pin your default delivery address or drop-off location. You can also update this anytime later.
+    {% endif %}
+  </p>
+
+  <!-- Hidden form inputs submitted with POST form -->
+  <input type="hidden" id="{{ p_id }}-latitude" name="latitude" value="{{ lat_val }}" {% if required %}data-required="true"{% endif %} />
+  <input type="hidden" id="{{ p_id }}-longitude" name="longitude" value="{{ lng_val }}" />
+  <input type="hidden" id="{{ p_id }}-address-text" name="address_text" value="{{ addr_val }}" />
+
+  <!-- Places Search & Use My Location Action Bar -->
+  <div class="space-y-2">
+    <div class="relative">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+      <input
+        type="text"
+        id="{{ p_id }}-search"
+        class="form-input pl-10 text-xs sm:text-sm"
+        placeholder="Search town, junction, or landmark in Sri Lanka..."
+        autocomplete="off"
+        {% if not maps_enabled %}disabled{% endif %}
+      />
+    </div>
+
+    <div class="flex items-center justify-between gap-2">
+      <button
+        type="button"
+        id="{{ p_id }}-use-location"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-leaf/30 text-leaf bg-leaf-pale hover:bg-leaf hover:text-white transition-all duration-150"
+      >
+        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span>Use my current location</span>
+      </button>
+
+      <span class="text-[11px] text-gray-500">Drag pin or click map to adjust</span>
+    </div>
+  </div>
+
+  <!-- Geolocation & Status Notice Area -->
+  <div id="{{ p_id }}-geo-notice" class="hidden"></div>
+
+  <!-- Map Canvas & Loading Skeleton -->
+  <div class="relative w-full rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 shadow-inner">
+    
+    <!-- Interactive Google Map -->
+    <div id="{{ p_id }}-map" class="w-full h-[260px] sm:h-[300px]"></div>
+
+    <!-- Animated Loading Skeleton -->
+    <div id="{{ p_id }}-skeleton" class="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center gap-2 p-4 text-center {% if not maps_enabled %}hidden{% endif %}">
+      <div class="animate-spin h-7 w-7 border-2 border-leaf border-t-transparent rounded-full"></div>
+      <p class="text-xs text-gray-500 font-medium">Loading interactive map...</p>
+    </div>
+
+    <!-- Fallback Notice & Manual Coordinate Entry Form -->
+    <div id="{{ p_id }}-fallback" class="p-4 space-y-3 bg-amber-50/80 border-t border-amber-200 {% if maps_enabled %}hidden{% endif %}">
+      <div class="flex items-start gap-2.5 text-amber-900 text-xs">
+        <svg class="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div class="flex-1">
+          <span class="font-bold">Map is unavailable, enter your location manually.</span>
+          <p class="mt-0.5 text-amber-800">You can type your latitude, longitude, and address directly into the fields below.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        <div>
+          <label for="{{ p_id }}-manual-lat" class="block font-semibold text-gray-700 mb-1">Latitude (e.g. 7.873100)</label>
+          <input
+            type="text"
+            id="{{ p_id }}-manual-lat"
+            class="form-input text-xs font-mono"
+            placeholder="5.8 to 9.9"
+            value="{{ lat_val }}"
+          />
+        </div>
+        <div>
+          <label for="{{ p_id }}-manual-lng" class="block font-semibold text-gray-700 mb-1">Longitude (e.g. 80.771800)</label>
+          <input
+            type="text"
+            id="{{ p_id }}-manual-lng"
+            class="form-input text-xs font-mono"
+            placeholder="79.4 to 82.0"
+            value="{{ lng_val }}"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label for="{{ p_id }}-manual-address" class="block font-semibold text-gray-700 mb-1 text-xs">Street / Town Address Description</label>
+        <input
+          type="text"
+          id="{{ p_id }}-manual-address"
+          class="form-input text-xs"
+          placeholder="e.g. Near Dambulla Clock Tower, Main Street"
+          value="{{ addr_val }}"
+        />
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Chosen Location Summary Card Under Map -->
+  <div class="rounded-xl border border-gray-200 bg-white p-3 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+    <div class="flex items-start gap-2 min-w-0">
+      <svg class="h-4 w-4 text-leaf flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <div class="min-w-0">
+        <div class="font-semibold text-gray-900 truncate" id="{{ p_id }}-address-display">
+          {{ addr_val if addr_val else ('No location pinned yet' if not lat_val else 'Location pinned') }}
+        </div>
+        <div class="font-mono text-[11px] text-gray-500 mt-0.5" id="{{ p_id }}-coords-display">
+          {{ (lat_val ~ ', ' ~ lng_val) if lat_val and lng_val else 'Click map or search above to pin coordinates' }}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <span id="{{ p_id }}-status-badge" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold {% if lat_val and lng_val %}bg-emerald-100 text-emerald-800 border border-emerald-200{% else %}bg-gray-100 text-gray-600 border border-gray-200{% endif %}">
+        {{ 'In Sri Lanka' if lat_val and lng_val else 'Not Pinned' }}
+      </span>
+    </div>
+  </div>
+
+</div>
+
+<!-- Initialize AgroLocationPicker for this instance -->
+<script>
+  (function() {
+    function startPicker() {
+      if (typeof window.AgroLocationPicker === 'function') {
+        new window.AgroLocationPicker({
+          prefix: '{{ p_id }}',
+          initialLat: '{{ lat_val }}',
+          initialLng: '{{ lng_val }}',
+          initialAddress: {{ addr_val|tojson }},
+          required: {{ 'true' if required else 'false' }}
+        });
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startPicker);
+    } else {
+      startPicker();
+    }
+  })();
+</script>

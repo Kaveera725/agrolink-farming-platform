@@ -1,3 +1,4 @@
+from datetime import datetime
 from email_validator import validate_email, EmailNotValidError
 from urllib.parse import urlsplit
 from flask import Blueprint, render_template, redirect, url_for, flash, request
@@ -5,6 +6,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db, limiter
 from models import User
 from utils.phone import validate_sl_phone, normalize_phone_number
+from utils.geo import parse_coord, is_in_sri_lanka
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -31,7 +33,10 @@ def register():
         'role': 'farmer',
         'whatsapp_number': '',
         'phone': '',
-        'location': ''
+        'location': '',
+        'latitude': '',
+        'longitude': '',
+        'address_text': ''
     }
 
     if request.method == 'POST':
@@ -43,6 +48,9 @@ def register():
         whatsapp_number = request.form.get('whatsapp_number', '').strip()
         phone = request.form.get('phone', '').strip()
         location = request.form.get('location', '').strip()
+        latitude_raw = request.form.get('latitude', '').strip()
+        longitude_raw = request.form.get('longitude', '').strip()
+        address_text = request.form.get('address_text', '').strip()
 
         form_data = {
             'name': name,
@@ -50,7 +58,10 @@ def register():
             'role': role,
             'whatsapp_number': whatsapp_number,
             'phone': phone,
-            'location': location
+            'location': location,
+            'latitude': latitude_raw,
+            'longitude': longitude_raw,
+            'address_text': address_text
         }
 
         if not name or not email or not password or not whatsapp_number:
@@ -90,6 +101,42 @@ def register():
             flash('Invalid role selected.', 'error')
             return render_template('auth/register.html', form_data=form_data)
 
+        # Location coordinate validation (utils/geo.py)
+        parsed_lat = None
+        parsed_lng = None
+
+        if role == 'farmer':
+            # Farmers MUST have a pin at registration
+            if not latitude_raw or not longitude_raw:
+                flash('Farmers must pin their farm location on the map so buyers can find you.', 'error')
+                return render_template('auth/register.html', form_data=form_data)
+
+            parsed_lat = parse_coord(latitude_raw)
+            parsed_lng = parse_coord(longitude_raw)
+            if parsed_lat is None or parsed_lng is None:
+                flash('Invalid coordinates provided. Please select a valid location on the map.', 'error')
+                return render_template('auth/register.html', form_data=form_data)
+
+            if not is_in_sri_lanka(parsed_lat, parsed_lng):
+                flash('Location must be within Sri Lanka (latitude 5.8-9.9, longitude 79.4-82.0).', 'error')
+                return render_template('auth/register.html', form_data=form_data)
+        else:
+            # Buyers may skip it at registration
+            if latitude_raw or longitude_raw:
+                if not latitude_raw or not longitude_raw:
+                    flash('Please provide both latitude and longitude or select a location on the map.', 'error')
+                    return render_template('auth/register.html', form_data=form_data)
+
+                parsed_lat = parse_coord(latitude_raw)
+                parsed_lng = parse_coord(longitude_raw)
+                if parsed_lat is None or parsed_lng is None:
+                    flash('Invalid coordinates provided. Please select a valid location on the map.', 'error')
+                    return render_template('auth/register.html', form_data=form_data)
+
+                if not is_in_sri_lanka(parsed_lat, parsed_lng):
+                    flash('Location must be within Sri Lanka (latitude 5.8-9.9, longitude 79.4-82.0).', 'error')
+                    return render_template('auth/register.html', form_data=form_data)
+
         # Normalize optional phone if provided
         normalized_ph = normalize_phone_number(phone) if phone else None
 
@@ -99,7 +146,11 @@ def register():
             role=role,
             phone=normalized_ph or phone or None,
             whatsapp_number=normalized_wa,
-            location=location or None,
+            location=location or (address_text if address_text else None),
+            latitude=parsed_lat,
+            longitude=parsed_lng,
+            address_text=address_text or None,
+            location_updated_at=datetime.utcnow() if parsed_lat is not None else None,
             is_active=True
         )
         user.set_password(password)

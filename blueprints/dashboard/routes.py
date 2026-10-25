@@ -1,9 +1,10 @@
 from datetime import date, datetime, timedelta
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from extensions import db
 from models import Crop, Product, Order, User
 from utils.decorators import roles_required
+from utils.geo import parse_coord, is_in_sri_lanka, time_ago
 
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 
@@ -147,3 +148,47 @@ def delete_crop(crop_id):
     db.session.commit()
     flash('Crop deleted.', 'info')
     return redirect(url_for('dashboard.crops'))
+
+
+@dashboard_bp.route('/update-location', methods=['POST'])
+@login_required
+def update_location():
+    """
+    Farmer-only endpoint to update geolocation coordinates.
+    CSRF protected, validates Sri Lanka bounds, saves lat/lng,
+    sets location_updated_at, and returns JSON.
+    """
+    if current_user.role != 'farmer':
+        return jsonify({'success': False, 'error': 'Only farmers can update farm location.'}), 403
+
+    data = request.get_json(silent=True) or request.form
+    lat_val = data.get('latitude')
+    lng_val = data.get('longitude')
+    addr_val = data.get('address_text', '').strip() if data.get('address_text') else ''
+
+    parsed_lat = parse_coord(lat_val)
+    parsed_lng = parse_coord(lng_val)
+
+    if parsed_lat is None or parsed_lng is None:
+        return jsonify({'success': False, 'error': 'Invalid coordinates provided.'}), 400
+
+    if not is_in_sri_lanka(parsed_lat, parsed_lng):
+        return jsonify({'success': False, 'error': 'Location must be within Sri Lanka (latitude 5.8-9.9, longitude 79.4-82.0).'}), 400
+
+    current_user.latitude = parsed_lat
+    current_user.longitude = parsed_lng
+    current_user.location_updated_at = datetime.utcnow()
+    if addr_val:
+        current_user.address_text = addr_val
+
+    db.session.commit()
+
+    rel_time = time_ago(current_user.location_updated_at)
+    return jsonify({
+        'success': True,
+        'message': 'Your farm location has been updated successfully!',
+        'latitude': float(current_user.latitude),
+        'longitude': float(current_user.longitude),
+        'time_ago': rel_time,
+        'location_updated_at_ago': rel_time
+    })

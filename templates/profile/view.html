@@ -2,6 +2,13 @@
 {% import "components/ui.html" as ui with context %}
 {% block title %}My Profile — AgroLink{% endblock %}
 
+{% block extra_head %}
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -238,39 +245,165 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MAP LOCATION PLACEHOLDER (Clearly marked for upcoming prompt integration) -->
+  <!-- LOCATION MAP SECTION (Mini-map or Empty State)                            -->
   <!-- ========================================================================= -->
-  <section id="map-location-placeholder" class="mt-8">
-    <div class="relative overflow-hidden rounded-2xl border-2 border-dashed border-leaf/40 bg-gradient-to-r from-leaf-pale/30 via-white to-earth-pale/20 p-8 sm:p-10 text-center shadow-sm">
-      <div class="max-w-xl mx-auto">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-leaf-pale flex items-center justify-center text-leaf shadow-inner">
-          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+  <section class="mt-8">
+    {% if user.latitude is not none and user.longitude is not none %}
+    <div class="card p-6 sm:p-8 space-y-4 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {{ 'Farm Location Pin' if user.role == 'farmer' else 'Delivery Location Pin' }}
+          </h3>
+          <p class="text-xs text-gray-500 mt-0.5">
+            {{ 'Verified harvest collection coordinates in Sri Lanka.' if user.role == 'farmer' else 'Saved default delivery destination.' }}
+          </p>
+        </div>
+        <a href="{{ url_for('profile.edit') }}" class="btn-secondary text-xs sm:text-sm py-2 px-4 inline-flex items-center gap-1.5 self-start sm:self-auto">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <span>Edit location</span>
+        </a>
+      </div>
+
+      <!-- Mini Map Canvas & Fallback -->
+      <div class="relative w-full rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 shadow-inner">
+        <div id="profile-mini-map" class="w-full h-[240px] sm:h-[300px]"></div>
+
+        <!-- Skeleton loader -->
+        <div id="profile-map-skeleton" class="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center gap-2 {% if not maps_enabled %}hidden{% endif %}">
+          <div class="animate-spin h-7 w-7 border-2 border-leaf border-t-transparent rounded-full"></div>
+          <span class="text-xs text-gray-500 font-medium">Loading mini-map...</span>
+        </div>
+
+        <!-- Fallback if maps unavailable -->
+        <div id="profile-map-fallback" class="p-6 text-center space-y-2 {% if maps_enabled %}hidden{% endif %}">
+          <p class="text-xs text-gray-600 font-medium">Map view is offline or unavailable. Coordinates are securely recorded:</p>
+          <div class="inline-flex items-center gap-2 text-xs font-mono bg-white px-3 py-1.5 rounded-lg border border-gray-200 text-gray-800">
+            <span>{{ user.latitude }}, {{ user.longitude }}</span>
+          </div>
+          <div class="pt-2">
+            <a href="https://www.google.com/maps?q={{ user.latitude }},{{ user.longitude }}" target="_blank" rel="noopener noreferrer" class="text-xs text-leaf font-semibold hover:underline inline-flex items-center gap-1">
+              <span>View in Google Maps</span>
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pin Info Footer -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs text-gray-600">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-gray-800">{{ user.address_text or user.location or 'Pinned coordinates' }}</span>
+          <span class="font-mono text-gray-500 text-[11px] bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+            {{ user.latitude }}, {{ user.longitude }}
+          </span>
+        </div>
+        {% if user.location_updated_at %}
+        <span class="text-gray-600">
+          Updated {{ user.location_updated_at.strftime('%b %d, %Y') }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/70 p-8 sm:p-10 text-center shadow-xs">
+      <div class="max-w-md mx-auto space-y-3">
+        <div class="w-14 h-14 mx-auto rounded-2xl bg-leaf-pale flex items-center justify-center text-leaf">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </div>
-
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-leaf/10 text-leaf mb-3">
-          <span class="w-2 h-2 rounded-full bg-leaf animate-pulse"></span>
-          Map Location Placeholder
-        </div>
-
-        <h3 class="font-display text-2xl font-bold text-gray-900 mb-2">Interactive Map Location</h3>
-        <p class="text-sm text-gray-600 leading-relaxed mb-4">
-          This designated section is ready for interactive map integration. The next feature prompt will inject the GPS coordinates picker and interactive map view for farm locations and delivery dispatch hubs.
+        <h3 class="text-base font-bold text-gray-900">No Location Pinned Yet</h3>
+        <p class="text-xs text-gray-500 leading-relaxed">
+          {% if user.role == 'farmer' %}
+          Add your farm location pin so buyers can find you and calculate accurate delivery distances.
+          {% else %}
+          Add your delivery address pin for seamless order fulfillment and direct door-to-door delivery.
+          {% endif %}
         </p>
-
-        <div class="inline-flex items-center gap-2 text-xs font-mono text-gray-500 bg-white/80 px-4 py-2 rounded-xl border border-gray-200">
-          <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-          </svg>
-          Current Location: {{ user.location or 'Unassigned' }}
+        <div class="pt-2">
+          <a href="{{ url_for('profile.edit') }}" class="btn-primary text-xs sm:text-sm py-2 px-5 inline-flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add location</span>
+          </a>
         </div>
       </div>
     </div>
+    {% endif %}
   </section>
-  <!-- ========================================================================= -->
-  <!-- END MAP LOCATION PLACEHOLDER                                              -->
-  <!-- ========================================================================= -->
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+{% if user.latitude is not none and user.longitude is not none %}
+<script>
+  (function() {
+    function initMiniMap() {
+      const canvas = document.getElementById('profile-mini-map');
+      const skeleton = document.getElementById('profile-map-skeleton');
+      const fallback = document.getElementById('profile-map-fallback');
+      if (!canvas || !window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) {
+        if (skeleton) skeleton.classList.add('hidden');
+        if (fallback) fallback.classList.remove('hidden');
+        return;
+      }
+
+      window.AgroMapsLoader.load(['maps', 'marker'])
+        .then(() => {
+          if (skeleton) skeleton.classList.add('hidden');
+          const center = { lat: parseFloat('{{ user.latitude }}'), lng: parseFloat('{{ user.longitude }}') };
+          const mapId = window.AgroMapsLoader.getMapId() || undefined;
+          const map = new google.maps.Map(canvas, {
+            center: center,
+            zoom: 14,
+            mapId: mapId,
+            disableDefaultUI: false,
+            mapTypeControl: false,
+            streetViewControl: false,
+            gestureHandling: 'cooperative'
+          });
+
+          if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+            new google.maps.marker.AdvancedMarkerElement({
+              map: map,
+              position: center,
+              title: '{{ user.name }}'
+            });
+          } else {
+            new google.maps.Marker({
+              map: map,
+              position: center,
+              title: '{{ user.name }}'
+            });
+          }
+        })
+        .catch(err => {
+          console.warn('[AgroLink] Mini-map load failed:', err);
+          if (skeleton) skeleton.classList.add('hidden');
+          if (fallback) fallback.classList.remove('hidden');
+        });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMiniMap);
+    } else {
+      initMiniMap();
+    }
+  })();
+</script>
+{% endif %}
 {% endblock %}

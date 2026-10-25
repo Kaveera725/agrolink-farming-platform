@@ -115,6 +115,35 @@
           {% endif %}
         </div>
       {% endif %}
+
+      {% if order.product.farmer.latitude and order.product.farmer.longitude %}
+        <div class="pt-2 border-t border-gray-100 text-xs">
+          <div class="flex items-center justify-between text-muted mb-1">
+            <span class="font-medium text-gray-700">Farm Pin Location</span>
+            {% if order.product.farmer.location_updated_at %}
+              <span class="text-[11px] text-gray-400">Updated {{ time_ago(order.product.farmer.location_updated_at) }}</span>
+            {% endif %}
+          </div>
+          <div class="flex items-center gap-3">
+            <a
+              href="https://www.google.com/maps/search/?api=1&query={{ order.product.farmer.latitude }},{{ order.product.farmer.longitude }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-leaf hover:underline font-semibold"
+            >
+              Open in Google Maps &rarr;
+            </a>
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination={{ order.product.farmer.latitude }},{{ order.product.farmer.longitude }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-leaf hover:underline font-semibold"
+            >
+              Get Directions &rarr;
+            </a>
+          </div>
+        </div>
+      {% endif %}
     </div>
 
     <!-- Buyer Card -->
@@ -138,6 +167,39 @@
           >
             Call Buyer
           </a>
+        </div>
+      {% endif %}
+
+      {# Privacy rule: Buyer's pin is visible ONLY to the farmer of an order that buyer placed #}
+      {% if current_user.id == order.product.farmer_id and order.buyer.latitude and order.buyer.longitude %}
+        <div class="pt-2 border-t border-gray-100 text-xs">
+          <div class="flex items-center justify-between text-muted mb-1">
+            <span class="font-medium text-gray-700">Buyer Delivery Pin</span>
+            {% if order.buyer.location_updated_at %}
+              <span class="text-[11px] text-gray-400">Updated {{ time_ago(order.buyer.location_updated_at) }}</span>
+            {% endif %}
+          </div>
+          {% if order.buyer.address_text %}
+            <p class="text-xs text-gray-600 mb-1.5">{{ order.buyer.address_text }}</p>
+          {% endif %}
+          <div class="flex items-center gap-3">
+            <a
+              href="https://www.google.com/maps/search/?api=1&query={{ order.buyer.latitude }},{{ order.buyer.longitude }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sky hover:underline font-semibold"
+            >
+              Open in Google Maps &rarr;
+            </a>
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination={{ order.buyer.latitude }},{{ order.buyer.longitude }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sky hover:underline font-semibold"
+            >
+              Get Directions &rarr;
+            </a>
+          </div>
         </div>
       {% endif %}
     </div>

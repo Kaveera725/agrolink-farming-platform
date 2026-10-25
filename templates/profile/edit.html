@@ -2,6 +2,13 @@
 {% import "components/ui.html" as ui with context %}
 {% block title %}Edit Profile — AgroLink{% endblock %}
 
+{% block extra_head %}
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -149,27 +156,40 @@
     {% endif %}
 
     <!-- ========================================================================= -->
-    <!-- MAP LOCATION PLACEHOLDER (Clearly marked for upcoming prompt integration) -->
+    <!-- INTERACTIVE MAP LOCATION PICKER                                           -->
     <!-- ========================================================================= -->
-    <div id="map-location-placeholder" class="rounded-2xl border-2 border-dashed border-leaf/40 bg-leaf-pale/20 p-6 sm:p-8 text-center">
-      <div class="max-w-md mx-auto">
-        <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-leaf-pale flex items-center justify-center text-leaf">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="card p-6 sm:p-8 space-y-4">
+      <div class="border-b border-gray-100 pb-3">
+        <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <svg class="w-5 h-5 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-        </div>
-        <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-leaf/10 text-leaf mb-2">
-          Map Location Placeholder
-        </span>
-        <h3 class="text-base font-bold text-gray-800 mb-1">Farm / Delivery Pin Location</h3>
-        <p class="text-xs text-gray-500 leading-relaxed">
-          Interactive map pin selection will be enabled here in the next update. For now, specify your primary district or town in the location field above.
+          {{ 'Farm Pin Location' if user.role == 'farmer' else 'Delivery Address Pin' }}
+        </h2>
+        <p class="text-xs text-gray-500 mt-1">
+          {% if user.role == 'farmer' %}
+          Pin your farm or collection point so buyers and logistics drivers can calculate direct transport distances.
+          {% else %}
+          Pin your delivery destination for accurate shipping estimates and direct drop-off.
+          {% endif %}
         </p>
       </div>
+
+      {% set cur_lat = form_data.get('latitude') if form_data and 'latitude' in form_data else (user.latitude if user.latitude is not none else '') %}
+      {% set cur_lng = form_data.get('longitude') if form_data and 'longitude' in form_data else (user.longitude if user.longitude is not none else '') %}
+      {% set cur_addr = form_data.get('address_text') if form_data and 'address_text' in form_data else (user.address_text if user.address_text is not none else '') %}
+      {% with picker_id='profile-location-picker',
+              initial_lat=cur_lat,
+              initial_lng=cur_lng,
+              initial_address=cur_addr,
+              required=false,
+              role_hint=user.role %}
+        {% include 'partials/location_picker.html' %}
+      {% endwith %}
     </div>
     <!-- ========================================================================= -->
-    <!-- END MAP LOCATION PLACEHOLDER                                              -->
+    <!-- END INTERACTIVE MAP LOCATION PICKER                                       -->
     <!-- ========================================================================= -->
 
     <!-- Form Submit Buttons -->
@@ -242,4 +262,9 @@
     }
   })();
 </script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+<script src="{{ url_for('static', filename='js/location-picker.js') }}"></script>
 {% endblock %}
