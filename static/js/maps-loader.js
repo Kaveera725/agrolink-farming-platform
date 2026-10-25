@@ -219,9 +219,9 @@
         const l = "importLibrary";
         const q = "__ib__";
         const m = document;
-        const b = window;
-        b[c] = b[c] || (b[c] = {});
-        const d = b.maps || (b.maps = {});
+        window.google = window.google || {};
+        window.google.maps = window.google.maps || {};
+        const d = window.google.maps;
         const r = new Set();
         const e = new URLSearchParams();
         const u = () => h || (h = new Promise(async (f, n) => {
@@ -261,9 +261,9 @@
 
     // Load 'maps', 'marker', and 'places' libraries concurrently
     Promise.all([
-      google.maps.importLibrary('maps'),
-      google.maps.importLibrary('marker'),
-      google.maps.importLibrary('places')
+      window.google.maps.importLibrary('maps'),
+      window.google.maps.importLibrary('marker'),
+      window.google.maps.importLibrary('places')
     ])
       .then(([mapsLib, markerLib, placesLib]) => {
         AgroMaps.libraries = {
