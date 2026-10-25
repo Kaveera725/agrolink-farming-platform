@@ -107,10 +107,21 @@ def create_app(debug=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(profile_bp)
 
-    # Dev-only: design system styleguide (only available when debug=True)
+    # Dev-only routes and blueprints (only available when app.debug is true)
     if app.debug:
         from blueprints.styleguide.routes import styleguide_bp
         app.register_blueprint(styleguide_bp)
+
+        @app.route('/_maps_test')
+        def maps_test():
+            """DEV-ONLY: Google Maps foundation diagnostics and interactive test bench."""
+            browser_key = app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip()
+            map_id = app.config.get('GOOGLE_MAPS_MAP_ID', '').strip()
+            return render_template(
+                'dev/maps_test.html',
+                has_browser_key=bool(browser_key),
+                has_map_id=bool(map_id),
+            )
 
     # CLI Commands
     @app.cli.command('seed-prices')

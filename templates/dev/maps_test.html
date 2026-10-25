@@ -1,0 +1,737 @@
+{% extends "base.html" %}
+
+{% block title %}Dev Diagnostics: Google Maps Foundation{% endblock %}
+
+{% block extra_head %}
+<!-- Safe metadata credentials (never expose server key) -->
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+<style>
+  .agro-map-container {
+    min-height: 440px;
+    height: 480px;
+    width: 100%;
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <!-- DEV-ONLY DISCLAIMER BANNER -->
+  <div class="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 sm:p-5 text-amber-950 shadow-xs">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-amber-200/80 text-amber-900 font-bold text-xs uppercase tracking-wider">
+          DEV
+        </span>
+        <div>
+          <h2 class="text-base font-bold text-amber-950">Developer Diagnostics: Google Maps Foundation</h2>
+          <p class="text-xs sm:text-sm text-amber-800">
+            This route is strictly available in debug mode (<code class="font-mono bg-amber-100 px-1.5 py-0.5 rounded text-amber-900">app.debug = True</code>).
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+          <span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span> Debug Active
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS STRIP & CONFIGURATION HEALTH -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    
+    <!-- Browser Key Status -->
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Browser Key Status</div>
+      <div class="mt-2 flex items-center justify-between">
+        <span class="text-base font-bold text-gray-900">GOOGLE_MAPS_BROWSER_KEY</span>
+        {% if has_browser_key %}
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          Present
+        </span>
+        {% else %}
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
+          Missing
+        </span>
+        {% endif %}
+      </div>
+      <p class="mt-2 text-xs text-gray-500">Client-safe key for Maps JavaScript & Places API.</p>
+    </div>
+
+    <!-- Map ID Status -->
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Map ID Status</div>
+      <div class="mt-2 flex items-center justify-between">
+        <span class="text-base font-bold text-gray-900">GOOGLE_MAPS_MAP_ID</span>
+        {% if has_map_id %}
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          Present
+        </span>
+        {% else %}
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
+          Missing
+        </span>
+        {% endif %}
+      </div>
+      <p class="mt-2 text-xs text-gray-500">Required for Google Maps AdvancedMarkerElement.</p>
+    </div>
+
+    <!-- maps_enabled Flag -->
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Maps Enabled Context</div>
+      <div class="mt-2 flex items-center justify-between">
+        <span class="text-base font-bold text-gray-900">maps_enabled</span>
+        {% if maps_enabled %}
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-leaf-pale text-leaf border border-leaf/30">
+          True
+        </span>
+        {% else %}
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+          False
+        </span>
+        {% endif %}
+      </div>
+      <p class="mt-2 text-xs text-gray-500">Evaluates true when both key and Map ID exist.</p>
+    </div>
+
+    <!-- Server Key Security Perimeter -->
+    <div class="card p-4">
+      <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Server Key Isolation</div>
+      <div class="mt-2 flex items-center justify-between">
+        <span class="text-base font-bold text-gray-900">SERVER_KEY</span>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-sky-pale text-sky border border-sky/30">
+          Protected
+        </span>
+      </div>
+      <p class="mt-2 text-xs text-gray-500">Strictly isolated in <code class="text-xs font-mono">services/</code>. Never exposed.</p>
+    </div>
+
+  </div>
+
+  <!-- DIAGNOSTIC ERROR & NOTICE NOTIFICATION AREA -->
+  <div id="diagnostics-alert-area" class="space-y-4 mb-8">
+    {% if not has_browser_key %}
+    <div class="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-950 shadow-xs" role="alert">
+      <div class="flex items-start gap-3">
+        <svg class="h-5 w-5 text-rose-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div class="flex-1 text-sm">
+          <h4 class="font-bold text-rose-900">Failure Type: Missing Browser Key (missing key)</h4>
+          <p class="mt-1 text-rose-800">
+            The environment variable <code class="font-mono bg-rose-100 px-1 py-0.5 rounded text-rose-900">GOOGLE_MAPS_BROWSER_KEY</code> is missing or empty in <code class="font-mono">.env</code>. The interactive map cannot load.
+          </p>
+          <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-rose-700">Map is unavailable, enter your location manually.</p>
+        </div>
+      </div>
+    </div>
+    {% elif not has_map_id %}
+    <div class="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950 shadow-xs" role="alert">
+      <div class="flex items-start gap-3">
+        <svg class="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div class="flex-1 text-sm">
+          <h4 class="font-bold text-amber-900">Failure Type: Missing Map ID (missing map id)</h4>
+          <p class="mt-1 text-amber-800">
+            The environment variable <code class="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900">GOOGLE_MAPS_MAP_ID</code> is missing or empty in <code class="font-mono">.env</code>. Modern Google Maps Advanced Markers require a configured Map ID.
+          </p>
+          <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-amber-700">Map is unavailable, enter your location manually.</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- MAIN INTERACTIVE BENCH -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT COLUMN: MAP CANVAS & SEARCH TOOLS (7 Cols) -->
+    <div class="lg:col-span-7 space-y-4">
+      
+      <!-- Places Search & Geolocation Controls -->
+      <div class="card p-4 sm:p-5">
+        <label for="places-search-input" class="form-label flex items-center justify-between">
+          <span>Search Location in Sri Lanka (Places API New)</span>
+          <span class="text-xs text-gray-500 font-normal">Region: <strong class="font-mono text-gray-700">lk</strong></span>
+        </label>
+        
+        <div class="relative mt-1">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="places-search-input"
+            class="form-input pl-11"
+            placeholder="Search farm, wholesale market, town (e.g., Dambulla Economic Centre, Nuwara Eliya)..."
+            autocomplete="off"
+            {% if not maps_enabled %}disabled{% endif %}
+          />
+        </div>
+
+        <!-- Quick Action Bar -->
+        <div class="mt-4 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            id="btn-use-my-location"
+            class="btn-secondary text-xs sm:text-sm py-2 px-3.5"
+            title="Locate via browser GPS"
+          >
+            <svg class="h-4 w-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span>Use my location</span>
+          </button>
+
+          <button
+            type="button"
+            id="btn-center-sl"
+            class="btn-secondary text-xs sm:text-sm py-2 px-3.5"
+            title="Reset map view to geographic center of Sri Lanka"
+          >
+            <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            <span>Reset Center (7.8731, 80.7718)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MAP CANVAS CONTAINER WITH FALLBACK OVERLAY -->
+      <div class="relative card p-2 bg-gray-50 border border-gray-200">
+        <div id="map-canvas" class="agro-map-container" data-maps-container>
+          <!-- Fallback placeholder visible if JS or Maps API is not loaded -->
+          <div id="map-fallback-view" class="h-full w-full flex flex-col items-center justify-center p-6 text-center bg-gray-100 rounded-xl {% if maps_enabled %}hidden{% endif %}">
+            <div class="h-14 w-14 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mb-3">
+              <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+              </svg>
+            </div>
+            <h3 class="text-base font-bold text-gray-900">Map Canvas Unavailable</h3>
+            <p class="mt-1 text-sm text-gray-600 max-w-md">
+              Map is unavailable, enter your location manually.
+            </p>
+            <p class="mt-2 text-xs text-gray-500">
+              Interactive map requires valid GOOGLE_MAPS_BROWSER_KEY and GOOGLE_MAPS_MAP_ID.
+            </p>
+          </div>
+        </div>
+
+        <!-- Draggable Advanced Marker Helper Tooltip -->
+        <div class="mt-2 px-2 py-1 flex items-center justify-between text-xs text-gray-500">
+          <span class="flex items-center gap-1.5">
+            <span class="h-2 w-2 rounded-full bg-leaf"></span>
+            <span>Draggable Advanced Marker: drag pin or click anywhere on map</span>
+          </span>
+          <span>Center: <strong>7.8731, 80.7718</strong></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: LIVE READ-OUT & MANUAL FALLBACK FORM (5 Cols) -->
+    <div class="lg:col-span-5 space-y-6">
+
+      <!-- FALLBACK NOTICE BANNER (Sub-task 5 requirement) -->
+      <div id="manual-entry-notice" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 {% if maps_enabled %}hidden{% endif %}">
+        <div class="flex items-start gap-3">
+          <svg class="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <div class="text-sm">
+            <div class="font-bold text-amber-900">Fallback Mode Active</div>
+            <p class="mt-0.5 text-amber-800 text-xs sm:text-sm">
+              Map is unavailable, enter your location manually.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE READ-OUT PANEL -->
+      <div class="card p-5 bg-white border border-gray-200 shadow-sm">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+          <h3 class="font-bold text-base text-gray-900 flex items-center gap-2">
+            <svg class="h-5 w-5 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Live Location Read-Out</span>
+          </h3>
+          <span id="readout-in-sl-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            In Sri Lanka
+          </span>
+        </div>
+
+        <dl class="space-y-3 text-sm">
+          <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+            <dt class="text-gray-500 font-medium">Selected Latitude</dt>
+            <dd id="readout-lat" class="font-mono font-bold text-gray-900 text-right">7.873100</dd>
+          </div>
+          <div class="flex justify-between items-center py-1.5 border-b border-gray-50">
+            <dt class="text-gray-500 font-medium">Selected Longitude</dt>
+            <dd id="readout-lng" class="font-mono font-bold text-gray-900 text-right">80.771800</dd>
+          </div>
+          <div class="flex justify-between items-start py-1.5 border-b border-gray-50">
+            <dt class="text-gray-500 font-medium">Address</dt>
+            <dd id="readout-address" class="text-gray-900 font-medium text-right max-w-[240px] truncate" title="Geographic Center, Sri Lanka">Geographic Center, Sri Lanka</dd>
+          </div>
+          <div class="flex justify-between items-center py-1.5">
+            <dt class="text-gray-500 font-medium">Distance from SL Center</dt>
+            <dd id="readout-distance" class="font-mono text-gray-700 text-right">0.00 km</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- MANUAL FORM FIELDS (Sub-task 5 requirement) -->
+      <div class="card p-5">
+        <h3 class="font-bold text-base text-gray-900 mb-2">Location Coordinates Form</h3>
+        <p class="text-xs text-gray-500 mb-4">
+          Changes in the fields below synchronize immediately with the map marker and live read-out.
+        </p>
+
+        <form id="location-test-form" onsubmit="event.preventDefault();" class="space-y-4">
+          <!-- CSRF Token as per project global rules -->
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div>
+            <label for="field-address" class="form-label">Full Address / Location Description</label>
+            <input
+              type="text"
+              id="field-address"
+              name="address"
+              class="form-input"
+              value="Geographic Center, Sri Lanka"
+              placeholder="e.g. Manning Market, 120 Colombo Road"
+            />
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="field-latitude" class="form-label">Latitude</label>
+              <input
+                type="text"
+                id="field-latitude"
+                name="latitude"
+                class="form-input font-mono"
+                value="7.8731"
+                placeholder="e.g. 7.8731"
+              />
+            </div>
+            <div>
+              <label for="field-longitude" class="form-label">Longitude</label>
+              <input
+                type="text"
+                id="field-longitude"
+                name="longitude"
+                class="form-input font-mono"
+                value="80.7718"
+                placeholder="e.g. 80.7718"
+              />
+            </div>
+          </div>
+
+          <div class="pt-2">
+            <button
+              type="button"
+              id="btn-apply-manual"
+              class="btn-primary w-full text-sm"
+            >
+              Apply Coordinates to Map
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- DEV FAILURE SIMULATOR (To verify all 6 failure types required by prompt) -->
+      <div class="card p-5 border border-dashed border-gray-300 bg-gray-50/70">
+        <div class="flex items-center justify-between mb-2">
+          <h4 class="font-bold text-xs uppercase tracking-wider text-gray-700">Failure Type Verification Simulator</h4>
+          <span class="text-[11px] font-semibold text-gray-500">Dev Test Tool</span>
+        </div>
+        <p class="text-xs text-gray-600 mb-3">
+          Click any button to simulate and verify the exact required error messaging and fallback behavior:
+        </p>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <button type="button" onclick="simulateFailure('RefererNotAllowedMapError')" class="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-800 hover:bg-red-100 font-medium text-left">
+            RefererNotAllowed
+          </button>
+          <button type="button" onclick="simulateFailure('ApiNotActivatedMapError')" class="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-800 hover:bg-red-100 font-medium text-left">
+            ApiNotActivated
+          </button>
+          <button type="button" onclick="simulateFailure('BillingNotEnabledMapError')" class="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-800 hover:bg-red-100 font-medium text-left">
+            BillingNotEnabled
+          </button>
+          <button type="button" onclick="simulateFailure('InvalidKeyMapError')" class="px-2.5 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-800 hover:bg-red-100 font-medium text-left">
+            InvalidKey
+          </button>
+          <button type="button" onclick="simulateFailure('MissingKey')" class="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium text-left">
+            Missing Key
+          </button>
+          <button type="button" onclick="simulateFailure('MissingMapId')" class="px-2.5 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium text-left">
+            Missing Map ID
+          </button>
+        </div>
+        <button type="button" onclick="clearSimulatedFailures()" class="mt-2.5 w-full px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 font-semibold text-xs text-center">
+          Clear Simulated Errors & Reset
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<!-- Load AgroLink Maps Async Loader -->
+<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+
+<script>
+  (function() {
+    'use strict';
+
+    // Bounding coordinates for Sri Lanka (lat 5.8 to 9.9, lng 79.4 to 82.0)
+    const SL_CENTER = { lat: 7.8731, lng: 80.7718 };
+    const SL_BOUNDS = {
+      latMin: 5.8,
+      latMax: 9.9,
+      lngMin: 79.4,
+      lngMax: 82.0
+    };
+
+    // DOM Elements
+    const mapCanvas = document.getElementById('map-canvas');
+    const mapFallbackView = document.getElementById('map-fallback-view');
+    const manualEntryNotice = document.getElementById('manual-entry-notice');
+    const searchInput = document.getElementById('places-search-input');
+    const fieldLat = document.getElementById('field-latitude');
+    const fieldLng = document.getElementById('field-longitude');
+    const fieldAddress = document.getElementById('field-address');
+    const readoutLat = document.getElementById('readout-lat');
+    const readoutLng = document.getElementById('readout-lng');
+    const readoutAddress = document.getElementById('readout-address');
+    const readoutDistance = document.getElementById('readout-distance');
+    const readoutBadge = document.getElementById('readout-in-sl-badge');
+    const btnUseLocation = document.getElementById('btn-use-my-location');
+    const btnCenterSl = document.getElementById('btn-center-sl');
+    const btnApplyManual = document.getElementById('btn-apply-manual');
+    const alertArea = document.getElementById('diagnostics-alert-area');
+
+    let mapInstance = null;
+    let markerInstance = null;
+    let geocoderInstance = null;
+    let autocompleteInstance = null;
+
+    // Haversine distance in client (km)
+    function calculateHaversineKm(lat1, lng1, lat2, lng2) {
+      const R = 6371.0;
+      const dLat = (lat2 - lat1) * Math.PI / 180.0;
+      const dLng = (lng2 - lng1) * Math.PI / 180.0;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180.0) * Math.cos(lat2 * Math.PI / 180.0) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return (R * c).toFixed(2);
+    }
+
+    function isInsideSriLanka(lat, lng) {
+      return lat >= SL_BOUNDS.latMin && lat <= SL_BOUNDS.latMax &&
+             lng >= SL_BOUNDS.lngMin && lng <= SL_BOUNDS.lngMax;
+    }
+
+    function updateLiveReadout(lat, lng, addressText) {
+      const parsedLat = parseFloat(lat);
+      const parsedLng = parseFloat(lng);
+
+      if (isNaN(parsedLat) || isNaN(parsedLng)) {
+        readoutLat.textContent = 'Invalid';
+        readoutLng.textContent = 'Invalid';
+        readoutBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200';
+        readoutBadge.textContent = 'Invalid Coords';
+        return;
+      }
+
+      readoutLat.textContent = parsedLat.toFixed(6);
+      readoutLng.textContent = parsedLng.toFixed(6);
+
+      if (addressText) {
+        readoutAddress.textContent = addressText;
+        readoutAddress.title = addressText;
+      }
+
+      // Update distance to Sri Lanka central point
+      const dist = calculateHaversineKm(parsedLat, parsedLng, SL_CENTER.lat, SL_CENTER.lng);
+      readoutDistance.textContent = `${dist} km`;
+
+      // Update In Sri Lanka badge
+      if (isInsideSriLanka(parsedLat, parsedLng)) {
+        readoutBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+        readoutBadge.textContent = 'In Sri Lanka';
+      } else {
+        readoutBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200';
+        readoutBadge.textContent = 'Outside Sri Lanka';
+      }
+    }
+
+    function setLocation(lat, lng, addressText, moveMap = true) {
+      fieldLat.value = parseFloat(lat).toFixed(6);
+      fieldLng.value = parseFloat(lng).toFixed(6);
+      if (addressText) {
+        fieldAddress.value = addressText;
+      }
+
+      updateLiveReadout(lat, lng, addressText || fieldAddress.value);
+
+      if (mapInstance && markerInstance && moveMap) {
+        const pos = { lat: parseFloat(lat), lng: parseFloat(lng) };
+        markerInstance.position = pos;
+        mapInstance.panTo(pos);
+      }
+    }
+
+    function reverseGeocode(lat, lng) {
+      if (!geocoderInstance) return;
+      geocoderInstance.geocode({ location: { lat, lng } }, (results, status) => {
+        if (status === 'OK' && results && results[0]) {
+          const addr = results[0].formatted_address;
+          fieldAddress.value = addr;
+          readoutAddress.textContent = addr;
+          readoutAddress.title = addr;
+        }
+      });
+    }
+
+    // Manual input synchronization (Sub-task 5 fallback)
+    function onManualInputsChange() {
+      const lat = parseFloat(fieldLat.value);
+      const lng = parseFloat(fieldLng.value);
+      const addr = fieldAddress.value.trim();
+
+      if (!isNaN(lat) && !isNaN(lng)) {
+        updateLiveReadout(lat, lng, addr);
+        if (mapInstance && markerInstance) {
+          markerInstance.position = { lat, lng };
+          mapInstance.panTo({ lat, lng });
+        }
+      }
+    }
+
+    fieldLat.addEventListener('input', onManualInputsChange);
+    fieldLng.addEventListener('input', onManualInputsChange);
+    fieldAddress.addEventListener('input', () => {
+      readoutAddress.textContent = fieldAddress.value.trim() || 'Custom address';
+    });
+    btnApplyManual.addEventListener('click', onManualInputsChange);
+
+    // Initial manual state sync
+    updateLiveReadout(SL_CENTER.lat, SL_CENTER.lng, fieldAddress.value);
+
+    // Initialize Map with AgroMaps
+    const mapsEnabled = {{ 'true' if maps_enabled else 'false' }};
+    const browserKey = "{{ maps_browser_key }}";
+    const mapId = "{{ maps_map_id }}";
+
+    if (mapsEnabled && browserKey && mapId) {
+      window.AgroMaps.load({ apiKey: browserKey, mapId: mapId, region: 'lk' })
+        .then(async ({ google, maps, marker, places }) => {
+          mapFallbackView?.classList.add('hidden');
+          manualEntryNotice?.classList.add('hidden');
+
+          const { Map } = maps;
+          const { AdvancedMarkerElement } = marker;
+
+          // Initialize Map centered on Sri Lanka
+          mapInstance = new Map(mapCanvas, {
+            center: SL_CENTER,
+            zoom: 8,
+            mapId: mapId,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true
+          });
+
+          // Initialize Draggable Advanced Marker
+          markerInstance = new AdvancedMarkerElement({
+            map: mapInstance,
+            position: SL_CENTER,
+            title: 'AgroLink Selected Location (Draggable)',
+            gmpDraggable: true
+          });
+
+          // Geocoder for reverse geocoding
+          geocoderInstance = new google.maps.Geocoder();
+
+          // Marker drag listeners
+          markerInstance.addListener('dragend', () => {
+            const pos = markerInstance.position;
+            const lat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
+            const lng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
+            setLocation(lat, lng, null, false);
+            reverseGeocode(lat, lng);
+          });
+
+          // Map click moves marker
+          mapInstance.addListener('click', (e) => {
+            if (e.latLng) {
+              const lat = e.latLng.lat();
+              const lng = e.latLng.lng();
+              setLocation(lat, lng, null, true);
+              reverseGeocode(lat, lng);
+            }
+          });
+
+          // Places Autocomplete restricted to Sri Lanka (region code 'lk')
+          if (places && searchInput) {
+            autocompleteInstance = new places.Autocomplete(searchInput, {
+              componentRestrictions: { country: 'lk' },
+              fields: ['geometry', 'name', 'formatted_address']
+            });
+
+            autocompleteInstance.addListener('place_changed', () => {
+              const place = autocompleteInstance.getPlace();
+              if (place.geometry && place.geometry.location) {
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                const addr = place.formatted_address || place.name || searchInput.value;
+                setLocation(lat, lng, addr, true);
+                mapInstance.setCenter({ lat, lng });
+                mapInstance.setZoom(15);
+              }
+            });
+          }
+        })
+        .catch(err => {
+          console.warn('[AgroMaps Test] Maps loader returned error:', err);
+          showFallbackUI();
+        });
+    } else {
+      showFallbackUI();
+    }
+
+    function showFallbackUI() {
+      mapFallbackView?.classList.remove('hidden');
+      manualEntryNotice?.classList.remove('hidden');
+      searchInput?.setAttribute('disabled', 'disabled');
+    }
+
+    // Geolocation button
+    btnUseLocation.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+      btnUseLocation.disabled = true;
+      const originalText = btnUseLocation.innerHTML;
+      btnUseLocation.innerHTML = '<span class="animate-spin inline-block h-3.5 w-3.5 border-2 border-leaf border-t-transparent rounded-full mr-1.5"></span> Locating...';
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          btnUseLocation.disabled = false;
+          btnUseLocation.innerHTML = originalText;
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setLocation(lat, lng, 'My Current Device Location', true);
+          reverseGeocode(lat, lng);
+          if (mapInstance) {
+            mapInstance.setCenter({ lat, lng });
+            mapInstance.setZoom(14);
+          }
+        },
+        (err) => {
+          btnUseLocation.disabled = false;
+          btnUseLocation.innerHTML = originalText;
+          alert('Unable to retrieve location: ' + err.message);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+
+    // Reset button
+    btnCenterSl.addEventListener('click', () => {
+      setLocation(SL_CENTER.lat, SL_CENTER.lng, 'Geographic Center, Sri Lanka', true);
+      if (mapInstance) {
+        mapInstance.setCenter(SL_CENTER);
+        mapInstance.setZoom(8);
+      }
+    });
+
+    // Global failure simulator for dev verification
+    window.simulateFailure = function(failureType) {
+      const area = document.getElementById('diagnostics-alert-area');
+      const errorMap = {
+        RefererNotAllowedMapError: {
+          title: 'Referrer Not Allowed (RefererNotAllowedMapError)',
+          message: 'The API key has HTTP referrer restrictions that do not allow requests from this URL. Add http://localhost:5000/* and http://127.0.0.1:5000/* to authorized referrers in Google Cloud Console.'
+        },
+        ApiNotActivatedMapError: {
+          title: 'API Not Activated (ApiNotActivatedMapError)',
+          message: 'The required Google Maps API is not activated for this Google Cloud project. Enable Maps JavaScript API and Places API (New) in Google Cloud Console.'
+        },
+        BillingNotEnabledMapError: {
+          title: 'Billing Not Enabled (BillingNotEnabledMapError)',
+          message: 'Billing is not enabled on your Google Cloud project. Google Maps requires an active billing account linked to the project.'
+        },
+        InvalidKeyMapError: {
+          title: 'Invalid API Key (InvalidKeyMapError)',
+          message: 'The Google Maps browser API key provided in .env is invalid or does not exist.'
+        },
+        MissingKey: {
+          title: 'Missing Browser API Key (missing key)',
+          message: 'The browser API key is missing or empty in .env. Set GOOGLE_MAPS_BROWSER_KEY to enable maps.'
+        },
+        MissingMapId: {
+          title: 'Missing Map ID (missing map id)',
+          message: 'The Google Maps Map ID is missing or empty in .env. Advanced Markers require a valid Map ID.'
+        }
+      };
+
+      const err = errorMap[failureType] || { title: failureType, message: 'Simulated failure.' };
+
+      area.innerHTML = `
+        <div class="rounded-2xl border border-rose-300 bg-rose-50 p-4 text-rose-950 shadow-xs transition-all duration-200" role="alert" id="simulated-alert">
+          <div class="flex items-start gap-3">
+            <svg class="h-5 w-5 text-rose-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div class="flex-1 text-sm">
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-rose-900">${err.title}</h4>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-200 text-rose-800 uppercase">SIMULATED</span>
+              </div>
+              <p class="mt-1 text-rose-800 leading-relaxed">${err.message}</p>
+              <p class="mt-2 text-xs font-semibold uppercase tracking-wider text-rose-700">Map is unavailable, enter your location manually.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      showFallbackUI();
+      window.scrollTo({ top: area.offsetTop - 80, behavior: 'smooth' });
+    };
+
+    window.clearSimulatedFailures = function() {
+      const area = document.getElementById('diagnostics-alert-area');
+      area.innerHTML = '';
+      if (mapsEnabled && mapInstance) {
+        mapFallbackView?.classList.add('hidden');
+        manualEntryNotice?.classList.add('hidden');
+        searchInput?.removeAttribute('disabled');
+      } else {
+        showFallbackUI();
+      }
+    };
+
+  })();
+</script>
+{% endblock %}
