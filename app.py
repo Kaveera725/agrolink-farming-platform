@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from pathlib import Path
 from dotenv import load_dotenv
 import os
 import secrets
@@ -6,16 +7,22 @@ import warnings
 import click
 
 from extensions import db, login_manager, csrf, limiter, migrate
+from config import Config
 
-load_dotenv()
+# Explicitly load .env from project root with override=False
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(dotenv_path=env_path, override=False)
+
 
 def create_app(debug=None):
+    # Ensure fresh environment variables are loaded at app creation time
+    load_dotenv(dotenv_path=env_path, override=False)
+
     app = Flask(__name__)
     if debug is not None:
         app.debug = debug
     else:
         app.debug = os.getenv('FLASK_DEBUG', '1' if os.getenv('FLASK_ENV') == 'development' else '0') in ('1', 'true', 'True')
-
 
     env = os.getenv('FLASK_ENV', os.getenv('ENV', 'development')).lower()
     if env == 'production':
@@ -24,6 +31,9 @@ def create_app(debug=None):
         app.config.from_object('config.TestingConfig')
     else:
         app.config.from_object('config.DevelopmentConfig')
+
+    # Read values at app creation time
+    Config.init_app(app)
 
     secret_key = app.config.get('SECRET_KEY')
     if not secret_key:
@@ -50,6 +60,28 @@ def create_app(debug=None):
             'maps_browser_key': browser_key if maps_enabled else '',
             'maps_map_id': map_id if maps_enabled else '',
         }
+
+    # Startup diagnostic: Google Maps configuration presence (names only, never values)
+    from services.maps import get_server_key
+    browser_key_present = bool(app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip())
+    map_id_present = bool(app.config.get('GOOGLE_MAPS_MAP_ID', '').strip())
+    server_key_present = bool(get_server_key())
+
+    maps_status_line = (
+        f"Google Maps config: "
+        f"browser_key={'present' if browser_key_present else 'MISSING'}, "
+        f"map_id={'present' if map_id_present else 'MISSING'}, "
+        f"server_key={'present' if server_key_present else 'MISSING'}"
+    )
+    app.logger.info(maps_status_line)
+    if app.debug:
+        print(maps_status_line)
+
+    if not (browser_key_present and map_id_present and server_key_present):
+        maps_warning = "Add GOOGLE_MAPS_* to .env (not .env.example) and restart the app."
+        app.logger.warning(maps_warning)
+        if app.debug:
+            print(f"WARNING: {maps_warning}")
 
     # Ensure static upload directories exist automatically at startup
     uploads_base = os.path.join(app.root_path, 'static', 'uploads')

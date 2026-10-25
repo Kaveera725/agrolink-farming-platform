@@ -1,7 +1,10 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Explicitly load .env from project root before Config class reads values
+env_path = Path(__file__).resolve().parent / ".env"
+load_dotenv(dotenv_path=env_path, override=False)
 
 
 class Config:
@@ -19,6 +22,12 @@ class Config:
     # Client-facing Google Maps Credentials (safe for templates and frontend JS)
     GOOGLE_MAPS_BROWSER_KEY = os.getenv('GOOGLE_MAPS_BROWSER_KEY', '').strip()
     GOOGLE_MAPS_MAP_ID = os.getenv('GOOGLE_MAPS_MAP_ID', '').strip()
+
+    @classmethod
+    def init_app(cls, app):
+        """Read and refresh environment values dynamically at app creation time."""
+        app.config['GOOGLE_MAPS_BROWSER_KEY'] = os.getenv('GOOGLE_MAPS_BROWSER_KEY', '').strip()
+        app.config['GOOGLE_MAPS_MAP_ID'] = os.getenv('GOOGLE_MAPS_MAP_ID', '').strip()
 
     @property
     def MAPS_ENABLED(self) -> bool:
