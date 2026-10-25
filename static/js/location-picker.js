@@ -74,6 +74,11 @@
 
       // Check if AgroMaps is available
       if (window.AgroMaps && typeof window.AgroMaps.load === 'function') {
+        window.addEventListener('agromaps:error', (evt) => {
+          console.warn('[AgroLocationPicker] Received agromaps:error, activating manual fallback:', evt.detail);
+          this.enableManualFallback();
+        });
+
         window.AgroMaps.load()
           .then((mapsPayload) => {
             this.setupInteractiveMap(mapsPayload);

@@ -218,6 +218,30 @@ A dedicated diagnostics bench is available in development mode (`app.debug = Tru
    - Notice banner: *"Map is unavailable, enter your location manually"* appears whenever maps are disabled or loading fails.
    - Form fields (Latitude, Longitude, Address) remain fully editable and functional.
 
+### 4.7 CLI Diagnostics: `flask maps-check`
+Run the self-diagnostic CLI command at any time to verify key configurations without printing secrets:
+```powershell
+flask maps-check
+```
+It verifies:
+- Presence and character length of `GOOGLE_MAPS_BROWSER_KEY`, `GOOGLE_MAPS_MAP_ID`, and `GOOGLE_MAPS_SERVER_KEY`.
+- Identifies obvious placeholders (e.g. `your_api_key_here`, `paste_your_key`, etc.).
+- Performs a live, single server-side call to Google Geocoding API for "Kandy, Sri Lanka".
+- Displays the exact HTTP referrer entries required for your browser key.
+
+### 4.8 Troubleshooting Common Google Maps Errors
+
+| Error Code / Symptom | Probable Cause | Recommended Fix |
+| :--- | :--- | :--- |
+| `RefererNotAllowedMapError` | Browser key HTTP referrer restrictions do not match current host. | In Google Cloud Console $\rightarrow$ Credentials $\rightarrow$ Browser Key, add `http://localhost:5000/*` and `http://127.0.0.1:5000/*`. |
+| `ApiNotActivatedMapError` | One or more required APIs are disabled in your Google Cloud project. | Enable Maps JavaScript API, Places API (New), and Geocoding API in Google Cloud Console. |
+| `BillingNotEnabledMapError` | Google Cloud project lacks an active linked billing account. | Link an active billing account in Google Cloud Console. (Includes free monthly tier usage). |
+| `InvalidKeyMapError` / `gm_authFailure` | Key is mistyped, deleted, or invalid. | Verify and re-copy the API key from Google Cloud Console into `.env`. |
+| `REQUEST_DENIED` (Geocoding API) | Server key is invalid or Geocoding API is not enabled for that key. | Check `GOOGLE_MAPS_SERVER_KEY` in `.env` and verify API restrictions in Google Cloud Console. |
+| Geolocation Permission Denied | Browser or OS location permission was declined. | Allow location access in browser site settings or enter location using the search bar / manual fields. |
+| Geolocation Timeout / Unavailable | GPS sensor unavailable or signal lost. | Re-try device location button or enter coordinates manually. |
+| Map Unavailable / Offline | Network error, ad-blocker, or missing credentials. | AgroLink automatically unhides manual latitude/longitude/address inputs so user flows are never blocked. |
+
 ---
 
 ## 5. Database Migrations & CLI Management
