@@ -49,6 +49,10 @@ def create_app(debug=None):
             stacklevel=2
         )
 
+    # Register geo filters and template helpers
+    from utils.geo import time_ago
+    app.jinja_env.filters['time_ago'] = time_ago
+
     # Expose only safe Google Maps credentials and status to templates
     @app.context_processor
     def inject_maps_config():
@@ -59,6 +63,7 @@ def create_app(debug=None):
             'maps_enabled': maps_enabled,
             'maps_browser_key': browser_key if maps_enabled else '',
             'maps_map_id': map_id if maps_enabled else '',
+            'time_ago': time_ago,
         }
 
     # Startup diagnostic: Google Maps configuration presence (names only, never values)

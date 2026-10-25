@@ -3,6 +3,7 @@ Geospatial and formatting utility functions for AgroLink.
 
 Includes:
 - haversine_km: Calculates great-circle distance between two coordinates in kilometers.
+- format_distance_km: Formats distance in km (1 decimal under 10 km, otherwise nearest whole km).
 - is_in_sri_lanka: Verifies if a given coordinate lies within the bounding box of Sri Lanka (lat 5.8 to 9.9, lng 79.4 to 82.0).
 - parse_coord: Parses a coordinate input into a clean Decimal or returns None.
 - time_ago: Formats a datetime into a human-readable relative time string (e.g., '5 minutes ago').
@@ -19,6 +20,29 @@ SL_LNG_MIN = Decimal('79.4')
 SL_LNG_MAX = Decimal('82.0')
 
 EARTH_RADIUS_KM = 6371.0
+
+
+def format_distance_km(dist_km: Optional[Union[float, Decimal, int]]) -> Optional[str]:
+    """
+    Formats a distance in km according to AgroLink display rules:
+    - Under 10 km: 1 decimal place (e.g., '4.2 km')
+    - 10 km and above: nearest whole km (e.g., '12 km', '94 km')
+    Returns None if dist_km is None or invalid.
+    """
+    if dist_km is None:
+        return None
+    try:
+        val = float(dist_km)
+        if math.isnan(val) or math.isinf(val):
+            return None
+        if val < 0:
+            val = 0.0
+        if round(val, 1) < 10.0:
+            return f"{val:.1f} km"
+        return f"{round(val)} km"
+    except (ValueError, TypeError):
+        return None
+
 
 
 def parse_coord(value: Any) -> Optional[Decimal]:

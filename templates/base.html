@@ -1074,11 +1074,10 @@
   {% endif %}
 
   {# ── FLASH NOTIFICATIONS (AS STACKED TOASTS) ─────────────────────────── #}
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
   <div id="toast-container"
        class="fixed top-4 sm:top-5 right-0 sm:right-6 left-0 sm:left-auto px-4 sm:px-0 z-50 flex flex-col items-center sm:items-end gap-2.5 max-w-md w-full sm:w-auto pointer-events-none"
        aria-live="polite">
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% for category, message in messages %}
     {% set is_error = category in ['error', 'danger'] %}
     {% set is_warning = category == 'warning' %}
@@ -1128,9 +1127,8 @@
       </button>
     </div>
     {% endfor %}
+    {% endwith %}
   </div>
-  {% endif %}
-  {% endwith %}
 
   {# ── MAIN CONTENT ─────────────────────────────────────────────────────── #}
   <main id="main-content" class="flex-1 w-full max-w-full">
@@ -1350,7 +1348,7 @@
       });
 
       // 5. Toast auto-dismiss and close handling
-      document.querySelectorAll('.toast-item').forEach(function(toast) {
+      function bindToastItem(toast) {
         const autoDismiss = toast.getAttribute('data-auto-dismiss');
         const closeBtn = toast.querySelector('.toast-close');
 
@@ -1365,7 +1363,48 @@
           const timeoutMs = parseInt(autoDismiss, 10) || 5000;
           setTimeout(dismissToast, timeoutMs);
         }
-      });
+      }
+
+      document.querySelectorAll('.toast-item').forEach(bindToastItem);
+
+      window.AgroToast = function(message, type = 'success') {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+          container = document.createElement('div');
+          container.id = 'toast-container';
+          container.className = 'fixed top-4 sm:top-5 right-0 sm:right-6 left-0 sm:left-auto px-4 sm:px-0 z-50 flex flex-col items-center sm:items-end gap-2.5 max-w-md w-full sm:w-auto pointer-events-none';
+          container.setAttribute('aria-live', 'polite');
+          document.body.appendChild(container);
+        }
+        const isError = type === 'error' || type === 'danger';
+        const isWarning = type === 'warning';
+        const isSuccess = type === 'success';
+
+        const toast = document.createElement('div');
+        toast.className = `toast-item pointer-events-auto w-full sm:w-96 flex items-start gap-3 p-4 rounded-xl border shadow-lg bg-white transition-all duration-300 ${
+          isSuccess ? 'border-leaf/30 text-leaf-dark' :
+          isError ? 'border-danger/30 text-danger-800' :
+          isWarning ? 'border-gold/40 text-gold-text' : 'border-sky/30 text-sky-800'
+        }`;
+        toast.setAttribute('role', isError || isWarning ? 'alert' : 'status');
+        toast.setAttribute('data-auto-dismiss', '5000');
+
+        const iconSvg = isSuccess ?
+          '<svg class="w-5 h-5 text-leaf" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>' :
+          isError ?
+          '<svg class="w-5 h-5 text-danger" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>' :
+          '<svg class="w-5 h-5 text-sky" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>';
+
+        toast.innerHTML = `
+          <div class="shrink-0 mt-0.5">${iconSvg}</div>
+          <div class="flex-1 text-sm font-medium leading-snug">${message}</div>
+          <button type="button" class="toast-close text-muted hover:text-ink p-1 -mr-1 -mt-1 rounded-lg transition-colors" aria-label="Dismiss notification">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        `;
+        bindToastItem(toast);
+        container.appendChild(toast);
+      };
 
       // 6. Accessible modal confirm dialog (AgroConfirm) with focus trap
       window.AgroConfirm = function(message, isDanger, onConfirm) {

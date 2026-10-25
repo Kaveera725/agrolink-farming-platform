@@ -149,21 +149,43 @@
           </div>
         </a>
 
-        {# Tile 4: Slot for "Update my location" #}
-        <a
-          href="{{ url_for('profile.edit') }}"
-          class="card p-4 sm:p-5 bg-white hover:bg-earth-pale/30 border border-bdr hover:border-earth/40 rounded-2xl shadow-xs transition group flex items-start gap-3.5"
-        >
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-earth-pale text-earth flex items-center justify-center shrink-0 group-hover:scale-105 transition">
-            {{ icon('map-pin', size=20) }}
+        {# Tile 4: "Update my current location" #}
+        <div class="card p-4 sm:p-5 bg-white border border-bdr rounded-2xl shadow-xs transition flex flex-col justify-between gap-3">
+          <div class="flex items-start gap-3.5">
+            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-earth-pale text-earth flex items-center justify-center shrink-0">
+              {{ icon('map-pin', size=20) }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <span class="block text-sm font-bold text-ink truncate">Farm Location</span>
+              <span class="block text-[11px] text-muted leading-tight mt-0.5" id="farmer-last-updated-text">
+                {% if current_user.location_updated_at %}
+                  Location last updated: {{ time_ago(current_user.location_updated_at) }}
+                {% else %}
+                  Location not set yet
+                {% endif %}
+              </span>
+            </div>
           </div>
-          <div class="min-w-0">
-            <span class="block text-sm font-bold text-ink group-hover:text-earth transition truncate">Update Location</span>
-            <span class="block text-[11px] text-muted truncate">
-              {{ current_user.district or current_user.location or 'Set farm district' }}
-            </span>
+          <div class="flex items-center gap-2 pt-1 border-t border-bdr/60">
+            <button
+              type="button"
+              id="btn-update-current-location"
+              class="btn-primary text-xs py-1.5 px-3 flex-1 justify-center inline-flex items-center gap-1.5 shadow-2xs"
+            >
+              <span id="update-loc-spinner" class="hidden">{{ icon('loader', size=14, cls='animate-spin') }}</span>
+              <span id="update-loc-icon">{{ icon('crosshair', size=14) }}</span>
+              <span id="update-loc-label">Update my current location</span>
+            </button>
+            <a
+              href="{{ url_for('profile.edit') }}"
+              class="btn-ghost text-xs p-1.5 text-muted hover:text-ink rounded-lg"
+              title="Edit on map in profile"
+              aria-label="Edit location on map"
+            >
+              {{ icon('edit', size=14) }}
+            </a>
           </div>
-        </a>
+        </div>
       </div>
     </div>
 
@@ -813,6 +835,100 @@
         }
       });
     });
+
+    // ── UPDATE CURRENT GEOLOCATION (AJAX) ──────────────────────────────────
+    const updateLocBtn = document.getElementById('btn-update-current-location');
+    const updateLocSpinner = document.getElementById('update-loc-spinner');
+    const updateLocIcon = document.getElementById('update-loc-icon');
+    const updateLocLabel = document.getElementById('update-loc-label');
+    const lastUpdatedText = document.getElementById('farmer-last-updated-text');
+    const missingBanner = document.getElementById('missing-location-banner');
+
+    if (updateLocBtn) {
+      updateLocBtn.addEventListener('click', function() {
+        if (!navigator.geolocation) {
+          if (window.AgroToast) {
+            window.AgroToast('Geolocation is not supported by your browser.', 'error');
+          } else {
+            alert('Geolocation is not supported by your browser.');
+          }
+          return;
+        }
+
+        updateLocBtn.disabled = true;
+        if (updateLocSpinner) updateLocSpinner.classList.remove('hidden');
+        if (updateLocIcon) updateLocIcon.classList.add('hidden');
+        if (updateLocLabel) updateLocLabel.textContent = 'Acquiring GPS...';
+
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            if (updateLocLabel) updateLocLabel.textContent = 'Saving location...';
+
+            fetch("{{ url_for('dashboard.update_location') }}", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+              },
+              body: JSON.stringify({ latitude: lat, longitude: lng })
+            })
+            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+            .then(({ status, ok, data }) => {
+              if (!ok) {
+                throw new Error(data.error || 'Failed to update location.');
+              }
+              if (lastUpdatedText) {
+                lastUpdatedText.textContent = 'Location last updated: just now';
+              }
+              if (missingBanner) {
+                missingBanner.style.display = 'none';
+              }
+              if (window.AgroToast) {
+                window.AgroToast(data.message || 'Location updated successfully!', 'success');
+              }
+            })
+            .catch(err => {
+              if (window.AgroToast) {
+                window.AgroToast(err.message || 'Error saving location.', 'error');
+              } else {
+                alert(err.message || 'Error saving location.');
+              }
+            })
+            .finally(() => {
+              updateLocBtn.disabled = false;
+              if (updateLocSpinner) updateLocSpinner.classList.add('hidden');
+              if (updateLocIcon) updateLocIcon.classList.remove('hidden');
+              if (updateLocLabel) updateLocLabel.textContent = 'Update my current location';
+            });
+          },
+          function(err) {
+            updateLocBtn.disabled = false;
+            if (updateLocSpinner) updateLocSpinner.classList.add('hidden');
+            if (updateLocIcon) updateLocIcon.classList.remove('hidden');
+            if (updateLocLabel) updateLocLabel.textContent = 'Update my current location';
+
+            let msg = 'Unable to retrieve location.';
+            if (err.code === err.PERMISSION_DENIED) {
+              msg = 'Location permission was denied. Please allow location access in your browser settings.';
+            } else if (err.code === err.TIMEOUT) {
+              msg = 'Location request timed out. Please try again.';
+            } else if (err.code === err.POSITION_UNAVAILABLE) {
+              msg = 'Location information is currently unavailable.';
+            }
+            if (window.AgroToast) {
+              window.AgroToast(msg, 'error');
+            } else {
+              alert(msg);
+            }
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+      });
+    }
 
   })();
 </script>

@@ -207,8 +207,7 @@
               <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
               <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
               <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest First</option>
-              {# Hidden Nearest First option slot for future maps work #}
-              <option value="nearest" disabled hidden class="hidden">Nearest First (Requires Map GPS)</option>
+              <option value="nearest" {% if sort == 'nearest' %}selected{% endif %}>Nearest First</option>
             </select>
           </div>
 
@@ -337,7 +336,7 @@
 
         {% if sort and sort != 'price_asc' %}
           <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-leaf-pale text-leaf-dark font-medium border border-leaf/20">
-            <span>Sort: {{ 'Price: High to Low' if sort == 'price_desc' else 'Newest' }}</span>
+            <span>Sort: {{ 'Price: High to Low' if sort == 'price_desc' else ('Nearest First' if sort == 'nearest' else 'Newest') }}</span>
             <a href="{{ url_for('marketplace.index', category=selected_category, search=search, district=district, min_price=min_price, max_price=max_price, availability=availability) }}" class="hover:text-danger ml-0.5" aria-label="Reset sort">
               {{ icon('x', size=12) }}
             </a>
@@ -470,8 +469,10 @@
             <input type="radio" name="sort" value="newest" {% if sort == 'newest' %}checked{% endif %} class="radio text-leaf" />
             <span class="text-sm font-semibold text-ink">Newest First</span>
           </label>
-          {# Hidden slot for Nearest First #}
-          <div class="hidden" data-slot="mobile-nearest-first"></div>
+          <label class="flex items-center gap-3 p-3 rounded-xl border border-bdr hover:bg-leaf-50/50 cursor-pointer">
+            <input type="radio" name="sort" value="nearest" {% if sort == 'nearest' %}checked{% endif %} class="radio text-leaf" />
+            <span class="text-sm font-semibold text-ink">Nearest First</span>
+          </label>
         </div>
       </div>
 
