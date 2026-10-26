@@ -15,6 +15,7 @@ from services.maps import (
     is_placeholder_value,
     is_server_key_configured,
     test_geocoding_api,
+    test_routes_api,
 )
 
 
@@ -165,26 +166,67 @@ class TestMapsDiagnostics(unittest.TestCase):
         status_placeholder, _ = test_geocoding_api(server_key="your_server_key_here")
         self.assertEqual(status_placeholder, "PLACEHOLDER_KEY")
 
-    # 5. CLI Command 'flask maps-check' with Mocked Geocoding
+    # 5. Mocked Routes API Calls in test_routes_api
+    @patch('requests.post')
+    def test_routes_api_mocked_success(self, mock_post):
+        """Mock successful Routes API response from Google."""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "routes": [{"distanceMeters": 121184}]
+        }
+        mock_post.return_value = mock_response
+
+        status, dist_km, err_msg = test_routes_api(server_key="valid_mock_server_key_123")
+        self.assertEqual(status, "OK")
+        from decimal import Decimal
+        self.assertEqual(dist_km, Decimal("121.18"))
+        self.assertEqual(err_msg, "")
+
+    @patch('requests.post')
+    def test_routes_api_mocked_failure(self, mock_post):
+        """Mock failure Routes API response from Google."""
+        mock_response = MagicMock()
+        mock_response.status_code = 403
+        mock_post.return_value = mock_response
+
+        status, dist_km, err_msg = test_routes_api(server_key="valid_mock_server_key_123")
+        self.assertEqual(status, "HTTP_403")
+        self.assertIsNone(dist_km)
+
+    def test_routes_api_skipped_on_placeholder_or_missing(self):
+        """Must skip Routes API call when key is missing or is placeholder."""
+        status_missing, _, _ = test_routes_api(server_key="")
+        self.assertEqual(status_missing, "MISSING_KEY")
+
+        status_placeholder, _, _ = test_routes_api(server_key="your_server_key_here")
+        self.assertEqual(status_placeholder, "PLACEHOLDER_KEY")
+
+    # 6. CLI Command 'flask maps-check' with Mocked Geocoding & Routes API
+    @patch('services.maps.test_routes_api', return_value=("OK", 121.18, ""))
     @patch('services.maps.test_geocoding_api', return_value=("OK", ""))
-    def test_flask_maps_check_cli_success(self, mock_test_geo):
+    def test_flask_maps_check_cli_success(self, mock_test_geo, mock_test_routes):
         """Test flask maps-check CLI output formatting and referrer display."""
         result = self.runner.invoke(args=['maps-check'])
         self.assertEqual(result.exit_code, 0)
         self.assertIn("AgroLink Google Maps Configuration Diagnostic", result.output)
         self.assertIn("Environment Variables Status", result.output)
         self.assertIn("Geocoding API Server-Side Check:", result.output)
-        self.assertIn("Status: OK", result.output)
+        self.assertIn("Routes API Server-Side Check (Colombo to Kandy):", result.output)
+        self.assertIn("Distance: 121.18 km", result.output)
         self.assertIn("http://localhost:5000/*", result.output)
         self.assertIn("http://127.0.0.1:5000/*", result.output)
 
+    @patch('services.maps.test_routes_api', return_value=("FAILED", None, "Service unavailable"))
     @patch('services.maps.test_geocoding_api', return_value=("REQUEST_DENIED", "The provided API key is invalid."))
-    def test_flask_maps_check_cli_denied(self, mock_test_geo):
-        """Test flask maps-check CLI reports REQUEST_DENIED with error message."""
+    def test_flask_maps_check_cli_denied(self, mock_test_geo, mock_test_routes):
+        """Test flask maps-check CLI reports failures with error messages."""
         result = self.runner.invoke(args=['maps-check'])
         self.assertEqual(result.exit_code, 0)
         self.assertIn("REQUEST_DENIED - The provided API key is invalid.", result.output)
+        self.assertIn("Status: FAILED (FAILED - Service unavailable)", result.output)
 
 
 if __name__ == '__main__':
     unittest.main()
+

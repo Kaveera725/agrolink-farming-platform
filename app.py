@@ -252,8 +252,18 @@ def create_app(debug=None):
             msg_suffix = f" - {err_msg}" if err_msg else ""
             click.echo(f"  * Status: {status}{msg_suffix}")
 
-        # (d) Exact browser-key referrers to allow
-        click.echo("\n[3] Required HTTP Referrers for Browser Key:")
+        # (d) Real Routes API check using SERVER key
+        from services.maps import test_routes_api
+        click.echo("\n[3] Routes API Server-Side Check (Colombo to Kandy):")
+        r_status, r_dist_km, r_err_msg = test_routes_api()
+        if r_status == 'OK':
+            click.echo(f"  * Status: OK (Distance: {r_dist_km} km)")
+        else:
+            r_suffix = f" - {r_err_msg}" if r_err_msg else ""
+            click.echo(f"  * Status: FAILED ({r_status}{r_suffix})")
+
+        # (e) Exact browser-key referrers to allow
+        click.echo("\n[4] Required HTTP Referrers for Browser Key:")
         click.echo("  In Google Cloud Console (Credentials -> Browser Key -> Website restrictions):")
         click.echo("  * http://localhost:5000/*")
         click.echo("  * http://127.0.0.1:5000/*")
