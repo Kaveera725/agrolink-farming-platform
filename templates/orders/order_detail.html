@@ -6,6 +6,13 @@
 
 {% block title %}Order #{{ order.id }} — AgroLink{% endblock %}
 
+{% block extra_head %}
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 {% set is_farmer = (current_user.id == order.product.farmer_id) %}
 {% set is_buyer = (current_user.id == order.buyer_id) %}

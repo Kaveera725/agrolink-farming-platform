@@ -5,6 +5,13 @@
 
 {% block title %}Place Order — {{ product.name }} — AgroLink{% endblock %}
 
+{% block extra_head %}
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+{% endblock %}
+
 {% set farmer_has_pin = (product.farmer and product.farmer.latitude is not none and product.farmer.longitude is not none) %}
 {% set delivery_available = (product.offers_delivery and farmer_has_pin) %}
 
@@ -572,7 +579,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Initialize interactive maps if enabled
   {% if maps_enabled %}
-  AgroMaps.load(['maps', 'marker', 'places']).then(() => {
+  AgroMaps.load({
+    apiKey: '{{ maps_browser_key }}',
+    mapId: '{{ maps_map_id }}'
+  }).then(() => {
     // 1. Initialize delivery picker with farmer and buyer pins
     new AgroLocationPicker({
       prefix: 'delivery-picker',
