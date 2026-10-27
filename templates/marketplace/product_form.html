@@ -324,7 +324,7 @@
             </div>
 
             {# "Offer delivery" switch component #}
-            {% set farmer_has_pin = bool(current_user.latitude is not none and current_user.longitude is not none) %}
+            {% set farmer_has_pin = (current_user.latitude is not none and current_user.longitude is not none) %}
             {% set is_delivery_offered = (request.form.get('offers_delivery') == 'on') if request.method == 'POST' else (product.offers_delivery if product else false) %}
             <div id="offer-delivery-slot" class="p-4 sm:p-5 rounded-2xl bg-canvas/60 border border-bdr space-y-3" data-feature="offer-delivery">
               <div class="flex items-start justify-between gap-4">

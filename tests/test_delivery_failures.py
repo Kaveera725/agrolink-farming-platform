@@ -105,10 +105,15 @@ class TestDeliveryFailures(unittest.TestCase):
         db.session.commit()
         self.ctx.pop()
 
+    def _login(self, email, password="password123"):
+        self.client.get('/auth/logout', follow_redirects=True)
+        return self.client.post('/auth/login', data={
+            'email': email,
+            'password': password
+        }, follow_redirects=True)
+
     def _login_buyer(self):
-        with self.client.session_transaction() as sess:
-            sess['_user_id'] = str(self.buyer.id)
-            sess['_fresh'] = True
+        self._login(self.buyer.email)
 
     # 1. Routes API Down -> Graceful fallback to estimated
     def test_routes_api_down_fallback(self):
@@ -271,6 +276,28 @@ class TestDeliveryFailures(unittest.TestCase):
         }, follow_redirects=True)
         self.assertEqual(res_place.status_code, 200)
         self.assertIn(b'Stock changed: only 20 kg available', res_place.data)
+
+    def test_product_form_renders_without_jinja_error(self):
+        """Product create and edit forms must render without Jinja2 template errors (e.g. undefined bool)."""
+        # 1. Farmer with pin creating a product
+        self._login(self.farmer_with_pin.email)
+
+        res_create = self.client.get('/marketplace/list')
+        self.assertEqual(res_create.status_code, 200)
+        self.assertIn(b'Offer delivery', res_create.data)
+
+        # 2. Farmer with pin editing their product
+        res_edit = self.client.get(f'/marketplace/product/{self.prod_delivery.id}/edit')
+        self.assertEqual(res_edit.status_code, 200)
+        self.assertIn(b'Offer delivery', res_edit.data)
+
+        # 3. Farmer without pin editing their product
+        self._login(self.farmer_no_pin.email)
+
+        res_edit_nopin = self.client.get(f'/marketplace/product/{self.prod_farmer_no_pin.id}/edit')
+        self.assertEqual(res_edit_nopin.status_code, 200)
+        self.assertIn(b'You must save your farm location pin before enabling delivery', res_edit_nopin.data)
+
 
 
 if __name__ == '__main__':
