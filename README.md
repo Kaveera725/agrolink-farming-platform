@@ -244,7 +244,65 @@ It verifies:
 
 ---
 
-## 5. Database Migrations & CLI Management
+## 5. Delivery Pricing & Routing System
+
+AgroLink provides transparent, tiered delivery pricing calculated from actual driving distances across Sri Lanka, backed by Google Routes API with an automatic direct-distance fallback.
+
+### Core Delivery Rules
+1. **Farmer Requirement**: A farmer must have a saved location pin on their profile to enable delivery on their product listings (`offers_delivery`). If no pin is set, enabling delivery is blocked with a guidance link to edit their profile.
+2. **Geographical Constraints**: Delivery addresses and pins must fall within Sri Lanka territory (`lat: 5.8 to 9.9`, `lng: 79.6 to 82.0`) and cannot exceed `MAX_DELIVERY_KM` (300 km).
+3. **Privacy by Design**:
+   - Guests and third parties see only the farmer's district.
+   - Exact buyer coordinates and delivery address are disclosed **only** to the farmer who owns the ordered product, and **only** for delivery fulfillment.
+   - For pickup orders, buyer coordinates and address are strictly omitted.
+4. **Order Status Workflow**:
+   - Status transitions strictly enforce: `pending` → `confirmed` → `delivered`, or `cancelled` / `rejected`.
+   - Farmer rejection requires a reason (≥ 5 characters) and immediately restores produce stock.
+   - Buyer cancellation is allowed only while the order remains `pending` and immediately restores produce stock.
+
+### Configuration Constants (`config.py`)
+All parameters are configurable via constants in [`config.py`](file:///c:/Users/anush/OneDrive/Desktop/Projects/AgroLink/config.py) or environment variables:
+| Constant | Default Value | Description |
+| :--- | :--- | :--- |
+| `DELIVERY_BASE_FEE` | `Decimal("5000")` | Base flat fee in LKR for up to 50 km. |
+| `DELIVERY_BASE_KM` | `Decimal("50")` | Base threshold distance in kilometers. |
+| `DELIVERY_EXTRA_PER_KM` | `Decimal("60")` | Incremental rate in LKR for each additional kilometer over base. |
+| `MAX_DELIVERY_KM` | `Decimal("300")` | Maximum allowable delivery distance in kilometers. |
+| `ROUTE_FALLBACK_FACTOR` | `Decimal("1.3")` | Winding factor applied to Haversine direct distance during API fallback. |
+| `ROUTES_API_TIMEOUT_SECONDS` | `5` | Request timeout before falling back to local estimation. |
+
+### Fee Calculation & Examples
+- If **Distance ≤ 50 km**:  
+  Fee = `LKR 5,000.00`
+- If **Distance > 50 km**:  
+  Extra km = `ceil(Distance - 50)`  
+  Fee = `5,000 + (Extra km * 60)`
+
+#### Calculation Examples (with 15 kg @ LKR 300 = LKR 4,500.00 produce):
+- **Example 1 (< 50 km)**: Colombo to Mount Lavinia (11.12 km driving distance via Routes API)  
+  - Delivery Fee: **LKR 5,000.00**  
+  - Grand Total: **LKR 9,500.00**
+- **Example 2 (~51.4 km)**: Colombo to Kalutara (51.42 km driving distance via estimated mode)  
+  - Extra distance: 51.42 - 50 = 1.42 km → ceil(1.42) = 2 km  
+  - Extra fee: 2 * 60 = LKR 120.00  
+  - Delivery Fee: 5,000 + 120 = **LKR 5,120.00**  
+  - Grand Total: **LKR 9,620.00**
+- **Example 3 (~75.2 km)**: Colombo to Aluthgama (75.24 km driving distance via estimated mode)  
+  - Extra distance: 75.24 - 50 = 25.24 km → ceil(25.24) = 26 km  
+  - Extra fee: 26 * 60 = LKR 1,560.00  
+  - Delivery Fee: 5,000 + 1,560 = **LKR 6,560.00**  
+  - Grand Total: **LKR 11,060.00**
+
+### Fallback & Resilience Behavior
+- **Google Routes API**: Requested server-side using field mask `routes.distanceMeters`.
+- **LRU Distance Cache**: Distances are cached in an in-memory thread-safe LRU cache (TTL: 24h, rounded to 4 decimals / ~11m) to optimize latency and eliminate redundant API costs.
+- **Graceful Fallback**: If the Routes API times out (> 5s), returns a non-200 status code, or `GOOGLE_MAPS_SERVER_KEY` is not configured, the system computes:
+  Estimated km = `round(Haversine(origin, destination) * 1.3, 2)`
+  The fee is computed normally with `distance_source = 'estimated'`. The user flow is never interrupted with a 500 error.
+
+---
+
+## 6. Database Migrations & CLI Management
 
 AgroLink uses **Flask-Migrate** (Alembic) for structured schema migrations and CLI commands for administrative maintenance.
 
@@ -269,7 +327,7 @@ flask create-admin
 
 ---
 
-## 6. Run the Application
+## 7. Run the Application
 
 With your virtual environment activated and database running:
 
@@ -292,7 +350,7 @@ http://127.0.0.1:5000/
 
 ---
 
-## 7. Application Structure & Roles
+## 8. Application Structure & Roles
 
 AgroLink features three primary user roles:
 - **Farmer**: Manage crops, list products for sale, view market prices and incoming orders.
@@ -321,7 +379,7 @@ AgroLink features three primary user roles:
 
 ---
 
-## 8. Common Troubleshooting
+## 9. Common Troubleshooting
 
 | Issue | Cause | Solution |
 | :--- | :--- | :--- |
@@ -332,7 +390,7 @@ AgroLink features three primary user roles:
 
 ---
 
-## 9. Version Control & Development
+## 10. Version Control & Development
 
 ```powershell
 # Check modified files
