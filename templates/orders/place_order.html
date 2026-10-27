@@ -225,7 +225,7 @@
             {% set picker_id = 'delivery-picker' %}
             {% set lat_name = 'delivery_lat' %}
             {% set lng_name = 'delivery_lng' %}
-            {% set address_name = 'delivery_address' %}
+            {% set address_name = 'delivery_pin_address' %}
             {% set initial_lat = current_user.latitude %}
             {% set initial_lng = current_user.longitude %}
             {% set initial_address = current_user.address_text %}
@@ -267,6 +267,8 @@
       </div>
 
       {# ── 6. LIVE PRICE BREAKDOWN & ORDER TOTAL ───────────────────────────── #}
+      {% set initial_qty = 1 %}
+      {% set initial_produce = initial_qty * product.price_per_kg %}
       <div class="p-5 rounded-2xl bg-gradient-to-br from-leaf-50/50 via-white to-canvas border border-leaf/30 space-y-3">
         <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
           <span class="text-xs uppercase font-bold tracking-wider text-muted">Order Price Breakdown</span>
@@ -282,7 +284,7 @@
         <div class="space-y-2 text-sm">
           <div class="flex justify-between items-center text-ink">
             <span class="text-muted">Produce Subtotal:</span>
-            <span class="font-semibold tabular-nums" id="produce-total">Rs. 0.00</span>
+            <span class="font-semibold tabular-nums" id="produce-total">Rs. {{ "{:,.2f}".format(initial_produce) }}</span>
           </div>
 
           <div class="flex justify-between items-center text-ink">
@@ -306,7 +308,7 @@
               <span class="text-[11px] text-muted">Payable upon delivery or pickup (COD)</span>
             </div>
             <span class="font-display font-black text-2xl sm:text-3xl text-leaf-dark tabular-nums" id="grand-total-display">
-              Rs. 0.00
+              Rs. {{ "{:,.2f}".format(initial_produce) }}
             </span>
           </div>
         </div>
@@ -341,7 +343,7 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_scripts %}
 {# Load Google Maps JS only on this page #}
 <script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
 <script src="{{ url_for('static', filename='js/location-picker.js') }}"></script>
@@ -374,6 +376,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const deliveryLatInput = document.getElementById('delivery-picker-latitude');
   const deliveryLngInput = document.getElementById('delivery-picker-longitude');
+  const deliveryAddressTextarea = document.getElementById('delivery_address');
+  const deliveryPickerWrapper = document.getElementById('delivery-picker-wrapper');
 
   let debounceTimer = null;
   let currentQuoteValid = true;
@@ -388,24 +392,42 @@ document.addEventListener('DOMContentLoaded', function () {
     if (type === 'delivery') {
       pickupPanel.classList.add('hidden');
       deliveryPanel.classList.remove('hidden');
-      cardDelivery.classList.add('border-leaf', 'bg-leaf-50/40');
-      cardDelivery.classList.remove('border-bdr', 'bg-white');
-      cardPickup.classList.remove('border-leaf', 'bg-leaf-50/40');
-      cardPickup.classList.add('border-bdr', 'bg-white');
+      cardDelivery?.classList.add('border-leaf', 'bg-leaf-50/40');
+      cardDelivery?.classList.remove('border-bdr', 'bg-white');
+      cardPickup?.classList.remove('border-leaf', 'bg-leaf-50/40');
+      cardPickup?.classList.add('border-bdr', 'bg-white');
+
+      // Trigger map resize event so unhidden map tiles render correctly
+      setTimeout(function () {
+        const pickerMapEl = document.getElementById('delivery-picker-map');
+        if (pickerMapEl && pickerMapEl._agroPicker && pickerMapEl._agroPicker.mapInstance && window.google && google.maps) {
+          google.maps.event.trigger(pickerMapEl._agroPicker.mapInstance, 'resize');
+          if (pickerMapEl._agroPicker.markerInstance && pickerMapEl._agroPicker.markerInstance.position) {
+            pickerMapEl._agroPicker.mapInstance.setCenter(pickerMapEl._agroPicker.markerInstance.position);
+          }
+        }
+      }, 150);
     } else {
       deliveryPanel.classList.add('hidden');
       pickupPanel.classList.remove('hidden');
-      cardPickup.classList.add('border-leaf', 'bg-leaf-50/40');
-      cardPickup.classList.remove('border-bdr', 'bg-white');
-      cardDelivery.classList.remove('border-leaf', 'bg-leaf-50/40');
-      cardDelivery.classList.add('border-bdr', 'bg-white');
+      cardPickup?.classList.add('border-leaf', 'bg-leaf-50/40');
+      cardPickup?.classList.remove('border-bdr', 'bg-white');
+      cardDelivery?.classList.remove('border-leaf', 'bg-leaf-50/40');
+      cardDelivery?.classList.add('border-bdr', 'bg-white');
     }
     scheduleQuoteUpdate();
   }
 
   function scheduleQuoteUpdate() {
+    // Instant optimistic produce calculation
+    const qty = parseFloat(qtyInput?.value) || 0;
+    if (qty > 0 && produceTotalEl) {
+      const optimisticProduce = qty * pricePerKg;
+      produceTotalEl.textContent = 'Rs. ' + optimisticProduce.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(fetchQuote, 400);
+    debounceTimer = setTimeout(fetchQuote, 300);
   }
 
   async function fetchQuote() {
@@ -426,17 +448,17 @@ document.addEventListener('DOMContentLoaded', function () {
     let lng = deliveryLngInput?.value ? parseFloat(deliveryLngInput.value) : null;
 
     if (fulfillment === 'delivery' && (lat === null || lng === null || isNaN(lat) || isNaN(lng))) {
-      showError('Please pin your delivery drop-off location on the map to calculate distance and fee.');
+      showError('Please pin or search your delivery location on the map below.');
       distanceDisplayEl.textContent = 'Pin location required';
-      deliveryFeeDisplayEl.textContent = 'Rs. 0.00';
+      deliveryFeeDisplayEl.textContent = 'Awaiting pin location';
       const produceVal = qty * pricePerKg;
       produceTotalEl.textContent = 'Rs. ' + produceVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      grandTotalDisplayEl.textContent = 'Rs. ' + produceVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      grandTotalDisplayEl.textContent = 'Rs. ' + produceVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' + fee';
       return;
     }
 
     // Show loading state
-    loadingEl.classList.remove('hidden');
+    loadingEl?.classList.remove('hidden');
     hideError();
 
     const payload = {
@@ -467,7 +489,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // Success: update displays
       hideError();
       currentQuoteValid = true;
-      btnSubmit.disabled = false;
+      if (btnSubmit) btnSubmit.disabled = false;
 
       produceTotalEl.textContent = 'Rs. ' + Number(data.items_total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       deliveryFeeDisplayEl.textContent = 'Rs. ' + Number(data.delivery_fee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -475,37 +497,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (fulfillment === 'pickup') {
         distanceDisplayEl.textContent = '— (Self collection)';
-        estimatedNoteEl.classList.add('hidden');
+        estimatedNoteEl?.classList.add('hidden');
       } else {
         distanceDisplayEl.textContent = data.distance_km ? `${data.distance_km} km` : '—';
         if (data.distance_source === 'estimated') {
-          estimatedNoteEl.classList.remove('hidden');
+          estimatedNoteEl?.classList.remove('hidden');
         } else {
-          estimatedNoteEl.classList.add('hidden');
+          estimatedNoteEl?.classList.add('hidden');
         }
       }
 
     } catch (err) {
       showError('Network error while computing price quote. Please check your connection.');
     } finally {
-      loadingEl.classList.add('hidden');
+      loadingEl?.classList.add('hidden');
     }
   }
 
   function showError(msg) {
     currentQuoteValid = false;
-    errorTextEl.textContent = msg;
-    errorEl.classList.remove('hidden');
-    btnSubmit.disabled = true;
+    if (errorTextEl) errorTextEl.textContent = msg;
+    errorEl?.classList.remove('hidden');
+    if (btnSubmit) btnSubmit.disabled = true;
   }
 
   function hideError() {
-    errorEl.classList.add('hidden');
+    errorEl?.classList.add('hidden');
+    if (btnSubmit) btnSubmit.disabled = false;
   }
 
-  // Radio button change listeners
+  // Radio button and card change listeners
   form.querySelectorAll('input[name="fulfillment_type"]').forEach(radio => {
     radio.addEventListener('change', updateFulfillmentUI);
+  });
+
+  cardPickup?.addEventListener('click', function(e) {
+    const radio = cardPickup.querySelector('input[type="radio"]');
+    if (radio && !radio.checked) {
+      radio.checked = true;
+      updateFulfillmentUI();
+    }
+  });
+
+  cardDelivery?.addEventListener('click', function(e) {
+    const radio = cardDelivery.querySelector('input[type="radio"]');
+    if (radio && !radio.disabled && !radio.checked) {
+      radio.checked = true;
+      updateFulfillmentUI();
+    }
   });
 
   // Quantity input listeners
@@ -515,10 +554,20 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Delivery picker coordinate change listeners
-  if (deliveryLatInput) deliveryLatInput.addEventListener('change', scheduleQuoteUpdate);
-  if (deliveryLngInput) deliveryLngInput.addEventListener('change', scheduleQuoteUpdate);
+  if (deliveryLatInput) {
+    deliveryLatInput.addEventListener('change', scheduleQuoteUpdate);
+    deliveryLatInput.addEventListener('input', scheduleQuoteUpdate);
+  }
+  if (deliveryLngInput) {
+    deliveryLngInput.addEventListener('change', scheduleQuoteUpdate);
+    deliveryLngInput.addEventListener('input', scheduleQuoteUpdate);
+  }
+  if (deliveryPickerWrapper) {
+    deliveryPickerWrapper.addEventListener('change', scheduleQuoteUpdate);
+    deliveryPickerWrapper.addEventListener('input', scheduleQuoteUpdate);
+  }
 
-  // Initial trigger
+  // Initial trigger to calculate default pickup quote
   updateFulfillmentUI();
 
   // Initialize interactive maps if enabled
@@ -526,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function () {
   AgroMaps.load(['maps', 'marker', 'places']).then(() => {
     // 1. Initialize delivery picker with farmer and buyer pins
     new AgroLocationPicker({
-      pickerId: 'delivery-picker',
+      prefix: 'delivery-picker',
       initialLat: {{ current_user.latitude if current_user.latitude is not none else 'null' }},
       initialLng: {{ current_user.longitude if current_user.longitude is not none else 'null' }},
       roleHint: 'delivery'

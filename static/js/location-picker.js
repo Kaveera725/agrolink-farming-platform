@@ -28,13 +28,14 @@
 
   class AgroLocationPicker {
     constructor(options = {}) {
-      this.prefix = options.prefix || 'location-picker';
+      this.prefix = options.prefix || options.pickerId || 'location-picker';
       this.initialLat = options.initialLat ? parseFloat(options.initialLat) : null;
       this.initialLng = options.initialLng ? parseFloat(options.initialLng) : null;
       this.initialAddress = options.initialAddress || '';
       this.required = Boolean(options.required);
 
       // DOM Elements
+      this.wrapper = document.getElementById(`${this.prefix}-wrapper`);
       this.mapContainer = document.getElementById(`${this.prefix}-map`);
       this.skeleton = document.getElementById(`${this.prefix}-skeleton`);
       this.fallbackContainer = document.getElementById(`${this.prefix}-fallback`);
@@ -44,6 +45,14 @@
       this.addressDisplay = document.getElementById(`${this.prefix}-address-display`);
       this.coordsDisplay = document.getElementById(`${this.prefix}-coords-display`);
       this.statusBadge = document.getElementById(`${this.prefix}-status-badge`);
+
+      // Prevent duplicate initialization on the same container
+      if (this.mapContainer && this.mapContainer._agroPicker) {
+        return this.mapContainer._agroPicker;
+      }
+      if (this.mapContainer) {
+        this.mapContainer._agroPicker = this;
+      }
 
       // Hidden Form Inputs
       this.inputLat = document.getElementById(`${this.prefix}-latitude`);
