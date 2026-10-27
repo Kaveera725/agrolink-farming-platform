@@ -323,16 +323,44 @@
               <p class="text-[11px] text-muted">Choose your district from the suggestions to help buyers estimate transit costs.</p>
             </div>
 
-            {# Hidden "Offer delivery" switch component slot (Placeholder for future feature) #}
-            <div id="offer-delivery-slot" class="hidden" data-feature="offer-delivery" aria-hidden="true">
-              <!-- Placeholder: Offer delivery switch component slot (will be activated when delivery feature is launched) -->
-              <div class="flex items-center justify-between p-4 rounded-2xl bg-canvas border border-bdr">
-                <div>
-                  <label for="offer_delivery_input" class="text-sm font-semibold text-ink block">Offer Farm-to-Gate Delivery</label>
-                  <p class="text-xs text-muted">Deliver directly to buyer warehouses or store locations.</p>
+            {# "Offer delivery" switch component #}
+            {% set farmer_has_pin = bool(current_user.latitude is not none and current_user.longitude is not none) %}
+            {% set is_delivery_offered = (request.form.get('offers_delivery') == 'on') if request.method == 'POST' else (product.offers_delivery if product else false) %}
+            <div id="offer-delivery-slot" class="p-4 sm:p-5 rounded-2xl bg-canvas/60 border border-bdr space-y-3" data-feature="offer-delivery">
+              <div class="flex items-start justify-between gap-4">
+                <div class="space-y-1">
+                  <label for="offers_delivery_input" class="text-sm font-bold text-ink block">
+                    Offer delivery
+                  </label>
+                  <p class="text-xs text-muted leading-relaxed">
+                    Buyers can choose delivery. Fee: Rs {{ "{:,.0f}".format(config['DELIVERY_BASE_FEE']) }} up to {{ "{:,.0f}".format(config['DELIVERY_BASE_KM']) }} km, plus Rs {{ "{:,.0f}".format(config['DELIVERY_EXTRA_PER_KM']) }} per extra km. You arrange the transport.
+                  </p>
                 </div>
-                <input type="checkbox" id="offer_delivery_input" name="offer_delivery" class="checkbox" disabled />
+                <label class="relative inline-flex items-center {% if farmer_has_pin %}cursor-pointer{% else %}cursor-not-allowed opacity-60{% endif %} shrink-0 mt-0.5">
+                  <input
+                    type="checkbox"
+                    id="offers_delivery_input"
+                    name="offers_delivery"
+                    value="on"
+                    {% if is_delivery_offered and farmer_has_pin %}checked{% endif %}
+                    {% if not farmer_has_pin %}disabled aria-disabled="true"{% endif %}
+                    class="sr-only peer"
+                  />
+                  <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-leaf/40 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-leaf"></div>
+                </label>
               </div>
+
+              {% if not farmer_has_pin %}
+                <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+                  {{ icon('alert-triangle', size=15, cls='text-amber-600 shrink-0 mt-0.5') }}
+                  <div class="flex-1">
+                    <span>You must save your farm location pin before enabling delivery.</span>
+                    <a href="{{ url_for('profile.edit') }}" class="font-bold underline text-leaf-dark hover:text-leaf block mt-0.5">
+                      Set your farm location in profile &rarr;
+                    </a>
+                  </div>
+                </div>
+              {% endif %}
             </div>
 
             {# Availability Toggle (when editing existing product) #}

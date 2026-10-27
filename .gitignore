@@ -23,6 +23,7 @@ venv.bak/
 instance/
 static/uploads/
 *.log
+backup/
 
 # IDE and Editor Files
 .vscode/

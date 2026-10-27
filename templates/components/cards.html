@@ -60,6 +60,13 @@
           <span>Deal</span>
         </span>
       {% endif %}
+
+      {% if product.offers_delivery %}
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-700 text-white shadow-2xs">
+          {{ icon('truck', size=11) }}
+          <span>Delivery available</span>
+        </span>
+      {% endif %}
     </div>
 
     {# Top-Right Badges (Low stock) #}

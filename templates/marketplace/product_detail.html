@@ -98,6 +98,13 @@
                   <span>Deal</span>
                 </span>
               {% endif %}
+
+              {% if product.offers_delivery %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-700 text-white shadow-2xs">
+                  {{ icon('truck', size=12) }}
+                  <span>Delivery available</span>
+                </span>
+              {% endif %}
             </div>
 
             <div class="absolute top-3 right-3 z-10 pointer-events-none">
@@ -242,8 +249,18 @@
           </div>
         {% endif %}
 
-        {# ── PLACEHOLDER 2: DELIVERY INFO ROW (Hidden until provider data exists) ── #}
-        {% if product.delivery_options %}
+        {# ── DELIVERY INFO ROW ── #}
+        {% if product.offers_delivery %}
+          <div class="card p-4 bg-white border border-leaf/30 shadow-xs text-xs flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf flex items-center justify-center shrink-0">
+              {{ icon('truck', size=18) }}
+            </div>
+            <div>
+              <span class="font-bold text-ink block">Direct Delivery Available</span>
+              <span class="text-muted">Farmer offers door-to-door or warehouse transport. Quotes calculated at checkout.</span>
+            </div>
+          </div>
+        {% elif product.delivery_options %}
           <div class="card p-4 bg-white border border-bdr text-xs flex items-center gap-3">
             {{ icon('truck', size=18, cls='text-leaf shrink-0') }}
             <div>

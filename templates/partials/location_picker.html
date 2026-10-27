@@ -10,16 +10,21 @@
     role_hint: 'farmer' or 'buyer' (customizes help text)
 #}
 {% set p_id = picker_id | default('location-picker') %}
+{% set lat_field = lat_name | default('latitude') %}
+{% set lng_field = lng_name | default('longitude') %}
+{% set addr_field = address_name | default('address_text') %}
 {% set lat_val = initial_lat if initial_lat is defined and initial_lat is not none else '' %}
 {% set lng_val = initial_lng if initial_lng is defined and initial_lng is not none else '' %}
 {% set addr_val = initial_address if initial_address is defined and initial_address is not none else '' %}
+{% set f_lat = farmer_lat if farmer_lat is defined and farmer_lat is not none else '' %}
+{% set f_lng = farmer_lng if farmer_lng is defined and farmer_lng is not none else '' %}
 
-<div class="space-y-3" id="{{ p_id }}-wrapper">
+<div class="space-y-3" id="{{ p_id }}-wrapper" {% if f_lat and f_lng %}data-farmer-lat="{{ f_lat }}" data-farmer-lng="{{ f_lng }}"{% endif %}>
   
   <!-- Header & Guidance -->
   <div class="flex items-center justify-between">
     <label class="form-label mb-0 flex items-center gap-1.5">
-      <span>{{ 'Farm Location Pin' if role_hint == 'farmer' else 'Location Pin' }}</span>
+      <span>{{ 'Farm Location Pin' if role_hint == 'farmer' else 'Delivery Location Pin' if role_hint == 'delivery' else 'Location Pin' }}</span>
       {% if required %}
       <span class="text-rose-600 font-bold" title="Required">*</span>
       {% else %}
@@ -32,15 +37,17 @@
   <p class="text-xs text-gray-600">
     {% if role_hint == 'farmer' %}
     Pin your exact farm or harvest collection point so buyers and logistics drivers can locate you and compute accurate transport distances.
+    {% elif role_hint == 'delivery' %}
+    Adjust the delivery pin to your exact delivery warehouse or doorstep. Distance and transport fee are calculated from the farmer's collection pin.
     {% else %}
     Pin your default delivery address or drop-off location. You can also update this anytime later.
     {% endif %}
   </p>
 
   <!-- Hidden form inputs submitted with POST form -->
-  <input type="hidden" id="{{ p_id }}-latitude" name="latitude" value="{{ lat_val }}" {% if required %}data-required="true"{% endif %} />
-  <input type="hidden" id="{{ p_id }}-longitude" name="longitude" value="{{ lng_val }}" />
-  <input type="hidden" id="{{ p_id }}-address-text" name="address_text" value="{{ addr_val }}" />
+  <input type="hidden" id="{{ p_id }}-latitude" name="{{ lat_field }}" value="{{ lat_val }}" {% if required %}data-required="true"{% endif %} />
+  <input type="hidden" id="{{ p_id }}-longitude" name="{{ lng_field }}" value="{{ lng_val }}" />
+  <input type="hidden" id="{{ p_id }}-address-text" name="{{ addr_field }}" value="{{ addr_val }}" />
 
   <!-- Places Search & Use My Location Action Bar -->
   <div class="space-y-2">

@@ -148,6 +148,32 @@
       if (this.searchInput && places) {
         this.setupPlacesAutocomplete(places);
       }
+
+      // Check for farmer origin coordinates (for delivery checkout showing both pins)
+      if (this.wrapper && this.wrapper.dataset.farmerLat && this.wrapper.dataset.farmerLng) {
+        const fLat = parseFloat(this.wrapper.dataset.farmerLat);
+        const fLng = parseFloat(this.wrapper.dataset.farmerLng);
+        if (!isNaN(fLat) && !isNaN(fLng)) {
+          const farmerPin = document.createElement('div');
+          farmerPin.className = 'agrolink-farmer-pin';
+          farmerPin.style.cssText = 'background:#1e5637;color:#fff;border-radius:9999px;padding:4px 8px;font-size:11px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2px solid #fff;display:flex;align-items:center;gap:4px;white-space:nowrap;';
+          farmerPin.innerHTML = '<span>🚜</span><span>Farmer Origin</span>';
+
+          this.farmerMarkerInstance = new marker.AdvancedMarkerElement({
+            map: this.mapInstance,
+            position: { lat: fLat, lng: fLng },
+            title: 'Farmer Collection Point (Fixed)',
+            gmpDraggable: false,
+            content: farmerPin
+          });
+
+          // Fit bounds to show both pins
+          const bounds = new google.maps.LatLngBounds();
+          bounds.extend({ lat: fLat, lng: fLng });
+          bounds.extend(center);
+          this.mapInstance.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+        }
+      }
     }
 
     setupPlacesAutocomplete(places) {
@@ -200,9 +226,20 @@
       const fixedLng = lng.toFixed(6);
 
       // Hidden Form Inputs
-      if (this.inputLat) this.inputLat.value = fixedLat;
-      if (this.inputLng) this.inputLng.value = fixedLng;
-      if (this.inputAddress && addressText) this.inputAddress.value = addressText;
+      if (this.inputLat) {
+        this.inputLat.value = fixedLat;
+        this.inputLat.dispatchEvent(new Event('change', { bubbles: true }));
+        this.inputLat.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (this.inputLng) {
+        this.inputLng.value = fixedLng;
+        this.inputLng.dispatchEvent(new Event('change', { bubbles: true }));
+        this.inputLng.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (this.inputAddress && addressText) {
+        this.inputAddress.value = addressText;
+        this.inputAddress.dispatchEvent(new Event('change', { bubbles: true }));
+      }
 
       // Manual Inputs
       if (this.manualLat && document.activeElement !== this.manualLat) this.manualLat.value = fixedLat;
