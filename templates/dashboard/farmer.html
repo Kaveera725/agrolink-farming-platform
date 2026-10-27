@@ -285,7 +285,10 @@
                       <p class="text-[11px] text-muted">{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
                     </div>
                   </div>
-                  {{ badges.order_status_badge(order.status) }}
+                  <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                    {{ badges.fulfillment_badge(order.fulfillment_type, size='sm') }}
+                    {{ badges.order_status_badge(order.status) }}
+                  </div>
                 </div>
 
                 {# Items & Pricing #}
@@ -294,7 +297,7 @@
                   <div class="flex items-center justify-between text-xs text-muted">
                     <span>{{ "{:,.0f}".format(order.quantity_kg) }} kg ordered</span>
                     <span class="font-bold text-leaf-dark font-display text-sm">
-                      Rs. {{ "{:,.0f}".format(order.total_price) }}
+                      Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}
                     </span>
                   </div>
                 </div>
@@ -710,16 +713,71 @@
 {# ─── ACCESSIBLE MODALS FOR ACTIONS ───────────────────────────────────────── #}
 
 {# 1. Reject Order Modal #}
-{{ confirm_dialog(
-    id='reject-order-modal',
-    title='Reject Buyer Order?',
-    message='Are you sure you want to decline this purchase request? The buyer will be notified and reserved stock returned to your active listing.',
-    confirm_text='Yes, Reject Order',
-    cancel_text='Keep Order',
-    confirm_variant='danger',
-    form_action='',
-    csrf_token_val=csrf_token()
-) }}
+<div
+  id="reject-order-modal"
+  class="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs hidden items-center justify-center p-4 transition-all"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="reject-order-modal-title"
+>
+  <div class="card p-6 sm:p-8 bg-white max-w-md w-full rounded-3xl shadow-2xl space-y-4">
+    <div class="w-12 h-12 rounded-2xl bg-danger-50 text-danger flex items-center justify-center">
+      {{ icon('x-circle', size=24) }}
+    </div>
+
+    <div>
+      <h3 id="reject-order-modal-title" class="font-display font-bold text-xl text-ink">
+        Reject Buyer Order?
+      </h3>
+      <p id="reject-order-modal-desc" class="text-sm text-muted mt-1.5 leading-relaxed">
+        Are you sure you want to decline this purchase request? Reserved stock will automatically be returned to your active listing.
+      </p>
+    </div>
+
+    <form method="POST" action="" id="reject-order-modal-form" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="status" value="rejected">
+      <input type="hidden" name="next" value="{{ url_for('dashboard.index') }}">
+
+      <div>
+        <label for="reject-modal-reason" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Reason for rejection <span class="text-danger">*</span>
+        </label>
+        <textarea
+          id="reject-modal-reason"
+          name="rejection_reason"
+          rows="3"
+          required
+          minlength="5"
+          placeholder="e.g. Produce lot is already committed or delivery transport is unavailable"
+          class="w-full text-sm rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-danger text-gray-900 bg-white"
+        ></textarea>
+        <p class="text-[11px] text-gray-400 mt-1">Minimum 5 characters. This explanation will be shared with the buyer.</p>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-bdr">
+        <button
+          type="button"
+          class="btn-secondary text-sm py-2.5 px-4"
+          onclick="(function(){
+            var m = document.getElementById('reject-order-modal');
+            if (m) { m.classList.add('hidden'); m.classList.remove('flex'); m.setAttribute('aria-hidden', 'true'); }
+          })()"
+        >
+          Keep Order
+        </button>
+        <button
+          type="submit"
+          id="reject-modal-submit-btn"
+          class="btn-danger text-sm py-2.5 px-4 shadow-sm"
+        >
+          Confirm Rejection
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 {# 2. Remove Produce Listing Modal #}
 {{ confirm_dialog(
@@ -739,28 +797,11 @@
     const modal = document.getElementById('reject-order-modal');
     const form = document.getElementById('reject-order-modal-form');
     const desc = document.getElementById('reject-order-modal-desc');
+    const reason = document.getElementById('reject-modal-reason');
     if (!modal || !form) return;
 
     form.action = '/orders/' + orderId + '/update-status';
-    
-    // Ensure status & next hidden fields exist
-    let statusInput = form.querySelector('input[name="status"]');
-    if (!statusInput) {
-      statusInput = document.createElement('input');
-      statusInput.type = 'hidden';
-      statusInput.name = 'status';
-      form.appendChild(statusInput);
-    }
-    statusInput.value = 'cancelled';
-
-    let nextInput = form.querySelector('input[name="next"]');
-    if (!nextInput) {
-      nextInput = document.createElement('input');
-      nextInput.type = 'hidden';
-      nextInput.name = 'next';
-      form.appendChild(nextInput);
-    }
-    nextInput.value = "{{ url_for('dashboard.index') }}";
+    if (reason) reason.value = '';
 
     if (desc) {
       desc.textContent = `Decline ${buyerName}'s order for ${productName}? Reserved stock will automatically be returned to your active listing.`;
@@ -769,6 +810,7 @@
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     modal.setAttribute('aria-hidden', 'false');
+    if (reason) reason.focus();
   }
 
   // ── Remove Produce Listing Modal Controller ──────────────────────────────

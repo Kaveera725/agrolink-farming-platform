@@ -73,14 +73,17 @@
           <!-- Status & Price Info -->
           <div class="flex items-center justify-between sm:justify-end gap-5 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
             <div class="text-left sm:text-right">
-              <span class="text-xs text-gray-500 block">Total Price</span>
+              <span class="text-xs text-gray-500 block">Grand Total</span>
               <span class="font-display font-extrabold text-lg sm:text-xl text-leaf-dark block">
-                Rs. {{ "{:,.0f}".format(order.total_price) }}
+                Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}
               </span>
             </div>
 
             <div class="flex flex-col items-end gap-2">
-              {{ badges.order_status_badge(order.status) }}
+              <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                {{ badges.fulfillment_badge(order.fulfillment_type, size='sm') }}
+                {{ badges.order_status_badge(order.status, size='sm') }}
+              </div>
               <a
                 href="{{ url_for('orders.order_detail', order_id=order.id) }}"
                 class="btn-secondary text-xs py-1.5 px-3"

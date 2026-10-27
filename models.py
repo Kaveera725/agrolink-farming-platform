@@ -138,6 +138,8 @@ class Order(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __init__(self, **kwargs):
+        if 'fulfillment_type' not in kwargs and kwargs.get('delivery_address'):
+            kwargs['fulfillment_type'] = 'delivery'
         super().__init__(**kwargs)
 
     def __repr__(self):

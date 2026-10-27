@@ -1,9 +1,15 @@
 {% extends "base.html" %}
-{% from "components/ui.html" import page_header %}
+{% from "components/ui.html" import page_header, price_breakdown %}
+{% from "components/forms.html" import quantity_stepper %}
+{% from "components/icons.html" import icon %}
+
 {% block title %}Place Order — {{ product.name }} — AgroLink{% endblock %}
 
+{% set farmer_has_pin = (product.farmer and product.farmer.latitude is not none and product.farmer.longitude is not none) %}
+{% set delivery_available = (product.offers_delivery and farmer_has_pin) %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
 
   {{ page_header(
       title='Confirm Order: ' ~ product.name,
@@ -18,123 +24,308 @@
       back_text='Back to Product'
   ) }}
 
-  <!-- Produce Summary Header Card -->
-  <div class="bg-white rounded-3xl p-5 sm:p-6 border border-gray-200/80 shadow-xs flex items-center gap-4">
-    <div class="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
+  {# ── PRODUCE SUMMARY HEADER CARD ───────────────────────────────────────── #}
+  <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs flex items-center gap-4">
+    <div class="w-20 h-20 rounded-2xl overflow-hidden bg-canvas border border-bdr shrink-0">
       <img
-        src="{{ product.thumbnail_url }}"
+        src="{{ product.thumbnail_url or product.display_image_url }}"
         alt="{{ product.name }}"
         loading="lazy"
+        onerror="this.onerror=null; this.src='/static/images/categories/{{ (product.category or 'other')|lower|replace('&', '')|replace(' ', '') }}.svg';"
         class="w-full h-full object-cover"
       />
     </div>
 
     <div class="min-w-0 flex-1">
-      <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
-        {{ product.category }}
-      </span>
-      <h2 class="font-display font-bold text-lg sm:text-xl text-gray-900 truncate mt-1">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-leaf-pale text-leaf-dark capitalize">
+          {{ product.category }}
+        </span>
+        {% if product.offers_delivery %}
+          <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            {{ icon('truck', size=11) }}
+            <span>Delivery available</span>
+          </span>
+        {% endif %}
+      </div>
+
+      <h2 class="font-display font-bold text-lg sm:text-xl text-ink truncate mt-1">
         {{ product.name }}
       </h2>
-      <p class="text-xs text-gray-500 truncate">
-        Sold by <span class="font-semibold text-gray-800">{{ product.farmer.name }}</span> · {{ product.location or (product.farmer.location or product.farmer.district) or 'Sri Lanka' }}
+      <p class="text-xs text-muted truncate">
+        Sold by <span class="font-semibold text-ink">{{ product.farmer.name }}</span> · {{ product.location or (product.farmer.location or product.farmer.district) or 'Sri Lanka' }}
       </p>
+
       <div class="flex items-baseline gap-3 mt-1.5">
         <span class="font-display font-extrabold text-base text-leaf-dark">
-          Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }} <span class="text-xs font-normal text-gray-500">/ kg</span>
+          Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }}
+          <span class="text-xs font-normal text-muted">/ kg</span>
         </span>
-        <span class="text-xs text-gray-500 font-medium">
+        <span class="text-xs text-muted font-medium">
           ({{ "{:,.0f}".format(product.quantity_kg) }} kg available)
         </span>
       </div>
     </div>
   </div>
 
-  <!-- Order Form Card -->
-  <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200/80">
-    <div class="mb-6 pb-4 border-b border-gray-100">
-      <h1 class="font-display text-2xl font-bold text-gray-900 tracking-tight">
+  {# ── ORDER FORM CARD ───────────────────────────────────────────────────── #}
+  <div class="card p-6 sm:p-8 bg-white border border-bdr shadow-xs space-y-6">
+    <div class="pb-4 border-b border-bdr/60">
+      <h1 class="font-display text-2xl font-bold text-ink tracking-tight">
         Complete Purchase Order
       </h1>
-      <p class="text-xs sm:text-sm text-gray-600 mt-1">
-        Specify your requested quantity and delivery address to send a direct order to the grower.
+      <p class="text-xs sm:text-sm text-muted mt-1">
+        Select your fulfillment method and order quantity to receive a live price quote.
       </p>
     </div>
 
-    <form method="POST" id="orderForm" data-price="{{ product.price_per_kg }}" class="space-y-6" novalidate>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <form
+      method="POST"
+      id="order-form"
+      data-product-id="{{ product.id }}"
+      data-price="{{ product.price_per_kg }}"
+      data-max-stock="{{ product.quantity_kg }}"
+      class="space-y-6"
+      novalidate
+    >
+      <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
 
-      <!-- Quantity -->
-      <div class="space-y-1.5">
+      {# ── 1. ORDER QUANTITY STEPPER ───────────────────────────────────────── #}
+      <div class="space-y-2">
         <div class="flex items-center justify-between">
-          <label for="qty" class="block text-sm font-semibold text-gray-800">
-            Quantity (kg) <span class="text-red-600 font-bold">*</span>
+          <label for="quantity_kg" class="block text-sm font-bold text-ink">
+            Harvest Quantity (kg) <span class="text-danger font-bold">*</span>
           </label>
-          <span class="text-xs text-gray-500">Max: {{ "{:,.0f}".format(product.quantity_kg) }} kg</span>
+          <span class="text-xs text-muted">Available: {{ "{:,.0f}".format(product.quantity_kg) }} kg</span>
         </div>
-        <input
-          type="number"
-          id="qty"
-          name="quantity_kg"
-          required
-          min="0.1"
-          step="0.1"
-          max="{{ product.quantity_kg }}"
-          placeholder="e.g. 100"
-          oninput="calcTotal()"
-          class="w-full min-h-[46px] px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-        />
+
+        <div class="flex items-center gap-3">
+          {{ quantity_stepper('quantity_kg', 'quantity_kg', value=1, min=0.1, max=product.quantity_kg, step=1) }}
+          <span class="text-xs text-muted">kg</span>
+        </div>
       </div>
 
-      <!-- Live Calculation Banner -->
-      <div class="bg-gradient-to-br from-emerald-50/60 to-white rounded-2xl p-4 sm:p-5 border border-emerald-200/80 flex items-center justify-between">
-        <div>
-          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Estimated Total Order Value</span>
-          <span class="text-xs text-gray-500">Based on Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }}/kg</span>
-        </div>
-        <span id="totalDisplay" class="font-display font-extrabold text-2xl text-leaf-dark">
-          Rs. 0.00
-        </span>
-      </div>
-
-      <!-- Delivery Address -->
-      <div class="space-y-1.5">
-        <label for="delivery_address" class="block text-sm font-semibold text-gray-800">
-          Delivery Address / Collection Point <span class="text-red-600 font-bold">*</span>
+      {# ── 2. FULFILLMENT CHOICE CARDS ─────────────────────────────────────── #}
+      <div class="space-y-2.5">
+        <label class="block text-sm font-bold text-ink">
+          Fulfillment Method <span class="text-danger font-bold">*</span>
         </label>
-        <textarea
-          id="delivery_address"
-          name="delivery_address"
-          required
-          rows="3"
-          placeholder="Street address, city/district, warehouse or wholesale market stall number..."
-          class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
-        ></textarea>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Fulfillment method selection">
+          {# Card 1: Self Pickup #}
+          <label class="relative flex items-start gap-3 p-4 rounded-2xl border-2 cursor-pointer transition border-leaf bg-leaf-50/40" id="card-pickup">
+            <input
+              type="radio"
+              name="fulfillment_type"
+              value="pickup"
+              checked
+              class="mt-1 text-leaf focus:ring-leaf h-4 w-4 border-gray-300"
+            />
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5 font-bold text-sm text-ink">
+                {{ icon('map-pin', size=16, cls='text-leaf') }}
+                <span>Self Pickup</span>
+              </div>
+              <p class="text-xs text-muted leading-tight">
+                Collect produce yourself directly from the farmer's collection point.
+              </p>
+              <span class="inline-block text-[11px] font-semibold text-leaf-dark bg-leaf-pale px-2 py-0.5 rounded">
+                Free (Rs 0 transport fee)
+              </span>
+            </div>
+          </label>
+
+          {# Card 2: Door-to-Door Delivery #}
+          <label class="relative flex items-start gap-3 p-4 rounded-2xl border-2 transition {% if delivery_available %}cursor-pointer border-bdr hover:border-leaf/50 bg-white{% else %}cursor-not-allowed border-bdr/60 bg-canvas/60 opacity-65{% endif %}" id="card-delivery">
+            <input
+              type="radio"
+              name="fulfillment_type"
+              value="delivery"
+              {% if not delivery_available %}disabled{% endif %}
+              class="mt-1 text-leaf focus:ring-leaf h-4 w-4 border-gray-300"
+            />
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5 font-bold text-sm text-ink">
+                {{ icon('truck', size=16, cls='text-leaf') }}
+                <span>Farm-to-Gate Delivery</span>
+              </div>
+              <p class="text-xs text-muted leading-tight">
+                {% if not product.offers_delivery %}
+                  Farmer does not offer delivery for this produce.
+                {% elif not farmer_has_pin %}
+                  Farmer has not set a map location pin for routing.
+                {% else %}
+                  Direct transport arranged to your warehouse or address.
+                {% endif %}
+              </p>
+              {% if delivery_available %}
+                <span class="inline-block text-[11px] font-semibold text-leaf-dark bg-leaf-pale px-2 py-0.5 rounded">
+                  Live quote by distance
+                </span>
+              {% else %}
+                <span class="inline-block text-[11px] font-semibold text-muted bg-gray-200 px-2 py-0.5 rounded">
+                  Delivery unavailable
+                </span>
+              {% endif %}
+            </div>
+          </label>
+        </div>
       </div>
 
-      <!-- Notes -->
+      {# ── 3. PICKUP DETAILS PANEL (Visible when Pickup selected) ──────────── #}
+      <div id="pickup-details-panel" class="p-4 sm:p-5 rounded-2xl bg-canvas/70 border border-bdr space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf flex items-center justify-center shrink-0">
+              {{ icon('map-pin', size=16) }}
+            </div>
+            <div>
+              <span class="text-xs uppercase font-bold tracking-wider text-muted block">Farmer Collection Point</span>
+              <span class="text-sm font-semibold text-ink">{{ product.location or (product.farmer.location or product.farmer.district) or 'Sri Lanka' }}</span>
+            </div>
+          </div>
+
+          {% if farmer_has_pin %}
+            <a
+              href="https://www.google.com/maps/dir/?api=1&destination={{ product.farmer.latitude }},{{ product.farmer.longitude }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-bdr hover:border-leaf text-ink hover:text-leaf transition shadow-2xs"
+            >
+              {{ icon('external-link', size=13) }}
+              <span>Get directions</span>
+            </a>
+          {% endif %}
+        </div>
+
+        {% if maps_enabled and farmer_has_pin %}
+          <div id="farmer-pickup-map" class="w-full h-44 rounded-xl border border-bdr overflow-hidden bg-gray-100 shadow-inner"></div>
+        {% endif %}
+
+        <p class="text-xs text-muted">
+          Contact details and collection phone number will be displayed on your confirmed order receipt.
+        </p>
+      </div>
+
+      {# ── 4. DELIVERY DETAILS PANEL (Visible when Delivery selected) ──────── #}
+      <div id="delivery-details-panel" class="space-y-4 hidden">
+        <div class="p-4 sm:p-5 rounded-2xl bg-canvas/70 border border-bdr space-y-4">
+          <div class="flex items-center gap-2 pb-2 border-b border-bdr/60">
+            <div class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf flex items-center justify-center shrink-0">
+              {{ icon('truck', size=16) }}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-ink">Set Delivery Destination</h3>
+              <p class="text-xs text-muted">Both the farmer collection point (🚜) and your delivery drop-off pin are shown below.</p>
+            </div>
+          </div>
+
+          {# Reusable Location Picker showing BOTH pins #}
+          {% with %}
+            {% set picker_id = 'delivery-picker' %}
+            {% set lat_name = 'delivery_lat' %}
+            {% set lng_name = 'delivery_lng' %}
+            {% set address_name = 'delivery_address' %}
+            {% set initial_lat = current_user.latitude %}
+            {% set initial_lng = current_user.longitude %}
+            {% set initial_address = current_user.address_text %}
+            {% set farmer_lat = product.farmer.latitude %}
+            {% set farmer_lng = product.farmer.longitude %}
+            {% set role_hint = 'delivery' %}
+            {% set required = false %}
+            {% include "partials/location_picker.html" %}
+          {% endwith %}
+
+          {# Street / Building Address Textarea #}
+          <div class="space-y-1.5 pt-2">
+            <label for="delivery_address" class="block text-sm font-semibold text-ink">
+              Specific Delivery Address / Gate Instructions <span class="text-danger font-bold">*</span>
+            </label>
+            <textarea
+              id="delivery_address"
+              name="delivery_address"
+              rows="2"
+              placeholder="Building name, door/gate number, street address, or unloading bay instructions..."
+              class="w-full px-4 py-2.5 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+            >{{ current_user.address_text or '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      {# ── 5. ORDER NOTES ──────────────────────────────────────────────────── #}
       <div class="space-y-1.5">
-        <label for="order_notes" class="block text-sm font-semibold text-gray-800">
-          Order Instructions / Logistics Notes <span class="text-xs text-gray-400 font-normal">(optional)</span>
+        <label for="order_notes" class="block text-sm font-semibold text-ink">
+          Order Instructions / Logistics Notes <span class="text-xs text-muted font-normal">(optional)</span>
         </label>
         <textarea
           id="order_notes"
           name="notes"
           rows="2"
-          placeholder="Any special packing instructions, transport timing, or quality checking notes..."
-          class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          placeholder="Any quality specifications, preferred delivery time window, or special packaging notes..."
+          class="w-full px-4 py-2.5 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
         ></textarea>
       </div>
 
-      <!-- Actions -->
-      <div class="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-gray-100">
+      {# ── 6. LIVE PRICE BREAKDOWN & ORDER TOTAL ───────────────────────────── #}
+      <div class="p-5 rounded-2xl bg-gradient-to-br from-leaf-50/50 via-white to-canvas border border-leaf/30 space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
+          <span class="text-xs uppercase font-bold tracking-wider text-muted">Order Price Breakdown</span>
+          
+          {# Loading state spinner #}
+          <div id="quote-loading" class="hidden flex items-center gap-1.5 text-xs text-leaf font-semibold">
+            <span class="animate-spin inline-block h-3 w-3 border-2 border-leaf border-t-transparent rounded-full"></span>
+            <span>Calculating live quote...</span>
+          </div>
+        </div>
+
+        {# Price breakdown rows #}
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between items-center text-ink">
+            <span class="text-muted">Produce Subtotal:</span>
+            <span class="font-semibold tabular-nums" id="produce-total">Rs. 0.00</span>
+          </div>
+
+          <div class="flex justify-between items-center text-ink">
+            <span class="text-muted flex items-center gap-1">
+              <span>Transit Distance:</span>
+              <span id="quote-estimated-note" class="hidden inline-flex text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                Estimated
+              </span>
+            </span>
+            <span class="font-medium text-ink tabular-nums" id="distance-display">— (Self collection)</span>
+          </div>
+
+          <div class="flex justify-between items-center text-ink">
+            <span class="text-muted">Delivery Transport Fee:</span>
+            <span class="font-semibold tabular-nums" id="delivery-fee-display">Rs. 0.00</span>
+          </div>
+
+          <div class="pt-3 border-t border-bdr flex justify-between items-baseline">
+            <div>
+              <span class="text-base font-bold text-ink block">Grand Total</span>
+              <span class="text-[11px] text-muted">Payable upon delivery or pickup (COD)</span>
+            </div>
+            <span class="font-display font-black text-2xl sm:text-3xl text-leaf-dark tabular-nums" id="grand-total-display">
+              Rs. 0.00
+            </span>
+          </div>
+        </div>
+
+        {# Quote Error Banner #}
+        <div id="quote-error" class="hidden p-3 rounded-xl bg-danger-50 border border-danger/30 text-xs text-danger-700 flex items-start gap-2">
+          {{ icon('alert-triangle', size=14, cls='shrink-0 text-danger mt-0.5') }}
+          <span id="quote-error-text" class="font-semibold">Unable to calculate quote.</span>
+        </div>
+      </div>
+
+      {# ── 7. ACTIONS ──────────────────────────────────────────────────────── #}
+      <div class="flex flex-col sm:flex-row items-center gap-3 pt-3 border-t border-bdr">
         <button
           type="submit"
+          id="btn-place-order"
           class="btn-primary w-full sm:flex-1 py-3.5 text-base shadow-sm flex items-center justify-center gap-2"
         >
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-          </svg>
+          {{ icon('check-circle', size=18) }}
           <span>Confirm &amp; Place Order</span>
         </button>
         <a
@@ -148,16 +339,223 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{# Load Google Maps JS only on this page #}
+<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+<script src="{{ url_for('static', filename='js/location-picker.js') }}"></script>
 
 <script>
-  const pricePerKg = parseFloat(document.getElementById('orderForm')?.dataset.price) || 0;
-  function calcTotal() {
-    const qtyInput = document.getElementById('qty');
-    const totalEl = document.getElementById('totalDisplay');
-    if (!qtyInput || !totalEl) return;
-    const qty = parseFloat(qtyInput.value) || 0;
-    const total = qty * pricePerKg;
-    totalEl.textContent = 'Rs. ' + total.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('order-form');
+  if (!form) return;
+
+  const productId = parseInt(form.dataset.productId, 10);
+  const pricePerKg = parseFloat(form.dataset.price) || 0;
+  const maxStock = parseFloat(form.dataset.maxStock) || 0;
+  const csrfToken = document.getElementById('csrf_token')?.value || '';
+
+  const qtyInput = document.getElementById('quantity_kg');
+  const cardPickup = document.getElementById('card-pickup');
+  const cardDelivery = document.getElementById('card-delivery');
+  const pickupPanel = document.getElementById('pickup-details-panel');
+  const deliveryPanel = document.getElementById('delivery-details-panel');
+
+  const produceTotalEl = document.getElementById('produce-total');
+  const distanceDisplayEl = document.getElementById('distance-display');
+  const deliveryFeeDisplayEl = document.getElementById('delivery-fee-display');
+  const grandTotalDisplayEl = document.getElementById('grand-total-display');
+  const loadingEl = document.getElementById('quote-loading');
+  const estimatedNoteEl = document.getElementById('quote-estimated-note');
+  const errorEl = document.getElementById('quote-error');
+  const errorTextEl = document.getElementById('quote-error-text');
+  const btnSubmit = document.getElementById('btn-place-order');
+
+  const deliveryLatInput = document.getElementById('delivery-picker-latitude');
+  const deliveryLngInput = document.getElementById('delivery-picker-longitude');
+
+  let debounceTimer = null;
+  let currentQuoteValid = true;
+
+  function getFulfillmentType() {
+    const checked = form.querySelector('input[name="fulfillment_type"]:checked');
+    return checked ? checked.value : 'pickup';
   }
+
+  function updateFulfillmentUI() {
+    const type = getFulfillmentType();
+    if (type === 'delivery') {
+      pickupPanel.classList.add('hidden');
+      deliveryPanel.classList.remove('hidden');
+      cardDelivery.classList.add('border-leaf', 'bg-leaf-50/40');
+      cardDelivery.classList.remove('border-bdr', 'bg-white');
+      cardPickup.classList.remove('border-leaf', 'bg-leaf-50/40');
+      cardPickup.classList.add('border-bdr', 'bg-white');
+    } else {
+      deliveryPanel.classList.add('hidden');
+      pickupPanel.classList.remove('hidden');
+      cardPickup.classList.add('border-leaf', 'bg-leaf-50/40');
+      cardPickup.classList.remove('border-bdr', 'bg-white');
+      cardDelivery.classList.remove('border-leaf', 'bg-leaf-50/40');
+      cardDelivery.classList.add('border-bdr', 'bg-white');
+    }
+    scheduleQuoteUpdate();
+  }
+
+  function scheduleQuoteUpdate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(fetchQuote, 400);
+  }
+
+  async function fetchQuote() {
+    const qty = parseFloat(qtyInput?.value) || 0;
+    const fulfillment = getFulfillmentType();
+
+    if (qty <= 0) {
+      showError('Please enter a quantity greater than zero.');
+      return;
+    }
+
+    if (qty > maxStock) {
+      showError(`Quantity exceeds available stock (${maxStock} kg).`);
+      return;
+    }
+
+    let lat = deliveryLatInput?.value ? parseFloat(deliveryLatInput.value) : null;
+    let lng = deliveryLngInput?.value ? parseFloat(deliveryLngInput.value) : null;
+
+    if (fulfillment === 'delivery' && (lat === null || lng === null || isNaN(lat) || isNaN(lng))) {
+      showError('Please pin your delivery drop-off location on the map to calculate distance and fee.');
+      distanceDisplayEl.textContent = 'Pin location required';
+      deliveryFeeDisplayEl.textContent = 'Rs. 0.00';
+      const produceVal = qty * pricePerKg;
+      produceTotalEl.textContent = 'Rs. ' + produceVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      grandTotalDisplayEl.textContent = 'Rs. ' + produceVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return;
+    }
+
+    // Show loading state
+    loadingEl.classList.remove('hidden');
+    hideError();
+
+    const payload = {
+      product_id: productId,
+      quantity: qty,
+      fulfillment_type: fulfillment,
+      delivery_lat: lat,
+      delivery_lng: lng
+    };
+
+    try {
+      const response = await fetch('/orders/quote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        showError(data.error || 'Failed to retrieve delivery quote.');
+        return;
+      }
+
+      // Success: update displays
+      hideError();
+      currentQuoteValid = true;
+      btnSubmit.disabled = false;
+
+      produceTotalEl.textContent = 'Rs. ' + Number(data.items_total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      deliveryFeeDisplayEl.textContent = 'Rs. ' + Number(data.delivery_fee).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      grandTotalDisplayEl.textContent = 'Rs. ' + Number(data.grand_total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      if (fulfillment === 'pickup') {
+        distanceDisplayEl.textContent = '— (Self collection)';
+        estimatedNoteEl.classList.add('hidden');
+      } else {
+        distanceDisplayEl.textContent = data.distance_km ? `${data.distance_km} km` : '—';
+        if (data.distance_source === 'estimated') {
+          estimatedNoteEl.classList.remove('hidden');
+        } else {
+          estimatedNoteEl.classList.add('hidden');
+        }
+      }
+
+    } catch (err) {
+      showError('Network error while computing price quote. Please check your connection.');
+    } finally {
+      loadingEl.classList.add('hidden');
+    }
+  }
+
+  function showError(msg) {
+    currentQuoteValid = false;
+    errorTextEl.textContent = msg;
+    errorEl.classList.remove('hidden');
+    btnSubmit.disabled = true;
+  }
+
+  function hideError() {
+    errorEl.classList.add('hidden');
+  }
+
+  // Radio button change listeners
+  form.querySelectorAll('input[name="fulfillment_type"]').forEach(radio => {
+    radio.addEventListener('change', updateFulfillmentUI);
+  });
+
+  // Quantity input listeners
+  if (qtyInput) {
+    qtyInput.addEventListener('input', scheduleQuoteUpdate);
+    qtyInput.addEventListener('change', scheduleQuoteUpdate);
+  }
+
+  // Delivery picker coordinate change listeners
+  if (deliveryLatInput) deliveryLatInput.addEventListener('change', scheduleQuoteUpdate);
+  if (deliveryLngInput) deliveryLngInput.addEventListener('change', scheduleQuoteUpdate);
+
+  // Initial trigger
+  updateFulfillmentUI();
+
+  // Initialize interactive maps if enabled
+  {% if maps_enabled %}
+  AgroMaps.load(['maps', 'marker', 'places']).then(() => {
+    // 1. Initialize delivery picker with farmer and buyer pins
+    new AgroLocationPicker({
+      pickerId: 'delivery-picker',
+      initialLat: {{ current_user.latitude if current_user.latitude is not none else 'null' }},
+      initialLng: {{ current_user.longitude if current_user.longitude is not none else 'null' }},
+      roleHint: 'delivery'
+    });
+
+    // 2. Initialize farmer pickup preview map if farmer has pin
+    {% if farmer_has_pin %}
+    const pickupMapDiv = document.getElementById('farmer-pickup-map');
+    if (pickupMapDiv && window.google && google.maps) {
+      const fLat = {{ product.farmer.latitude }};
+      const fLng = {{ product.farmer.longitude }};
+      const pMap = new google.maps.Map(pickupMapDiv, {
+        center: { lat: fLat, lng: fLng },
+        zoom: 13,
+        mapId: '{{ maps_map_id }}',
+        disableDefaultUI: true,
+        zoomControl: true
+      });
+      new google.maps.marker.AdvancedMarkerElement({
+        map: pMap,
+        position: { lat: fLat, lng: fLng },
+        title: 'Farmer Collection Point'
+      });
+    }
+    {% endif %}
+  }).catch((err) => {
+    console.warn('Google Maps could not be loaded on place order page:', err);
+  });
+  {% endif %}
+});
 </script>
 {% endblock %}

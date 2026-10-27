@@ -51,6 +51,16 @@
 {%- endif -%}
 {% endmacro %}
 
+{# ─── Fulfillment Badge ─────────────────────────────────────────────────── #}
+{% macro fulfillment_badge(fulfillment_type, size='md') %}
+{%- set f = (fulfillment_type or 'pickup')|lower -%}
+{%- if f == 'delivery' -%}
+  {{ badge('Delivery', variant='sky', size=size, icon_name='truck') }}
+{%- else -%}
+  {{ badge('Pickup',   variant='earth', size=size, icon_name='map-pin') }}
+{%- endif -%}
+{% endmacro %}
+
 {# ─── Crop Status Badge ──────────────────────────────────────────────────── #}
 {% macro crop_status_badge(status, size='md') %}
 {%- set s = (status or '')|lower -%}
