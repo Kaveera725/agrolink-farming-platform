@@ -1,12 +1,25 @@
 {% extends "base.html" %}
-{% from "components/ui.html" import page_header %}
+{% from "components/ui.html" import page_header, alert, price_breakdown %}
+{% from "components/icons.html" import icon %}
 {% import "components/badges.html" as badges with context %}
 {% import "components/buttons.html" as buttons with context %}
 
 {% block title %}Order #{{ order.id }} — AgroLink{% endblock %}
 
+{% block extra_head %}
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+{% endblock %}
+
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
+{% set is_farmer = (current_user.id == order.product.farmer_id) %}
+{% set is_buyer = (current_user.id == order.buyer_id) %}
+{% set is_admin = (current_user.role == 'admin') %}
+{% set can_manage = is_farmer or is_admin %}
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
 
   {{ page_header(
       title='Order #' ~ order.id,
@@ -20,7 +33,7 @@
       back_text='Back to Orders'
   ) }}
 
-  <!-- Header Card -->
+  <!-- 1. ORDER STATUS & HEADER CARD -->
   <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
@@ -33,24 +46,107 @@
       </h1>
     </div>
 
-    <div>
+    <div class="flex items-center gap-2 flex-wrap">
+      {{ badges.fulfillment_badge(order.fulfillment_type) }}
       {{ badges.order_status_badge(order.status) }}
     </div>
   </div>
 
-  <!-- PRODUCT SUMMARY CARD -->
-  <div class="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-xs flex flex-col sm:flex-row gap-5 items-center sm:items-start">
-    <div class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
-      <img
-        src="{{ order.product.thumbnail_url }}"
-        alt="{{ order.product.name }}"
-        loading="lazy"
-        class="w-full h-full object-cover"
-      />
+  <!-- REJECTION / CANCELLATION NOTICE BANNERS -->
+  {% if order.status == 'rejected' %}
+    <div class="p-5 rounded-2xl bg-danger-50 border border-danger-200 text-danger-900 flex items-start gap-3">
+      <div class="shrink-0 mt-0.5 text-danger-700">
+        {{ icon('x-circle', size=22) }}
+      </div>
+      <div class="space-y-1">
+        <h2 class="text-sm font-bold text-danger-800">Order Rejected by Farmer</h2>
+        <p class="text-xs sm:text-sm text-danger-700 leading-relaxed">
+          <strong>Reason:</strong> {{ order.rejection_reason or 'No specific reason provided.' }}
+        </p>
+        <p class="text-[11px] text-danger-600">Reserved harvest stock has been restored to the producer's inventory.</p>
+      </div>
     </div>
+  {% elif order.status == 'cancelled' %}
+    <div class="p-5 rounded-2xl bg-gray-50 border border-gray-200 text-gray-800 flex items-start gap-3">
+      <div class="shrink-0 mt-0.5 text-gray-500">
+        {{ icon('x-circle', size=22) }}
+      </div>
+      <div class="space-y-1">
+        <h2 class="text-sm font-bold text-gray-900">Order Cancelled</h2>
+        <p class="text-xs text-gray-600">This order was cancelled by the buyer. Reserved produce was returned to available stock.</p>
+      </div>
+    </div>
+  {% endif %}
 
-    <div class="flex-1 w-full space-y-3 text-center sm:text-left">
-      <div>
+  <!-- 2. ORDER PROGRESS STEPPER -->
+  {% if order.status in ['pending', 'confirmed', 'delivered'] %}
+    <div class="bg-white rounded-3xl p-6 sm:p-7 border border-gray-200/80 shadow-xs space-y-4" aria-label="Order progress tracker">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fulfillment Timeline</span>
+        <span class="text-xs font-semibold text-leaf-dark">
+          {% if order.status == 'pending' %}
+            Awaiting Farmer Confirmation
+          {% elif order.status == 'confirmed' %}
+            Confirmed &amp; Preparing
+          {% else %}
+            Fulfilled &amp; Delivered
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="py-2">
+        <div class="flex items-center justify-between relative">
+          {# Track line #}
+          <div class="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-gray-200 z-0"></div>
+          <div
+            class="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500"
+            style="width: {{ '0%' if order.status == 'pending' else ('50%' if order.status == 'confirmed' else 'calc(100% - 3rem)') }};"
+          ></div>
+
+          {# Step 1: Pending #}
+          <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status in ['pending', 'confirmed', 'delivered'] else 'bg-white text-gray-400 border border-gray-300' }}">
+              {{ icon('check', size=16) if order.status in ['confirmed', 'delivered'] else '1' }}
+            </div>
+            <span class="text-xs font-bold text-gray-900 mt-2">Placed &amp; Pending</span>
+            <span class="text-[11px] text-gray-500 hidden sm:block">Awaiting seller check</span>
+          </div>
+
+          {# Step 2: Confirmed #}
+          <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status in ['confirmed', 'delivered'] else 'bg-white text-gray-400 border border-gray-300' }}">
+              {{ icon('check', size=16) if order.status == 'delivered' else ('2' if order.status == 'confirmed' else '2') }}
+            </div>
+            <span class="text-xs font-bold {{ 'text-gray-900' if order.status in ['confirmed', 'delivered'] else 'text-gray-400' }} mt-2">Confirmed</span>
+            <span class="text-[11px] text-gray-500 hidden sm:block">Ready / In transit</span>
+          </div>
+
+          {# Step 3: Delivered #}
+          <div class="relative z-10 flex flex-col items-center text-center">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status == 'delivered' else 'bg-white text-gray-400 border border-gray-300' }}">
+              {{ icon('check', size=16) if order.status == 'delivered' else '3' }}
+            </div>
+            <span class="text-xs font-bold {{ 'text-gray-900' if order.status == 'delivered' else 'text-gray-400' }} mt-2">Delivered</span>
+            <span class="text-[11px] text-gray-500 hidden sm:block">Fulfillment complete</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- 3. PRODUCT SUMMARY & LIVE PRICE BREAKDOWN -->
+  <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs space-y-6">
+    <div class="flex flex-col sm:flex-row gap-5 items-center sm:items-start pb-6 border-b border-gray-100">
+      <div class="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
+        <img
+          src="{{ order.product.thumbnail_url }}"
+          alt="{{ order.product.name }}"
+          loading="lazy"
+          class="w-full h-full object-cover"
+        />
+      </div>
+
+      <div class="flex-1 w-full space-y-2 text-center sm:text-left">
         <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
           <h2 class="font-display font-bold text-xl text-gray-900">
             {{ order.product.name }}
@@ -59,224 +155,572 @@
             <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Archived Listing</span>
           {% endif %}
         </div>
-        <p class="text-xs text-gray-500 mt-0.5">{{ order.product.category }}</p>
+        <p class="text-xs text-gray-500">{{ order.product.category }}</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 text-center sm:text-left">
+          <div class="bg-gray-50 p-3 rounded-xl">
+            <span class="text-[11px] font-semibold text-gray-500 uppercase block">Quantity</span>
+            <span class="font-bold text-gray-900 text-sm sm:text-base">{{ "{:,.0f}".format(order.quantity_kg) }} kg</span>
+          </div>
+          <div class="bg-gray-50 p-3 rounded-xl">
+            <span class="text-[11px] font-semibold text-gray-500 uppercase block">Unit Price</span>
+            <span class="font-bold text-gray-900 text-sm sm:text-base">Rs. {{ "{:,.2f}".format(order.product.price_per_kg) if (order.product.price_per_kg % 1 != 0) else "{:,.0f}".format(order.product.price_per_kg) }} / kg</span>
+          </div>
+          <div class="bg-leaf-50 p-3 rounded-xl col-span-2 sm:col-span-1">
+            <span class="text-[11px] font-semibold text-leaf-dark uppercase block">Fulfillment</span>
+            <span class="font-bold text-leaf-dark text-sm sm:text-base capitalize">{{ order.fulfillment_type }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEMIZED PRICE BREAKDOWN -->
+    <div>
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Order Price Breakdown</h3>
+
+      {% set display_items_total = order.items_total if order.items_total is not none else (order.total_price - (order.delivery_fee or 0)) %}
+      {% set display_delivery_fee = order.delivery_fee if order.delivery_fee is not none else 0 %}
+
+      <div class="p-5 rounded-2xl bg-canvas border border-bdr space-y-3">
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-inksoft">Produce ({{ "{:,.0f}".format(order.quantity_kg) }} kg × Rs. {{ "{:,.2f}".format(order.product.price_per_kg) if (order.product.price_per_kg % 1 != 0) else "{:,.0f}".format(order.product.price_per_kg) }})</span>
+          <span class="font-semibold text-ink tabular-nums">LKR {{ "{:,.2f}".format(display_items_total) }}</span>
+        </div>
+
+        {% if order.fulfillment_type == 'delivery' %}
+          <div class="flex items-center justify-between text-sm pt-2 border-t border-bdr/60">
+            <span class="text-inksoft flex items-center gap-1.5 flex-wrap">
+              <span>Driving Distance</span>
+              {% if order.distance_source == 'estimated' %}
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gold-pale text-gold-text border border-gold/30">
+                  Estimated Distance
+                </span>
+              {% endif %}
+            </span>
+            <span class="font-medium text-inksoft tabular-nums">
+              {% if order.distance_km is not none %}
+                {{ "{:,.1f}".format(order.distance_km) }} km
+              {% else %}
+                —
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between text-sm pt-2 border-t border-bdr/60">
+            <div>
+              <span class="text-inksoft block">Delivery Fee</span>
+              {% if is_farmer %}
+                <span class="text-[11px] text-muted">You arrange the transport and receive this fee</span>
+              {% endif %}
+            </div>
+            <span class="font-semibold text-ink tabular-nums">LKR {{ "{:,.2f}".format(display_delivery_fee) }}</span>
+          </div>
+        {% else %}
+          <div class="flex items-center justify-between text-sm pt-2 border-t border-bdr/60">
+            <div>
+              <span class="text-inksoft block">Delivery Fee</span>
+              <span class="text-[11px] text-muted">Self-pickup from farmer's collection location</span>
+            </div>
+            <span class="font-semibold text-leaf-dark">Free (LKR 0.00)</span>
+          </div>
+        {% endif %}
+
+        <div class="flex items-center justify-between pt-3 border-t border-bdr text-base font-bold">
+          <span class="text-ink">Grand Total</span>
+          <span class="text-xl font-display text-leaf-dark tabular-nums">LKR {{ "{:,.2f}".format(order.total_price) }}</span>
+        </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-3 p-3 bg-gray-50 rounded-2xl text-center">
-        <div>
-          <span class="text-[11px] font-semibold text-gray-500 uppercase block">Ordered Qty</span>
-          <span class="font-bold text-gray-900 text-sm sm:text-base">{{ "{:,.0f}".format(order.quantity_kg) }} kg</span>
-        </div>
-        <div>
-          <span class="text-[11px] font-semibold text-gray-500 uppercase block">Unit Price</span>
-          <span class="font-bold text-gray-900 text-sm sm:text-base">Rs. {{ "{:,.2f}".format(order.product.price_per_kg) if (order.product.price_per_kg % 1 != 0) else "{:,.0f}".format(order.product.price_per_kg) }}</span>
-        </div>
-        <div>
-          <span class="text-[11px] font-semibold text-gray-500 uppercase block">Total Due</span>
-          <span class="font-display font-bold text-leaf-dark text-sm sm:text-base">Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}</span>
-        </div>
+      {# ── RESERVED HIDDEN PAY NOW SLOT (Prompt 11 Online Checkout) ────────── #}
+      <div id="pay-now-action-slot" class="hidden">
+        {# Future payment gateway integration #}
       </div>
     </div>
   </div>
 
-  <!-- PARTICIPANTS GRID (FARMER & BUYER) -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-    
-    <!-- Farmer Card -->
-    <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-3">
-      <span class="text-xs font-bold text-earth uppercase tracking-wider block">Seller (Farmer)</span>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-earth-pale text-earth font-bold text-sm flex items-center justify-center shrink-0">
+  <!-- 4. PARTICIPANTS & FULFILLMENT INFORMATION (PRIVACY COMPLIANT) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- SELLER (FARMER) CARD -->
+    <div class="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-xs space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-earth uppercase tracking-wider block">Seller (Farmer)</span>
+        {% if is_farmer %}
+          <span class="text-[11px] font-bold text-earth bg-earth-pale px-2.5 py-0.5 rounded-full">You</span>
+        {% endif %}
+      </div>
+
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-full bg-earth-pale text-earth font-bold text-base flex items-center justify-center shrink-0">
           {{ order.product.farmer.name[0].upper() }}
         </div>
         <div class="min-w-0">
-          <p class="font-semibold text-gray-900 text-sm truncate">{{ order.product.farmer.name }}</p>
+          <p class="font-bold text-gray-900 text-sm truncate">{{ order.product.farmer.name }}</p>
           <p class="text-xs text-gray-500 truncate">{{ order.product.farmer.location or order.product.farmer.district or 'Sri Lanka' }}</p>
         </div>
       </div>
 
-      {% if order.product.farmer.phone %}
+      {# Phone & WhatsApp Links #}
+      {% if order.product.farmer.phone or order.product.farmer.whatsapp %}
         <div class="pt-2 border-t border-gray-100 flex gap-2">
-          <a
-            href="tel:{{ order.product.farmer.phone }}"
-            class="btn-secondary text-xs py-1.5 px-3 flex-1 text-center"
-          >
-            Call Seller
-          </a>
-          {% if order.product.farmer.whatsapp %}
+          {% if order.product.farmer.phone %}
             <a
-              href="https://wa.me/{{ order.product.farmer.whatsapp }}"
+              href="tel:{{ order.product.farmer.phone }}"
+              class="btn-secondary text-xs py-2 px-3 flex-1 text-center inline-flex items-center justify-center gap-1.5"
+            >
+              {{ icon('phone', size=14) }}
+              <span>Call Seller</span>
+            </a>
+          {% endif %}
+          {% if order.product.farmer.whatsapp or order.product.farmer.phone %}
+            {% set f_wa = (order.product.farmer.whatsapp or order.product.farmer.phone)|replace(' ', '')|replace('+', '') %}
+            <a
+              href="https://wa.me/{{ f_wa }}"
               target="_blank"
               rel="noopener noreferrer"
-              class="btn-primary bg-emerald-600 hover:bg-emerald-700 text-xs py-1.5 px-3 flex-1 text-center"
+              class="btn-primary bg-emerald-600 hover:bg-emerald-700 text-xs py-2 px-3 flex-1 text-center inline-flex items-center justify-center gap-1.5"
             >
-              WhatsApp
+              {{ icon('whatsapp', size=14) }}
+              <span>WhatsApp</span>
             </a>
           {% endif %}
         </div>
       {% endif %}
 
+      {# Pickup map & coordinates for farmer collection point #}
       {% if order.product.farmer.latitude and order.product.farmer.longitude %}
-        <div class="pt-2 border-t border-gray-100 text-xs">
-          <div class="flex items-center justify-between text-muted mb-1">
-            <span class="font-medium text-gray-700">Farm Pin Location</span>
+        <div class="pt-3 border-t border-gray-100 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-medium text-gray-700 flex items-center gap-1">
+              {{ icon('map-pin', size=13, cls='text-earth') }}
+              <span>Farm Pin Location</span>
+            </span>
             {% if order.product.farmer.location_updated_at %}
               <span class="text-[11px] text-gray-400">Updated {{ time_ago(order.product.farmer.location_updated_at) }}</span>
             {% endif %}
           </div>
-          <div class="flex items-center gap-3">
-            <a
-              href="https://www.google.com/maps/search/?api=1&query={{ order.product.farmer.latitude }},{{ order.product.farmer.longitude }}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-leaf hover:underline font-semibold"
-            >
-              Open in Google Maps &rarr;
-            </a>
+
+          <div
+            id="farmer-pickup-map"
+            class="w-full h-44 rounded-2xl bg-gray-100 border border-gray-200 relative overflow-hidden"
+            data-lat="{{ order.product.farmer.latitude }}"
+            data-lng="{{ order.product.farmer.longitude }}"
+            data-title="{{ order.product.farmer.name }}'s Farm"
+          >
+            <div class="absolute inset-0 flex items-center justify-center text-xs text-muted" id="farmer-map-placeholder">
+              <span class="inline-flex items-center gap-1">
+                {{ icon('map-pin', size=14) }} Loading pickup map…
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-1 text-xs">
             <a
               href="https://www.google.com/maps/dir/?api=1&destination={{ order.product.farmer.latitude }},{{ order.product.farmer.longitude }}"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-leaf hover:underline font-semibold"
+              class="text-leaf hover:underline font-semibold inline-flex items-center gap-1"
             >
-              Get Directions &rarr;
+              <span>Get Directions</span> &rarr;
+            </a>
+            <span class="text-gray-300">•</span>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query={{ order.product.farmer.latitude }},{{ order.product.farmer.longitude }}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1"
+            >
+              <span>Open in Google Maps</span>
             </a>
           </div>
         </div>
       {% endif %}
     </div>
 
-    <!-- Buyer Card -->
-    <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-3">
-      <span class="text-xs font-bold text-sky uppercase tracking-wider block">Purchaser (Buyer)</span>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-sky-pale text-sky font-bold text-sm flex items-center justify-center shrink-0">
+    <!-- PURCHASER (BUYER) CARD -->
+    <div class="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-xs space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-sky uppercase tracking-wider block">Purchaser (Buyer)</span>
+        {% if is_buyer %}
+          <span class="text-[11px] font-bold text-sky bg-sky-pale px-2.5 py-0.5 rounded-full">You</span>
+        {% endif %}
+      </div>
+
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-full bg-sky-pale text-sky font-bold text-base flex items-center justify-center shrink-0">
           {{ order.buyer.name[0].upper() }}
         </div>
         <div class="min-w-0">
-          <p class="font-semibold text-gray-900 text-sm truncate">{{ order.buyer.name }}</p>
-          <p class="text-xs text-gray-500 truncate">{{ order.buyer.phone or 'Contact via platform' }}</p>
+          <p class="font-bold text-gray-900 text-sm truncate">{{ order.buyer.name }}</p>
+          <p class="text-xs text-gray-500 truncate">{{ order.buyer.phone or 'Contact details via platform' }}</p>
         </div>
       </div>
 
-      {% if order.buyer.phone %}
-        <div class="pt-2 border-t border-gray-100">
+      {# Buyer Contact Buttons for Farmer #}
+      {% if can_manage and order.buyer.phone %}
+        <div class="pt-2 border-t border-gray-100 flex gap-2">
           <a
             href="tel:{{ order.buyer.phone }}"
-            class="btn-secondary text-xs py-1.5 px-3 w-full text-center block"
+            class="btn-secondary text-xs py-2 px-3 flex-1 text-center inline-flex items-center justify-center gap-1.5"
           >
-            Call Buyer
+            {{ icon('phone', size=14) }}
+            <span>Call Buyer</span>
+          </a>
+          {% set b_wa = (order.buyer.whatsapp or order.buyer.phone)|replace(' ', '')|replace('+', '') %}
+          <a
+            href="https://wa.me/{{ b_wa }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-primary bg-emerald-600 hover:bg-emerald-700 text-xs py-2 px-3 flex-1 text-center inline-flex items-center justify-center gap-1.5"
+          >
+            {{ icon('whatsapp', size=14) }}
+            <span>WhatsApp</span>
           </a>
         </div>
       {% endif %}
 
-      {# Privacy rule: Buyer's pin is visible ONLY to the farmer of an order that buyer placed #}
-      {% if current_user.id == order.product.farmer_id and order.buyer.latitude and order.buyer.longitude %}
-        <div class="pt-2 border-t border-gray-100 text-xs">
-          <div class="flex items-center justify-between text-muted mb-1">
-            <span class="font-medium text-gray-700">Buyer Delivery Pin</span>
-            {% if order.buyer.location_updated_at %}
-              <span class="text-[11px] text-gray-400">Updated {{ time_ago(order.buyer.location_updated_at) }}</span>
+      {# PRIVACY COMPLIANT DELIVERY DESTINATION & MAP #}
+      {% set is_deliv = (order.fulfillment_type == 'delivery' or (order.delivery_address and order.fulfillment_type != 'pickup') or (order.delivery_address and not order.fulfillment_type)) %}
+      {% if is_deliv %}
+        <div class="pt-3 border-t border-gray-100 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            {% if can_manage %}
+              <span class="font-medium text-gray-700">Buyer Delivery Pin</span>
+              {% if order.buyer.location_updated_at %}
+                <span class="text-[11px] text-gray-400">Updated {{ time_ago(order.buyer.location_updated_at) }}</span>
+              {% endif %}
+            {% else %}
+              <span class="text-xs font-bold text-gray-700 uppercase tracking-wider block">Delivery Destination</span>
             {% endif %}
           </div>
-          {% if order.buyer.address_text %}
-            <p class="text-xs text-gray-600 mb-1.5">{{ order.buyer.address_text }}</p>
+          {% if order.delivery_address %}
+            <p class="text-xs text-gray-800 bg-gray-50 p-3 rounded-xl leading-relaxed">
+              {{ order.delivery_address }}
+            </p>
           {% endif %}
-          <div class="flex items-center gap-3">
-            <a
-              href="https://www.google.com/maps/search/?api=1&query={{ order.buyer.latitude }},{{ order.buyer.longitude }}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-sky hover:underline font-semibold"
+
+          {% set b_lat = order.delivery_lat or (order.buyer.latitude if can_manage else None) %}
+          {% set b_lng = order.delivery_lng or (order.buyer.longitude if can_manage else None) %}
+          {% if b_lat and b_lng %}
+            <div
+              id="buyer-delivery-map"
+              class="w-full h-44 rounded-2xl bg-gray-100 border border-gray-200 relative overflow-hidden"
+              data-lat="{{ b_lat }}"
+              data-lng="{{ b_lng }}"
+              data-title="Delivery Destination"
             >
-              Open in Google Maps &rarr;
-            </a>
-            <a
-              href="https://www.google.com/maps/dir/?api=1&destination={{ order.buyer.latitude }},{{ order.buyer.longitude }}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-sky hover:underline font-semibold"
-            >
-              Get Directions &rarr;
-            </a>
-          </div>
+              <div class="absolute inset-0 flex items-center justify-center text-xs text-muted" id="delivery-map-placeholder">
+                <span class="inline-flex items-center gap-1">
+                  {{ icon('map-pin', size=14) }} Loading delivery pin…
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 pt-1 text-xs">
+              {% if can_manage %}
+                <a
+                  href="https://www.google.com/maps/dir/?api=1&destination={{ b_lat }},{{ b_lng }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-leaf hover:underline font-semibold inline-flex items-center gap-1"
+                >
+                  <span>Navigate to Buyer</span> &rarr;
+                </a>
+                <span class="text-gray-300">•</span>
+              {% endif %}
+              <a
+                href="https://www.google.com/maps/search/?api=1&query={{ b_lat }},{{ b_lng }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-gray-600 hover:text-gray-900 inline-flex items-center gap-1"
+              >
+                <span>Open in Google Maps</span>
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        {# PRIVACY RULE FOR PICKUP: NO buyer pin, NO buyer address #}
+        <div class="pt-3 border-t border-gray-100 text-xs text-gray-500">
+          <p class="flex items-center gap-1.5">
+            {{ icon('map-pin', size=14, cls='text-earth shrink-0') }}
+            <span>Pickup order — buyer will collect produce from the farm location.</span>
+          </p>
         </div>
       {% endif %}
+
     </div>
 
   </div>
 
-  <!-- DELIVERY ADDRESS & NOTES -->
-  {% if order.delivery_address %}
-    <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-1">
-      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Delivery Destination</h3>
-      <p class="text-sm text-gray-800 leading-relaxed">{{ order.delivery_address }}</p>
-    </div>
-  {% endif %}
-
+  <!-- ORDER INSTRUCTIONS / NOTES (IF ANY) -->
   {% if order.notes %}
     <div class="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs space-y-1">
-      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Order Instructions &amp; Notes</h3>
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Order Instructions &amp; Buyer Notes</h3>
       <p class="text-sm text-gray-700 italic leading-relaxed">{{ order.notes }}</p>
     </div>
   {% endif %}
 
-  <!-- FARMER STATUS UPDATE CONTROLS -->
-  {% if current_user.role == 'farmer' and order.product.farmer_id == current_user.id %}
-    <div class="bg-white rounded-3xl p-6 border border-leaf/30 shadow-xs space-y-4">
+  <!-- 5. ACTION CARDS: FARMER FULFILLMENT & BUYER CANCELLATION -->
+  {% if can_manage and order.status in ['pending', 'confirmed'] %}
+    <div class="bg-white rounded-3xl p-6 sm:p-7 border border-leaf/30 shadow-xs space-y-4">
       <div>
-        <h3 class="font-display font-bold text-base text-gray-900">Manage Order Fulfillment</h3>
-        <p class="text-xs text-gray-500">Update status as you confirm packing, dispatch, or complete delivery.</p>
+        <h3 class="font-display font-bold text-lg text-gray-900">Manage Order Fulfillment</h3>
+        <p class="text-xs text-gray-500 mt-0.5">
+          {% if order.status == 'pending' %}
+            Review available stock and transport before confirming or declining this order.
+          {% elif order.status == 'confirmed' %}
+            Confirm completion when produce has been handed over or delivered to the buyer.
+          {% endif %}
+        </p>
       </div>
 
-      <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex flex-col sm:flex-row gap-3">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="relative flex-1">
-          <label for="status_select" class="sr-only">Order Status</label>
-          <select
-            id="status_select"
-            name="status"
-            class="w-full min-h-[46px] appearance-none px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-leaf pr-10"
-          >
-            {% for s in ['pending','confirmed','delivered','cancelled'] %}
-              <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>
-                {{ s|capitalize }}
-              </option>
-            {% endfor %}
-          </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
+      {% if order.status == 'pending' %}
+        <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+          {# Confirm Order Button #}
+          <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex-1 w-full">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="confirmed">
+            <button
+              type="submit"
+              class="btn-primary w-full py-2.5 px-5 text-sm font-semibold shadow-xs inline-flex items-center justify-center gap-2"
+            >
+              {{ icon('check', size=16) }}
+              <span>Confirm Order</span>
+            </button>
+          </form>
 
-        <button
-          type="submit"
-          class="btn-primary px-6 py-2.5 text-sm shadow-xs"
-        >
-          Update Status
-        </button>
-      </form>
+          {# Reject Order Button #}
+          <button
+            type="button"
+            onclick="openRejectModal()"
+            class="btn-danger-outline w-full sm:w-auto py-2.5 px-5 text-sm font-semibold inline-flex items-center justify-center gap-2"
+          >
+            {{ icon('x', size=16) }}
+            <span>Reject Order</span>
+          </button>
+        </div>
+      {% elif order.status == 'confirmed' %}
+        <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="pt-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="status" value="delivered">
+          <button
+            type="submit"
+            data-confirm="Mark this order as delivered? Please confirm only after the produce has been successfully handed over or delivered."
+            class="btn-primary py-2.5 px-6 text-sm font-semibold shadow-xs inline-flex items-center justify-center gap-2"
+          >
+            {{ icon('check-circle', size=16) }}
+            <span>Mark as Delivered</span>
+          </button>
+        </form>
+      {% endif %}
     </div>
   {% endif %}
 
   <!-- BUYER CANCEL ORDER (Pending status only) -->
-  {% if current_user.role == 'buyer' and order.status == 'pending' %}
-    <div class="p-4 bg-red-50/50 rounded-2xl border border-red-200">
+  {% if is_buyer and order.status == 'pending' %}
+    <div class="p-6 bg-red-50/60 rounded-3xl border border-red-200 space-y-3">
+      <div>
+        <h3 class="text-sm font-bold text-gray-900">Need to cancel your order?</h3>
+        <p class="text-xs text-gray-600 mt-0.5">You can cancel while the order is pending confirmation. Reserved produce will automatically be returned to the farmer.</p>
+      </div>
+
       <form method="POST" action="{{ url_for('orders.cancel_order', order_id=order.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button
           type="submit"
-          data-confirm="Cancel this pending order?"
+          data-confirm="Cancel this pending order? Reserved stock will be restored."
           data-confirm-danger
-          class="w-full btn-danger text-sm py-2.5 text-center"
+          class="btn-danger text-xs sm:text-sm py-2.5 px-5 text-center shadow-xs inline-flex items-center gap-1.5"
         >
-          Cancel This Order
+          {{ icon('x-circle', size=16) }}
+          <span>Cancel This Order</span>
         </button>
       </form>
     </div>
   {% endif %}
 
 </div>
+
+<!-- 6. ACCESSIBLE REJECT MODAL FOR FARMER -->
+{% if can_manage and order.status == 'pending' %}
+<div
+  id="reject-modal"
+  class="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs hidden items-center justify-center p-4 transition-all"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-labelledby="reject-modal-title"
+>
+  <div class="card p-6 sm:p-8 bg-white max-w-md w-full rounded-3xl shadow-2xl space-y-4">
+    <div class="w-12 h-12 rounded-2xl bg-danger-50 text-danger flex items-center justify-center">
+      {{ icon('x-circle', size=24) }}
+    </div>
+
+    <div>
+      <h3 id="reject-modal-title" class="font-display font-bold text-xl text-ink">
+        Reject Order #{{ order.id }}?
+      </h3>
+      <p class="text-sm text-muted mt-1.5 leading-relaxed">
+        Declining this purchase request from {{ order.buyer.name }} will return the reserved {{ "{:,.0f}".format(order.quantity_kg) }} kg to your active listing.
+      </p>
+    </div>
+
+    <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="space-y-4" id="reject-order-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="status" value="rejected">
+
+      <div>
+        <label for="order-reject-reason" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+          Reason for rejection <span class="text-danger">*</span>
+        </label>
+        <textarea
+          id="order-reject-reason"
+          name="rejection_reason"
+          rows="3"
+          required
+          minlength="5"
+          placeholder="e.g. Stock committed to wholesale contract or delivery transport unavailable"
+          class="w-full text-sm rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-danger text-gray-900 bg-white"
+        ></textarea>
+        <p class="text-[11px] text-gray-400 mt-1">Minimum 5 characters. This explanation will be visible to the buyer.</p>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-bdr">
+        <button
+          type="button"
+          class="btn-secondary text-sm py-2.5 px-4"
+          onclick="closeRejectModal()"
+        >
+          Keep Order
+        </button>
+        <button
+          type="submit"
+          class="btn-danger text-sm py-2.5 px-4 shadow-sm"
+        >
+          Confirm Rejection
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openRejectModal() {
+    const modal = document.getElementById('reject-modal');
+    const textarea = document.getElementById('order-reject-reason');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.setAttribute('aria-hidden', 'false');
+    if (textarea) textarea.focus();
+  }
+
+  function closeRejectModal() {
+    const modal = document.getElementById('reject-modal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeRejectModal();
+  });
+</script>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+{% set has_pickup_map = (order.product.farmer.latitude and order.product.farmer.longitude) %}
+{% set is_deliv = (order.fulfillment_type == 'delivery' or (order.delivery_address and order.fulfillment_type != 'pickup') or (order.delivery_address and not order.fulfillment_type)) %}
+{% set b_lat = order.delivery_lat or (order.buyer.latitude if can_manage else None) %}
+{% set b_lng = order.delivery_lng or (order.buyer.longitude if can_manage else None) %}
+{% set has_delivery_map = (is_deliv and b_lat and b_lng) %}
+
+{% if (has_pickup_map or has_delivery_map) and maps_enabled %}
+<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) return;
+
+  window.AgroMapsLoader.load(['maps', 'marker']).then(() => {
+    {% if has_pickup_map %}
+    const pickupEl = document.getElementById('farmer-pickup-map');
+    if (pickupEl) {
+      const lat = parseFloat(pickupEl.dataset.lat);
+      const lng = parseFloat(pickupEl.dataset.lng);
+      const title = pickupEl.dataset.title || 'Collection Point';
+      const map = new google.maps.Map(pickupEl, {
+        center: { lat: lat, lng: lng },
+        zoom: 14,
+        mapId: window.AgroMapsLoader.getMapId() || undefined,
+        disableDefaultUI: false,
+        mapTypeControl: false,
+        streetViewControl: false,
+        gestureHandling: 'cooperative'
+      });
+
+      if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+        new google.maps.marker.AdvancedMarkerElement({
+          map: map,
+          position: { lat: lat, lng: lng },
+          title: title,
+          gmpDraggable: false
+        });
+      } else {
+        new google.maps.Marker({
+          map: map,
+          position: { lat: lat, lng: lng },
+          title: title,
+          draggable: false
+        });
+      }
+      const ph = document.getElementById('farmer-map-placeholder');
+      if (ph) ph.style.display = 'none';
+    }
+    {% endif %}
+
+    {% if has_delivery_map %}
+    const deliveryEl = document.getElementById('buyer-delivery-map');
+    if (deliveryEl) {
+      const lat = parseFloat(deliveryEl.dataset.lat);
+      const lng = parseFloat(deliveryEl.dataset.lng);
+      const title = deliveryEl.dataset.title || 'Delivery Destination';
+      const map = new google.maps.Map(deliveryEl, {
+        center: { lat: lat, lng: lng },
+        zoom: 14,
+        mapId: window.AgroMapsLoader.getMapId() || undefined,
+        disableDefaultUI: false,
+        mapTypeControl: false,
+        streetViewControl: false,
+        gestureHandling: 'cooperative'
+      });
+
+      if (google.maps.marker && google.maps.marker.AdvancedMarkerElement) {
+        new google.maps.marker.AdvancedMarkerElement({
+          map: map,
+          position: { lat: lat, lng: lng },
+          title: title,
+          gmpDraggable: false
+        });
+      } else {
+        new google.maps.Marker({
+          map: map,
+          position: { lat: lat, lng: lng },
+          title: title,
+          draggable: false
+        });
+      }
+      const ph = document.getElementById('delivery-map-placeholder');
+      if (ph) ph.style.display = 'none';
+    }
+    {% endif %}
+  }).catch(err => {
+    console.warn('[AgroLink] Google Maps load failed on order detail:', err);
+  });
+});
+</script>
+{% endif %}
 {% endblock %}

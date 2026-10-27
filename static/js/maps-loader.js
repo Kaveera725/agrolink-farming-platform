@@ -179,6 +179,9 @@
    * @returns {Promise<Object>} Resolves with { google, maps, marker, places, mapId }
    */
   AgroMaps.load = function (options = {}) {
+    if (Array.isArray(options)) {
+      options = {};
+    }
     if (AgroMaps.isLoaded) {
       return AgroMaps.ready;
     }
@@ -186,7 +189,7 @@
       return AgroMaps.ready;
     }
 
-    const apiKey = options.apiKey ||
+    const apiKey = (options && options.apiKey) ||
       window.__AGRO_MAPS_CONFIG__?.browserKey ||
       document.querySelector('meta[name="maps-browser-key"]')?.getAttribute('content') ||
       '';

@@ -488,3 +488,15 @@ gantt
    - Set up `pytest` and `pytest-flask` to establish test coverage across auth, order workflows, and access controls.
 4. **Containerization:**
    - Write a `Dockerfile` and `docker-compose.yml` defining the Flask app and PostgreSQL service for consistent deployment.
+
+---
+
+## 11. Delivery & Fulfillment System Architecture (Implemented — Milestones 8A–8D)
+
+| Feature Component | Implementation Details | Security & Privacy Protections |
+| :--- | :--- | :--- |
+| **Delivery Option** | • Farmers toggle `offers_delivery` on listings.<br>• Requires verified saved location pin on farmer profile.<br>• Dynamic helper text shows pricing formula.<br>• Displays `Delivery available` badge on marketplace cards and product details. | • Server validates pin presence before saving.<br>• Role-checked (`farmer` only).<br>• CSRF token enforced. |
+| **Quote Endpoint (`/orders/quote`)** | • `POST /orders/quote` accepts `product_id`, `quantity`, `fulfillment_type`, `delivery_lat`, `delivery_lng`.<br>• Returns JSON: `items_total`, `distance_km`, `distance_source`, `delivery_fee`, `grand_total`.<br>• Uses Google Routes API with local Haversine × 1.3 fallback.<br>• Thread-safe LRU distance cache (TTL: 24h). | • Restricted to authenticated `buyer` role.<br>• Rate-limited via Flask-Limiter (20 req/min/user).<br>• Strict Sri Lanka boundary validation.<br>• Safe stock & non-negative quantity checks. |
+| **Delivery Pricing Engine** | • Base Fee: LKR 5,000.00 up to 50 km.<br>• Incremental: LKR 60.00 per ceiling extra km ($> 50\text{ km}$).<br>• Max Radius: 300 km.<br>• Snapshots `items_total`, `delivery_fee`, and `total_price` in `orders` row. | • All calculations recomputed strictly on server during order placement.<br>• Tampered browser fees/totals are completely ignored.<br>• Row-level lock (`with_for_update()`) prevents race conditions. |
+| **Order Flow Statuses** | • `pending` → `confirmed` → `delivered`<br>• `cancelled` (buyer, pending only)<br>• `rejected` (farmer, pending only with $\ge 5$ char reason)<br>• Terminal statuses (`delivered`, `cancelled`, `rejected`) block any modifications.<br>• Automatic stock restitution on cancel/reject. | • Strict ownership access control (`403 Forbidden` for unauthorized third parties).<br>• Buyer coordinates & address revealed only to the farmer on delivery orders; hidden on pickup orders.<br>• Google Maps JS only loaded on pages displaying active maps. |
+

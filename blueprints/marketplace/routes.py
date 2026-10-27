@@ -257,6 +257,11 @@ def list_product():
             flash('All required fields must be filled correctly. Quantity and price must be greater than zero.', 'error')
             return _render_product_form(product=None)
 
+        offers_delivery = request.form.get('offers_delivery') in ('on', 'true', '1')
+        if offers_delivery and (current_user.latitude is None or current_user.longitude is None):
+            flash('You must set your farm location pin before enabling delivery. Update your profile location to continue.', 'error')
+            return _render_product_form(product=None)
+
         # Handle product image upload with fallback to category stock image
         uploaded_file = request.files.get('image')
         image_url = None
@@ -272,7 +277,7 @@ def list_product():
         product = Product(farmer_id=current_user.id, name=name, category=category,
                           description=description, quantity_kg=quantity_kg,
                           price_per_kg=price_per_kg, location=location, image_url=image_url,
-                          is_available=True, is_deleted=False)
+                          is_available=True, is_deleted=False, offers_delivery=offers_delivery)
         db.session.add(product)
         db.session.commit()
         flash('Product listed successfully!', 'success')
@@ -291,6 +296,8 @@ def edit_product(product_id):
         description = request.form.get('description', '').strip()
         location = request.form.get('location', '').strip()
         is_available = request.form.get('is_available') == 'on'
+        offers_delivery = request.form.get('offers_delivery') in ('on', 'true', '1')
+
         try:
             quantity_kg = float(request.form.get('quantity_kg', product.quantity_kg))
             price_per_kg = float(request.form.get('price_per_kg', product.price_per_kg))
@@ -302,6 +309,10 @@ def edit_product(product_id):
 
         if not name or not new_category or quantity_kg < 0 or price_per_kg <= 0:
             flash('Invalid input. Quantity cannot be negative and price must be greater than zero.', 'error')
+            return _render_product_form(product=product)
+
+        if offers_delivery and (current_user.latitude is None or current_user.longitude is None):
+            flash('You must set your farm location pin before enabling delivery. Update your profile location to continue.', 'error')
             return _render_product_form(product=product)
 
         # Handle image replacement
@@ -326,6 +337,7 @@ def edit_product(product_id):
         product.location = location
         product.quantity_kg = quantity_kg
         product.price_per_kg = price_per_kg
+        product.offers_delivery = offers_delivery
 
         # Separate out-of-stock from deleted/disabled: quantity 0 cannot be active
         if quantity_kg == 0:

@@ -432,8 +432,8 @@ class TestLocationFeatures(unittest.TestCase):
         # 3. View order as another farmer (other_farmer)
         self._login('other_farmer_7c@example.com')
         res_other = self.client.get(f'/orders/{order.id}')
-        # Should be access denied (redirects to orders.index)
-        self.assertEqual(res_other.status_code, 302)
+        # Should be access denied (403 forbidden per Prompt 8C, or 302 redirect in legacy)
+        self.assertIn(res_other.status_code, (302, 403))
 
 
 if __name__ == '__main__':

@@ -41,7 +41,7 @@ def index():
         ).order_by(Order.created_at.desc()).all()
         pending_orders = [o for o in all_orders if o.status == 'pending']
         total_revenue = sum(
-            o.total_price for o in all_orders if o.status != 'cancelled'
+            o.total_price for o in all_orders if o.status not in ('cancelled', 'rejected')
         )
         return render_template('dashboard/farmer.html',
                                crops=crops, products=products,
@@ -52,8 +52,8 @@ def index():
         all_orders = Order.query.filter_by(buyer_id=current_user.id).order_by(Order.created_at.desc()).all()
         active_orders = [o for o in all_orders if o.status in ('pending', 'confirmed')]
         completed_orders = [o for o in all_orders if o.status == 'delivered']
-        past_orders = [o for o in all_orders if o.status in ('delivered', 'cancelled')]
-        total_spent = sum(o.total_price for o in all_orders if o.status != 'cancelled')
+        past_orders = [o for o in all_orders if o.status in ('delivered', 'cancelled', 'rejected')]
+        total_spent = sum(o.total_price for o in all_orders if o.status not in ('cancelled', 'rejected'))
 
         # Best deals today for buyer dashboard
         try:

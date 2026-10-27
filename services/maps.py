@@ -73,3 +73,62 @@ def test_geocoding_api(server_key: str = None) -> tuple:
     except Exception as err:
         return ("REQUEST_FAILED", f"Network or HTTP error: {type(err).__name__}")
 
+
+def test_routes_api(server_key: str = None) -> tuple:
+    """
+    Make a single test call to the Google Routes API for Colombo to Kandy using the SERVER key.
+    Returns (status: str, distance_km: Optional[Decimal], error_message: str).
+    CRITICAL SECURITY RULE: Never logs, prints, or exposes the API key or request URL.
+    """
+    key = server_key if server_key is not None else get_server_key()
+    if not key:
+        return ("MISSING_KEY", None, "GOOGLE_MAPS_SERVER_KEY is not configured.")
+    if is_placeholder_value(key):
+        return ("PLACEHOLDER_KEY", None, "GOOGLE_MAPS_SERVER_KEY contains a placeholder value.")
+
+    import requests
+    from decimal import Decimal, ROUND_HALF_UP
+
+    url = "https://routes.googleapis.com/directions/v2:computeRoutes"
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": key,
+        "X-Goog-FieldMask": "routes.distanceMeters",
+    }
+    # Colombo (6.9271, 79.8612) to Kandy (7.2906, 80.6337)
+    payload = {
+        "origin": {
+            "location": {
+                "latLng": {
+                    "latitude": 6.9271,
+                    "longitude": 79.8612,
+                }
+            }
+        },
+        "destination": {
+            "location": {
+                "latLng": {
+                    "latitude": 7.2906,
+                    "longitude": 80.6337,
+                }
+            }
+        },
+        "travelMode": "DRIVE",
+    }
+
+    try:
+        resp = requests.post(url, headers=headers, json=payload, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            routes = data.get("routes", [])
+            if routes and "distanceMeters" in routes[0]:
+                meters = routes[0]["distanceMeters"]
+                km = (Decimal(str(meters)) / Decimal("1000")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+                return ("OK", km, "")
+            return ("NO_ROUTE", None, "Routes API returned 200 but no routes or distanceMeters found.")
+        else:
+            return (f"HTTP_{resp.status_code}", None, f"Routes API returned HTTP status {resp.status_code}")
+    except Exception as err:
+        return ("REQUEST_FAILED", None, f"Network or HTTP error: {type(err).__name__}")
+
+
