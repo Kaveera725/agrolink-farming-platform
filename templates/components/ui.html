@@ -3,11 +3,11 @@
   ─────────────────────────────────────────────────────────────────────────
   Contains: alert, toast, empty_state, page_header, modal, confirm_dialog,
             skeleton, tabs, pagination, avatar, price_breakdown,
-            stepper/timeline, map_container
+            price_compare_bar, stepper/timeline, map_container
 
   Usage: {% from 'components/ui.html' import empty_state, page_header,
-                  alert, price_breakdown, timeline, map_container,
-                  skeleton, tabs, pagination, avatar with context %}
+                  alert, price_breakdown, price_compare_bar, timeline,
+                  map_container, skeleton, tabs, pagination, avatar with context %}
 #}
 {% from 'components/icons.html' import icon %}
 
@@ -447,3 +447,80 @@
   </div>
 </div>
 {% endmacro %}
+
+{# ─── price_compare_bar() ─────────────────────────────────────────────────── #}
+{% macro price_compare_bar(farmer_price, buying_price, selling_price, compact=false, show_labels=true, extra_cls='') %}
+{%- if buying_price and selling_price and selling_price > 0 and farmer_price is not none -%}
+  {%- set fp = farmer_price|float -%}
+  {%- set bp = buying_price|float -%}
+  {%- set sp = selling_price|float -%}
+  {%- set min_p = [bp, fp]|min * 0.9 -%}
+  {%- set max_p = [sp, fp]|max * 1.05 -%}
+  {%- set span = (max_p - min_p) if (max_p - min_p) > 0 else 1.0 -%}
+  {%- set f_pct = [([(((fp - min_p) / span) * 100)|round(1), 4]|max), 96]|min -%}
+  {%- set b_pct = [([(((bp - min_p) / span) * 100)|round(1), 4]|max), 96]|min -%}
+  {%- set s_pct = [([(((sp - min_p) / span) * 100)|round(1), 4]|max), 96]|min -%}
+
+  {%- set is_cheaper = (fp < sp) -%}
+  {%- set is_below_buy = (fp < bp) -%}
+  {%- set is_above = (fp > sp) -%}
+
+  <div class="price-compare-bar w-full {{ extra_cls }}" role="group" aria-label="Market price benchmark comparison">
+    {# Main Bar Track #}
+    <div class="relative w-full {{ 'h-2' if compact else 'h-2.5 sm:h-3' }} bg-gray-100 rounded-full border border-bdr/70 overflow-visible my-2">
+      {# Dealer spread range highlight (between buying_price and selling_price) #}
+      {%- set spread_left = [b_pct, s_pct]|min -%}
+      {%- set spread_width = [([s_pct - b_pct, 0]|max), (100 - spread_left)]|min -%}
+      <div
+        class="absolute top-0 bottom-0 bg-gradient-to-r from-sky/15 via-leaf/20 to-amber/20 rounded-full pointer-events-none"
+        style="left: {{ spread_left }}%; width: {{ spread_width }}%;"
+        title="Wholesale to Retail Dealer Spread"
+      ></div>
+
+      {# Wholesale Dealer Buying Tick Mark #}
+      <div
+        class="absolute -top-1 bottom-0 w-0.5 h-4 sm:h-5 bg-sky/70 -translate-x-1/2 pointer-events-none z-10"
+        style="left: {{ b_pct }}%;"
+        title="Dealer Buying: LKR {{ '{:,.0f}'.format(bp) }}"
+      ></div>
+
+      {# Retail Selling Tick Mark #}
+      <div
+        class="absolute -top-1 bottom-0 w-0.5 h-4 sm:h-5 bg-amber-500/70 -translate-x-1/2 pointer-events-none z-10"
+        style="left: {{ s_pct }}%;"
+        title="Retail Selling: LKR {{ '{:,.0f}'.format(sp) }}"
+      ></div>
+
+      {# Farmer Price Marker Pin #}
+      <div
+        class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 {{ 'w-3.5 h-3.5' if compact else 'w-4 h-4 sm:w-5 sm:h-5' }} rounded-full ring-2 ring-white shadow-sm transition-all z-20 flex items-center justify-center {{ 'bg-gray-700' if is_above else ('bg-emerald-600' if is_below_buy else 'bg-leaf') }}"
+        style="left: {{ f_pct }}%;"
+        title="Farmer Asking Price: LKR {{ '{:,.0f}'.format(fp) }}"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
+      </div>
+    </div>
+
+    {%- if show_labels -%}
+      {# Labels under or around the bar #}
+      <div class="flex items-center justify-between text-[11px] text-muted font-medium pt-0.5">
+        <span class="flex items-center gap-1" title="Price dealers pay farmers">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky inline-block"></span>
+          <span>Buy: <strong class="text-ink">LKR {{ "{:,.0f}".format(bp) }}</strong></span>
+        </span>
+
+        <span class="font-bold {{ 'text-gray-700' if is_above else 'text-leaf-dark' }} flex items-center gap-1" title="Direct farmer price">
+          <span class="w-2 h-2 rounded-full {{ 'bg-gray-700' if is_above else 'bg-leaf' }} inline-block"></span>
+          <span>Farmer: LKR {{ "{:,.0f}".format(fp) }}</span>
+        </span>
+
+        <span class="flex items-center gap-1" title="Retail market price">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+          <span>Retail: <strong class="text-ink">LKR {{ "{:,.0f}".format(sp) }}</strong></span>
+        </span>
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+{% endmacro %}
+

@@ -1,0 +1,203 @@
+﻿/* =========================================================================
+   AgroLink — Profile Design System
+   ========================================================================= */
+
+/* ── 1. LEAF GRADIENT BANNER ─────────────────────────────────────────────── */
+.prof-banner {
+  position: relative;
+  background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 40%, #40916C 70%, #52B788 100%);
+  border-radius: 1rem;
+  overflow: visible;
+  padding: 2rem 2rem 4.5rem;
+  box-shadow: 0 4px 24px rgba(27,67,50,.18);
+}
+.prof-banner::before,.prof-banner::after {
+  content:''; position:absolute; border-radius:50%; opacity:.12; pointer-events:none;
+}
+.prof-banner::before { width:260px;height:260px;background:#D8F3DC;top:-80px;right:-60px; }
+.prof-banner::after  { width:160px;height:160px;background:#B7E4C7;bottom:20px;left:-40px; }
+
+/* ── 2. OVERLAPPING AVATAR ───────────────────────────────────────────────── */
+.prof-avatar-wrap {
+  position:absolute; bottom:-2.5rem; left:2rem; z-index:10;
+}
+.prof-avatar {
+  width:88px; height:88px; border-radius:50%;
+  border:4px solid #fff; box-shadow:0 4px 16px rgba(27,67,50,.20);
+  overflow:hidden; background:#2D6A4F;
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem; font-weight:700; color:#fff; flex-shrink:0;
+}
+.prof-avatar img { width:100%;height:100%;object-fit:cover; }
+.prof-banner-spacer { height:2.75rem; }
+
+/* ── 3. TAB NAV ──────────────────────────────────────────────────────────── */
+.prof-tabs {
+  display:flex; gap:0; border-bottom:2px solid #E2E8E0;
+  background:#fff; position:sticky; top:64px; z-index:30;
+  overflow-x:auto; scrollbar-width:none;
+}
+.prof-tabs::-webkit-scrollbar { display:none; }
+.prof-tab {
+  display:inline-flex; align-items:center; gap:0.5rem;
+  padding:0.75rem 1.25rem; font-size:0.875rem; font-weight:600;
+  color:#567361; text-decoration:none;
+  border-bottom:2px solid transparent; margin-bottom:-2px;
+  white-space:nowrap; transition:color 150ms,border-color 150ms;
+}
+.prof-tab:hover { color:#2D6A4F; border-bottom-color:#B7E4C7; }
+.prof-tab.active { color:#2D6A4F; border-bottom-color:#2D6A4F; }
+
+/* ── 4. COMPLETENESS CARD ────────────────────────────────────────────────── */
+.prof-complete-card {
+  background:linear-gradient(135deg,#F0FAF4,#D8F3DC);
+  border:1.5px solid #B7E4C7; border-radius:1rem; padding:1.25rem 1.5rem;
+}
+.prof-complete-bar-track {
+  background:#B7E4C7; border-radius:9999px; height:8px; overflow:hidden;
+}
+.prof-complete-bar-fill {
+  height:100%; border-radius:9999px;
+  background:linear-gradient(90deg,#2D6A4F,#52B788);
+  transition:width 600ms cubic-bezier(.4,0,.2,1);
+}
+.prof-complete-item {
+  display:flex; align-items:center; gap:0.625rem;
+  font-size:.8125rem; font-weight:500; color:#3D4F44;
+}
+.prof-complete-item.done { color:#567361; }
+.prof-complete-item.done .prof-check { color:#2D6A4F; }
+.prof-complete-item .prof-check { color:#B7E4C7; }
+
+/* ── 5. INFO LIST ─────────────────────────────────────────────────────────── */
+.prof-info-row {
+  display:flex; align-items:flex-start; gap:.75rem;
+  padding:.875rem 0; border-bottom:1px solid #F0F4EF;
+}
+.prof-info-row:last-child { border-bottom:none; }
+.prof-info-icon {
+  width:36px;height:36px; border-radius:.5rem;
+  background:#F0FAF4; display:flex; align-items:center;
+  justify-content:center; flex-shrink:0; color:#2D6A4F;
+}
+.prof-info-label {
+  font-size:.6875rem;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:#567361;
+}
+.prof-info-value { font-size:.9rem;font-weight:500;color:#1F2A24;margin-top:.125rem; }
+.prof-info-value.empty { color:#9DB5A0;font-style:italic; }
+
+/* ── 6. FARMER ESTATE CARD ───────────────────────────────────────────────── */
+.prof-estate-card {
+  background:linear-gradient(135deg,#FDF6EE,#FBE8D3);
+  border:1.5px solid #F6CFA3; border-radius:1rem; padding:1.25rem 1.5rem;
+}
+
+/* ── 7. MAP EMPTY STATE ──────────────────────────────────────────────────── */
+.prof-map-empty {
+  border:2px dashed #B7E4C7; border-radius:1rem;
+  background:#F7FAF5; padding:3rem 2rem; text-align:center;
+}
+
+/* ── 8. AVATAR UPLOADER ──────────────────────────────────────────────────── */
+.prof-avatar-edit-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:1rem;
+}
+@media(min-width:640px){ .prof-avatar-edit-wrap{flex-direction:row;} }
+.prof-avatar-preview {
+  width:96px;height:96px; border-radius:50%;
+  border:3px solid #B7E4C7; box-shadow:0 2px 12px rgba(27,67,50,.14);
+  overflow:hidden; background:#2D6A4F;
+  display:flex; align-items:center; justify-content:center;
+  font-size:2.25rem;font-weight:700;color:#fff; flex-shrink:0;
+  transition:border-color 200ms;
+}
+.prof-avatar-preview:hover{border-color:#40916C;}
+.prof-avatar-preview img{width:100%;height:100%;object-fit:cover;}
+
+/* ── 9. STICKY SAVE BAR ──────────────────────────────────────────────────── */
+.prof-sticky-save {
+  display:none; position:fixed; bottom:0;left:0;right:0;
+  background:#fff; border-top:1.5px solid #E2E8E0;
+  padding:.75rem 1rem; z-index:50; gap:.75rem;
+  align-items:center; box-shadow:0 -4px 16px rgba(27,67,50,.08);
+}
+@media(max-width:639px){
+  .prof-sticky-save{display:flex;}
+  .prof-sticky-spacer{height:5rem;}
+}
+
+/* ── 10. PASSWORD STRENGTH ───────────────────────────────────────────────── */
+.pw-strength-track {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:4px; margin-top:.5rem;
+}
+.pw-strength-seg {
+  height:4px; border-radius:9999px; background:#E2E8E0; transition:background 300ms;
+}
+.pw-strength-seg.active-weak   {background:#EF4444;}
+.pw-strength-seg.active-fair   {background:#F59E0B;}
+.pw-strength-seg.active-good   {background:#3B82F6;}
+.pw-strength-seg.active-strong {background:#2D6A4F;}
+.pw-strength-label { font-size:.75rem;font-weight:600;margin-top:.375rem; }
+
+/* ── 11. PW RULES CHECKLIST ──────────────────────────────────────────────── */
+.pw-rule {
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.8125rem; color:#567361; transition:color 200ms;
+}
+.pw-rule.met{color:#2D6A4F;font-weight:600;}
+.pw-rule svg{flex-shrink:0;transition:color 200ms;}
+
+/* ── 12. SHOW/HIDE TOGGLE ────────────────────────────────────────────────── */
+.pw-toggle {
+  position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:#567361;
+  padding:.25rem;display:flex;align-items:center;justify-content:center;
+  border-radius:.375rem;transition:color 150ms;
+}
+.pw-toggle:hover{color:#2D6A4F;}
+
+/* ── 13. MATCH INDICATOR ─────────────────────────────────────────────────── */
+.pw-match-badge {
+  display:inline-flex;align-items:center;gap:.375rem;
+  font-size:.75rem;font-weight:600;padding:.2rem .625rem;
+  border-radius:9999px;transition:all 200ms;
+}
+.pw-match-badge.match  {background:#D8F3DC;color:#1B4332;}
+.pw-match-badge.nomatch{background:#FEF2F2;color:#991B1B;}
+
+/* ── 14. SECTION HEADER ──────────────────────────────────────────────────── */
+.prof-section-head {
+  display:flex;align-items:center;gap:.625rem;
+  padding-bottom:.875rem; border-bottom:1.5px solid #F0F4EF;
+  margin-bottom:1.5rem; font-size:1rem;font-weight:700;color:#1F2A24;
+}
+.prof-section-head svg{color:#2D6A4F;flex-shrink:0;}
+
+/* ── 15. UNSAVED BANNER ──────────────────────────────────────────────────── */
+.prof-unsaved-banner {
+  display:none;align-items:center;gap:.625rem;
+  padding:.625rem 1rem; background:#FFFDE7;
+  border:1px solid #FDE68A; border-radius:.625rem;
+  font-size:.8125rem;font-weight:500;color:#78350F; margin-bottom:1rem;
+}
+.prof-unsaved-banner.visible{display:flex;}
+
+/* ── 16. ROLE BADGE ──────────────────────────────────────────────────────── */
+.prof-badge {
+  display:inline-flex;align-items:center;
+  padding:.2rem .75rem;border-radius:9999px;
+  font-size:.75rem;font-weight:700;letter-spacing:.02em;text-transform:capitalize;
+}
+.prof-badge.farmer{background:#FBE8D3;color:#A0522D;}
+.prof-badge.buyer {background:#EBF4FB;color:#1A659E;}
+.prof-badge.admin {background:#EDE9FE;color:#5B21B6;}
+.prof-badge.active{background:#D8F3DC;color:#1B4332;}
+
+@media(max-width:639px){
+  .prof-banner{padding:1.5rem 1.25rem 4rem;}
+  .prof-avatar-wrap{left:1.25rem;}
+}
+\n/* ── Utility helpers for edit page ───────────────────────────────────── */\n.relative { position:relative; }\n.absolute { position:absolute; }\n.input { width:100%; padding:0.625rem 0.75rem; padding-left: 3rem; font-size:0.875rem; line-height:1.25; color:#1F2A24; background:#fff; border:1px solid #E2E8E0; border-radius:0.5rem; transition:border-color .15s, box-shadow .15s; }\n.input:focus { border-color:#2D6A4F; box-shadow:0 0 0 3px rgba(45,106,79,.12); }\n
+
+\n/* Fix input left padding when icons are inside relative container */\n.relative .input { padding-left: 3rem !important; }\n

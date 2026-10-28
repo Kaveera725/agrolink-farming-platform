@@ -6,412 +6,364 @@
 
 {% block extra_head %}
 <style>
-  /* Guaranteed Breakpoints: 1 col < 400px, 2 cols >= 400px, 3 cols >= 1024px, 4 cols >= 1280px */
-  .grid-marketplace {
-    display: grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-  }
-  @media (min-width: 400px) {
-    .grid-marketplace {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-  @media (min-width: 1024px) {
-    .grid-marketplace {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  @media (min-width: 1280px) {
-    .grid-marketplace {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-  }
+  .grid-marketplace{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));}
+  @media(min-width:400px) {.grid-marketplace{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  @media(min-width:1024px){.grid-marketplace{grid-template-columns:repeat(3,minmax(0,1fr));}}
+  @media(min-width:1280px){.grid-marketplace{grid-template-columns:repeat(4,minmax(0,1fr));}}
+  .no-scrollbar::-webkit-scrollbar{display:none}
+  .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
 
-  /* Hide scrollbar for category pills container */
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  /* HERO */
+  .mp-hero{position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#081c11 0%,#1B4332 28%,#2D6A4F 58%,#40916C 80%,#52B788 100%);
+    padding:3.5rem 0 5.5rem;}
+  .mp-hero::before{content:'';position:absolute;inset:0;opacity:.4;
+    background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='10'/%3E%3C/g%3E%3C/svg%3E");}
+  .mp-bubble{position:absolute;border-radius:50%;
+    background:radial-gradient(circle,rgba(183,228,199,.15),transparent);
+    animation:mpf 9s ease-in-out infinite;}
+  @keyframes mpf{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}
+  .mp-badge{display:inline-flex;align-items:center;gap:.5rem;
+    padding:.375rem 1rem;border-radius:9999px;
+    background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);
+    backdrop-filter:blur(6px);font-size:.75rem;font-weight:700;
+    color:#D8F3DC;letter-spacing:.05em;text-transform:uppercase;}
+  .mp-hero h1{color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.2);}
+  .mp-hero p{color:rgba(255,255,255,.78);}
+
+  /* HERO SEARCH */
+  .mp-sw{display:flex;overflow:hidden;border-radius:1rem;background:#fff;
+    box-shadow:0 6px 32px rgba(0,0,0,.18);
+    border:1.5px solid rgba(255,255,255,.2);transition:box-shadow 200ms;max-width:600px;}
+  .mp-sw:focus-within{box-shadow:0 6px 36px rgba(82,183,136,.45);}
+  .mp-sw input{flex:1;border:none;background:transparent;
+    padding:.9375rem 1rem .9375rem 3.25rem;font-size:.9375rem;
+    color:#1F2A24;outline:none;min-width:0;}
+  .mp-sw input::placeholder{color:#9DB5A0;}
+  .mp-si{position:absolute;left:1rem;top:50%;transform:translateY(-50%);
+    color:#2D6A4F;pointer-events:none;}
+  .mp-sb{background:linear-gradient(135deg,#1B4332,#2D6A4F);
+    color:#fff;border:none;cursor:pointer;padding:0 1.75rem;
+    font-size:.875rem;font-weight:700;flex-shrink:0;
+    display:flex;align-items:center;gap:.5rem;transition:opacity 150ms;}
+  .mp-sb:hover{opacity:.9;}
+  .mp-hero-cta{display:inline-flex;align-items:center;gap:.625rem;
+    padding:.75rem 1.5rem;border-radius:.875rem;font-size:.9375rem;font-weight:700;
+    background:#fff;color:#1B4332;text-decoration:none;
+    box-shadow:0 4px 20px rgba(0,0,0,.15);transition:all 180ms;}
+  .mp-hero-cta:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.2);}
+
+  /* STATS BAR */
+  .mp-stats{background:#fff;border-bottom:1.5px solid #E2E8E0;
+    box-shadow:0 2px 12px rgba(27,67,50,.07);}
+  .mp-stat{display:flex;align-items:center;gap:.75rem;
+    padding:.875rem 1.5rem;border-right:1px solid #F0F4EF;flex-shrink:0;}
+  .mp-stat:last-child{border-right:none;}
+  .mp-stat-ic{width:40px;height:40px;border-radius:.625rem;
+    background:#F0FAF4;display:flex;align-items:center;
+    justify-content:center;font-size:1.1875rem;}
+  .mp-stat-n{font-size:1.125rem;font-weight:800;color:#1B4332;line-height:1.1;}
+  .mp-stat-l{font-size:.6875rem;color:#567361;font-weight:500;margin-top:.1rem;}
+
+  /* FILTER BAR */
+  .mp-fbar{position:sticky;top:64px;z-index:30;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(12px);
+    border-bottom:1.5px solid #E2E8E0;
+    box-shadow:0 2px 8px rgba(27,67,50,.06);}
+
+  /* CATEGORY PILLS */
+  .mp-pill{display:inline-flex;align-items:center;gap:.5rem;
+    padding:.5rem 1.125rem;border-radius:9999px;font-size:.8125rem;
+    font-weight:600;white-space:nowrap;text-decoration:none;
+    border:1.5px solid transparent;transition:all 180ms;}
+  .mp-pill.off{background:#F7FAF5;color:#3D4F44;border-color:#E2E8E0;}
+  .mp-pill.off:hover{background:#D8F3DC;border-color:#B7E4C7;
+    color:#1B4332;transform:translateY(-1px);
+    box-shadow:0 2px 10px rgba(27,67,50,.1);}
+  .mp-pill.on{background:linear-gradient(135deg,#1B4332,#2D6A4F);
+    color:#fff;box-shadow:0 2px 12px rgba(27,67,50,.25);}
+
+  /* CARD HOVER LIFT */
+  .grid-marketplace > *{border-radius:.875rem;overflow:hidden;
+    transition:transform 200ms cubic-bezier(.4,0,.2,1),
+               box-shadow 200ms cubic-bezier(.4,0,.2,1);}
+  .grid-marketplace > *:hover{transform:translateY(-5px);
+    box-shadow:0 14px 36px rgba(27,67,50,.14),
+               0 2px 8px rgba(27,67,50,.08);}
+
+  /* FILTER CHIPS */
+  .mp-chip{display:inline-flex;align-items:center;gap:.375rem;
+    padding:.25rem .75rem;border-radius:9999px;
+    background:#D8F3DC;border:1px solid #B7E4C7;
+    font-size:.75rem;font-weight:600;color:#1B4332;}
+  .mp-chip a{color:#40916C;display:flex;align-items:center;margin-left:.125rem;}
+  .mp-chip a:hover{color:#EF4444;}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="bg-canvas min-h-screen pb-16">
+<div class="min-h-screen pb-16" style="background:#F4F8F2">
 
-  {# ─── 1. PAGE HEADER & RESULT SUMMARY ─────────────────────────────────── #}
-  <header class="bg-white border-b border-bdr pt-6 sm:pt-8 pb-5">
-    <div class="container-app">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          {# Breadcrumb / Badge #}
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
-            {{ icon('sprout', size=13, cls='text-leaf') }}
-            <span>Islandwide Wholesale & Retail Marketplace</span>
+  {# HERO BANNER #}
+  <header class="mp-hero">
+    <div class="mp-bubble" style="width:340px;height:340px;top:-100px;right:-80px;animation-delay:0s"></div>
+    <div class="mp-bubble" style="width:200px;height:200px;bottom:-50px;left:4%;animation-delay:4s"></div>
+    <div class="mp-bubble" style="width:130px;height:130px;top:30%;left:42%;animation-delay:7s"></div>
+    <div class="container-app relative" style="z-index:2">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+        <div class="max-w-2xl">
+          <div class="mp-badge mb-5">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+            Islandwide Wholesale &amp; Retail Marketplace
           </div>
-
-          <h1 class="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-ink tracking-tight">
+          <h1 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-3">
             Direct Farm Produce
           </h1>
-
-          <p class="text-xs sm:text-sm text-muted mt-1 max-w-2xl">
-            Browse genuine harvests directly from verified Sri Lankan growers across 25 districts with zero intermediary markups.
+          <p class="text-base sm:text-lg leading-relaxed mb-7">
+            Browse genuine harvests from <strong class="text-green-200">verified Sri Lankan growers</strong>
+            across 25 districts &mdash; farm-fresh prices, zero intermediary markups.
           </p>
+          <form id="hero-search-form" method="GET" action="{{ url_for('marketplace.index') }}">
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+            {% if sort and sort != 'price_asc' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+            {% if district %}<input type="hidden" name="district" value="{{ district }}">{% endif %}
+            {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
+            {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
+            {% if availability %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
+            <div class="mp-sw">
+              <div class="relative flex-1">
+                <span class="mp-si">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                </span>
+                <input type="search" name="search" value="{{ search }}" autocomplete="off"
+                       placeholder="Search produce (Tomato, Samba Rice, Ginger...)">
+              </div>
+              <button type="submit" class="mp-sb">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                Search
+              </button>
+            </div>
+          </form>
         </div>
-
-        {# Action CTAs #}
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex flex-col items-start lg:items-end gap-3 shrink-0">
           {% if current_user.is_authenticated and current_user.role == 'farmer' %}
-            <a
-              href="{{ url_for('marketplace.list_product') }}"
-              class="btn-primary text-sm py-2.5 px-4 shadow-sm inline-flex items-center gap-2"
-            >
-              {{ icon('plus', size=16) }}
-              <span>List New Produce</span>
-            </a>
+          <a href="{{ url_for('marketplace.list_product') }}" class="mp-hero-cta">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            List New Produce
+          </a>
           {% elif not current_user.is_authenticated %}
-            <a
-              href="{{ url_for('auth.register') }}"
-              class="btn-secondary text-xs sm:text-sm py-2.5 px-4 inline-flex items-center gap-2"
-            >
-              {{ icon('user', size=15) }}
-              <span>Farmer Registration</span>
-            </a>
+          <a href="{{ url_for('auth.register') }}" class="mp-hero-cta">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            Register as Farmer
+          </a>
+          <a href="{{ url_for('auth.login') }}"
+             class="text-green-200 text-sm font-semibold hover:text-white underline-offset-2 hover:underline">
+            Already have an account? Sign in &rarr;
+          </a>
           {% endif %}
         </div>
       </div>
     </div>
   </header>
 
-  {# ─── 2. STICKY SEARCH & FILTER BAR ───────────────────────────────────── #}
-  <section class="sticky top-16 sm:top-20 z-30 bg-white/95 backdrop-blur-md border-b border-bdr shadow-2xs transition-all duration-200">
+  {# TRUST STATS BAR #}
+  <div class="mp-stats">
+    <div class="container-app">
+      <div class="flex overflow-x-auto no-scrollbar">
+        <div class="mp-stat"><div class="mp-stat-ic">&#127806;</div><div><div class="mp-stat-n">{{ products|length }}+</div><div class="mp-stat-l">Active listings</div></div></div>
+        <div class="mp-stat"><div class="mp-stat-ic">&#128205;</div><div><div class="mp-stat-n">25</div><div class="mp-stat-l">Districts</div></div></div>
+        <div class="mp-stat"><div class="mp-stat-ic">&#9989;</div><div><div class="mp-stat-n">100%</div><div class="mp-stat-l">Verified growers</div></div></div>
+        <div class="mp-stat"><div class="mp-stat-ic">&#128683;</div><div><div class="mp-stat-n">Zero</div><div class="mp-stat-l">Hidden fees</div></div></div>
+        <div class="mp-stat"><div class="mp-stat-ic">&#129309;</div><div><div class="mp-stat-n">Direct</div><div class="mp-stat-l">Farm to table</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  {# STICKY FILTER BAR #}
+  <section class="mp-fbar">
     <div class="container-app py-3">
-      
-      {# Search input + Filter Button row #}
-      <form id="marketplace-search-form" method="GET" action="{{ url_for('marketplace.index') }}" class="flex items-center gap-2.5">
-        {# Preserve all active filters on search submit #}
+      {# Hidden compat form for mobile drawer #}
+      <form id="marketplace-search-form" method="GET" action="{{ url_for('marketplace.index') }}" style="display:none">
         {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
         {% if sort and sort != 'price_asc' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
         {% if district %}<input type="hidden" name="district" value="{{ district }}">{% endif %}
         {% if min_price %}<input type="hidden" name="min_price" value="{{ min_price }}">{% endif %}
         {% if max_price %}<input type="hidden" name="max_price" value="{{ max_price }}">{% endif %}
         {% if availability %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
-
-        {# Search input container #}
-        <div class="relative flex-1">
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted">
-            {{ icon('search', size=18) }}
-          </div>
-          
-          <input
-            type="search"
-            id="marketplace-search"
-            name="search"
-            value="{{ search }}"
-            placeholder="Search produce (e.g. Carrots, Samba Rice, Mango, Ginger)..."
-            autocomplete="off"
-            class="input pl-11 pr-10 text-sm h-11 bg-canvas/60 border-bdr focus:bg-white transition-colors"
-          />
-
-          {# Clear Search Button #}
-          <button
-            type="button"
-            id="clear-search-btn"
-            class="absolute inset-y-0 right-0 pr-3 flex items-center text-muted hover:text-ink {% if not search %}hidden{% endif %}"
-            aria-label="Clear search query"
-            title="Clear search"
-          >
-            {{ icon('x', size=16) }}
-          </button>
-        </div>
-
-        {# Search Submit Button (hidden on mobile, visible on desktop) #}
-        <button
-          type="submit"
-          class="btn-primary h-11 px-5 text-sm hidden md:inline-flex items-center gap-1.5 shrink-0"
-        >
-          <span>Search</span>
-          {{ icon('arrow-right', size=14) }}
-        </button>
-
-        {# Mobile Filter Trigger Button (opens bottom sheet) #}
-        {% set active_filter_count = 0 %}
-        {% if sort and sort != 'price_asc' %}{% set active_filter_count = active_filter_count + 1 %}{% endif %}
-        {% if district %}{% set active_filter_count = active_filter_count + 1 %}{% endif %}
-        {% if min_price or max_price %}{% set active_filter_count = active_filter_count + 1 %}{% endif %}
-        {% if availability %}{% set active_filter_count = active_filter_count + 1 %}{% endif %}
-
-        <button
-          type="button"
-          id="open-filters-sheet-btn"
-          class="md:hidden btn-secondary h-11 px-3.5 text-sm inline-flex items-center gap-2 shrink-0 relative"
-          aria-expanded="false"
-          aria-controls="mobile-filters-drawer"
-        >
-          {{ icon('filter', size=16) }}
-          <span>Filters</span>
-          {% if active_filter_count > 0 %}
-            <span class="w-5 h-5 rounded-full bg-leaf text-white text-[11px] font-bold inline-flex items-center justify-center">
-              {{ active_filter_count }}
-            </span>
-          {% endif %}
-        </button>
+        <input type="search" id="marketplace-search" name="search" value="{{ search }}">
+        <button type="button" id="clear-search-btn" {% if not search %}style="display:none"{% endif %}></button>
       </form>
 
-      {# Horizontally Scrollable Category Chips with Icons #}
-      {% set category_icons = {
-        'Vegetables': 'sprout',
-        'Fruits': 'leaf',
-        'Grains & Rice': 'package',
-        'Spices': 'refresh',
-        'Pulses': 'package',
-        'Roots & Tubers': 'sprout',
-        'Other': 'store'
-      } %}
+      {# Mobile row #}
+      <div class="flex md:hidden items-center justify-between mb-2.5">
+        <span class="text-sm font-semibold" style="color:#1F2A24">
+          <strong style="color:#2D6A4F">{{ products|length }}</strong> listings
+        </span>
+        {% set afc = 0 %}
+        {% if sort and sort != 'price_asc' %}{% set afc = afc + 1 %}{% endif %}
+        {% if district %}{% set afc = afc + 1 %}{% endif %}
+        {% if min_price or max_price %}{% set afc = afc + 1 %}{% endif %}
+        {% if availability %}{% set afc = afc + 1 %}{% endif %}
+        <button type="button" id="open-filters-sheet-btn"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold"
+                style="background:#F0FAF4;color:#1B4332;border:1.5px solid #B7E4C7"
+                aria-expanded="false" aria-controls="mobile-filters-drawer">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          Filters
+          {% if afc > 0 %}
+          <span style="width:18px;height:18px;border-radius:50%;background:#2D6A4F;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center">{{ afc }}</span>
+          {% endif %}
+        </button>
+      </div>
 
-      <div class="mt-2.5 pt-2 border-t border-bdr/60 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth" role="navigation" aria-label="Product categories">
-        {# All Categories Pill #}
-        <a
-          href="{{ url_for('marketplace.index', search=search, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}"
-          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 {% if not selected_category %}bg-leaf text-white shadow-2xs{% else %}bg-canvas text-inksoft hover:bg-leaf-pale/50 hover:text-leaf border border-bdr{% endif %}"
-        >
-          {{ icon('grid', size=14) }}
-          <span>All Categories</span>
+      {# Category pills #}
+      {% set cat_emojis = {'Vegetables':'🥦','Fruits':'🍎','Grains & Rice':'🌾','Spices':'🌶️','Pulses':'🫘','Roots & Tubers':'🥕','Other':'🛒'} %}
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" role="navigation" aria-label="Product categories">
+        <a href="{{ url_for('marketplace.index', search=search, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}"
+           class="mp-pill flex-shrink-0 {% if not selected_category %}on{% else %}off{% endif %}">
+          <span>🌿</span> All
         </a>
-
-        {# Category Specific Pills #}
         {% for cat in categories %}
-          {% set cat_icon = category_icons.get(cat, 'sprout') %}
-          <a
-            href="{{ url_for('marketplace.index', category=cat, search=search, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}"
-            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 {% if selected_category == cat %}bg-leaf text-white shadow-2xs{% else %}bg-canvas text-inksoft hover:bg-leaf-pale/50 hover:text-leaf border border-bdr{% endif %}"
-          >
-            {{ icon(cat_icon, size=14) }}
-            <span>{{ cat }}</span>
-          </a>
+        <a href="{{ url_for('marketplace.index', category=cat, search=search, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}"
+           class="mp-pill flex-shrink-0 {% if selected_category == cat %}on{% else %}off{% endif %}">
+          <span>{{ cat_emojis.get(cat, '🌱') }}</span> {{ cat }}
+        </a>
         {% endfor %}
       </div>
 
-      {# ─── DESKTOP COMPACT INLINE TOOLBAR ─────────────────────────────────── #}
-      <div class="hidden md:flex items-center justify-between gap-4 pt-3 mt-2.5 border-t border-bdr/50 text-xs">
+      {# Desktop filter row #}
+      <div class="hidden md:flex items-center justify-between gap-4 pt-2.5 mt-2.5 border-t border-gray-100 text-xs">
         <form id="desktop-filters-form" method="GET" action="{{ url_for('marketplace.index') }}" class="flex flex-wrap items-center gap-3">
           {% if search %}<input type="hidden" name="search" value="{{ search }}">{% endif %}
           {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-
-          {# Sort Dropdown #}
           <div class="flex items-center gap-1.5">
             <label for="desktop-sort" class="text-muted font-medium whitespace-nowrap">Sort:</label>
-            <select
-              id="desktop-sort"
-              name="sort"
-              onchange="this.form.submit()"
-              class="bg-canvas border border-bdr rounded-lg px-2.5 py-1.5 text-xs text-ink font-medium focus:ring-1 focus:ring-leaf focus:border-leaf cursor-pointer"
-            >
+            <select id="desktop-sort" name="sort" onchange="this.form.submit()"
+                    class="bg-canvas border border-bdr rounded-lg px-2.5 py-1.5 text-xs text-ink font-medium cursor-pointer focus:ring-1 focus:ring-leaf focus:border-leaf">
               <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
               <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
               <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest First</option>
               <option value="nearest" {% if sort == 'nearest' %}selected{% endif %}>Nearest First</option>
             </select>
           </div>
-
-          {# District Dropdown #}
           <div class="flex items-center gap-1.5">
             <label for="desktop-district" class="text-muted font-medium whitespace-nowrap">District:</label>
-            <select
-              id="desktop-district"
-              name="district"
-              onchange="this.form.submit()"
-              class="bg-canvas border border-bdr rounded-lg px-2.5 py-1.5 text-xs text-ink font-medium focus:ring-1 focus:ring-leaf focus:border-leaf cursor-pointer max-w-[150px]"
-            >
+            <select id="desktop-district" name="district" onchange="this.form.submit()"
+                    class="bg-canvas border border-bdr rounded-lg px-2.5 py-1.5 text-xs text-ink font-medium cursor-pointer max-w-[150px] focus:ring-1 focus:ring-leaf focus:border-leaf">
               <option value="">All Districts</option>
-              {% for d in districts %}
-                <option value="{{ d }}" {% if district == d %}selected{% endif %}>{{ d }}</option>
-              {% endfor %}
+              {% for d in districts %}<option value="{{ d }}" {% if district == d %}selected{% endif %}>{{ d }}</option>{% endfor %}
             </select>
           </div>
-
-          {# Price Range Inputs #}
           <div class="flex items-center gap-1.5">
             <span class="text-muted font-medium">Price:</span>
-            <input
-              type="number"
-              name="min_price"
-              value="{{ min_price }}"
-              placeholder="Min Rs"
-              min="0"
-              step="0.01"
-              class="w-24 px-2 py-1.5 rounded-lg border border-bdr bg-canvas text-xs text-ink focus:ring-1 focus:ring-leaf focus:border-leaf"
-            />
-            <span class="text-muted">-</span>
-            <input
-              type="number"
-              name="max_price"
-              value="{{ max_price }}"
-              placeholder="Max Rs"
-              min="0"
-              step="0.01"
-              class="w-24 px-2 py-1.5 rounded-lg border border-bdr bg-canvas text-xs text-ink focus:ring-1 focus:ring-leaf focus:border-leaf"
-            />
-            <button type="submit" class="btn-secondary text-[11px] py-1 px-2.5 h-[28px]" title="Apply Price Filter">
-              Apply
-            </button>
+            <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min Rs" min="0" step="0.01"
+                   class="w-24 px-2 py-1.5 rounded-lg border border-bdr bg-canvas text-xs focus:ring-1 focus:ring-leaf focus:border-leaf"/>
+            <span class="text-muted">&ndash;</span>
+            <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max Rs" min="0" step="0.01"
+                   class="w-24 px-2 py-1.5 rounded-lg border border-bdr bg-canvas text-xs focus:ring-1 focus:ring-leaf focus:border-leaf"/>
+            <button type="submit" class="btn-secondary text-[11px] py-1 px-2.5 h-[28px]">Apply</button>
           </div>
-
-          {# In Stock Toggle #}
           <label class="inline-flex items-center gap-1.5 cursor-pointer ml-1 text-inksoft">
-            <input
-              type="checkbox"
-              name="availability"
-              value="in_stock"
-              {% if availability == 'in_stock' %}checked{% endif %}
-              onchange="this.form.submit()"
-              class="checkbox w-4 h-4 rounded text-leaf"
-            />
+            <input type="checkbox" name="availability" value="in_stock"
+                   {% if availability == 'in_stock' %}checked{% endif %}
+                   onchange="this.form.submit()" class="checkbox w-4 h-4 rounded text-leaf"/>
             <span class="text-xs font-medium">In stock only</span>
           </label>
-
-          {# Hidden slot for Nearest First / Map features #}
           <div class="hidden" data-filter-slot="nearest-first" aria-hidden="true"></div>
         </form>
-
-        {# Result Count & Reset Filters Link #}
         <div class="flex items-center gap-3">
-          <span class="text-muted">
-            <strong class="text-ink font-semibold">{{ products|length }}</strong> listings
-          </span>
-
+          <span class="text-muted"><strong class="text-ink font-semibold">{{ products|length }}</strong> listings</span>
           {% if selected_category or search or (sort and sort != 'price_asc') or district or min_price or max_price or availability %}
-            <a
-              href="{{ url_for('marketplace.index') }}"
-              class="text-leaf hover:underline font-semibold flex items-center gap-1"
-            >
-              {{ icon('x', size=12) }}
-              <span>Reset</span>
-            </a>
+          <a href="{{ url_for('marketplace.index') }}"
+             class="text-red-500 hover:underline font-semibold flex items-center gap-1 text-xs">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Reset
+          </a>
           {% endif %}
         </div>
       </div>
-
     </div>
   </section>
 
-  {# ─── 3. ACTIVE FILTER CHIPS (IF ANY) ─────────────────────────────────── #}
+    {# ACTIVE FILTER CHIPS #}
   {% if selected_category or search or (sort and sort != 'price_asc') or district or min_price or max_price or availability %}
-    <div class="container-app pt-4 pb-1">
-      <div class="flex flex-wrap items-center gap-2 text-xs">
-        <span class="text-muted font-medium">Active filters:</span>
-
-        {% if selected_category %}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-leaf-pale text-leaf-dark font-medium border border-leaf/20">
-            <span>Category: {{ selected_category }}</span>
-            <a href="{{ url_for('marketplace.index', search=search, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}" class="hover:text-danger ml-0.5" aria-label="Remove category filter">
-              {{ icon('x', size=12) }}
-            </a>
-          </span>
-        {% endif %}
-
-        {% if search %}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-leaf-pale text-leaf-dark font-medium border border-leaf/20">
-            <span>Query: "{{ search }}"</span>
-            <a href="{{ url_for('marketplace.index', category=selected_category, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}" class="hover:text-danger ml-0.5" aria-label="Remove search filter">
-              {{ icon('x', size=12) }}
-            </a>
-          </span>
-        {% endif %}
-
-        {% if district %}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-leaf-pale text-leaf-dark font-medium border border-leaf/20">
-            <span>District: {{ district }}</span>
-            <a href="{{ url_for('marketplace.index', category=selected_category, search=search, sort=sort, min_price=min_price, max_price=max_price, availability=availability) }}" class="hover:text-danger ml-0.5" aria-label="Remove district filter">
-              {{ icon('x', size=12) }}
-            </a>
-          </span>
-        {% endif %}
-
-        {% if min_price or max_price %}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-leaf-pale text-leaf-dark font-medium border border-leaf/20">
-            <span>Price: Rs. {{ min_price or '0' }} - {{ max_price or 'Any' }}</span>
-            <a href="{{ url_for('marketplace.index', category=selected_category, search=search, sort=sort, district=district, availability=availability) }}" class="hover:text-danger ml-0.5" aria-label="Remove price filter">
-              {{ icon('x', size=12) }}
-            </a>
-          </span>
-        {% endif %}
-
-        {% if sort and sort != 'price_asc' %}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-leaf-pale text-leaf-dark font-medium border border-leaf/20">
-            <span>Sort: {{ 'Price: High to Low' if sort == 'price_desc' else ('Nearest First' if sort == 'nearest' else 'Newest') }}</span>
-            <a href="{{ url_for('marketplace.index', category=selected_category, search=search, district=district, min_price=min_price, max_price=max_price, availability=availability) }}" class="hover:text-danger ml-0.5" aria-label="Reset sort">
-              {{ icon('x', size=12) }}
-            </a>
-          </span>
-        {% endif %}
-
-        {% if availability %}
-          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-leaf-pale text-leaf-dark font-medium border border-leaf/20">
-            <span>In Stock Only</span>
-            <a href="{{ url_for('marketplace.index', category=selected_category, search=search, sort=sort, district=district, min_price=min_price, max_price=max_price) }}" class="hover:text-danger ml-0.5" aria-label="Remove availability filter">
-              {{ icon('x', size=12) }}
-            </a>
-          </span>
-        {% endif %}
-
-        <a href="{{ url_for('marketplace.index') }}" class="text-xs text-leaf font-bold hover:underline ml-2">
-          Clear All
-        </a>
-      </div>
+  <div class="container-app pt-3 pb-1">
+    <div class="flex flex-wrap items-center gap-1.5">
+      <span class="text-xs text-gray-500 font-semibold">Active:</span>
+      {% if selected_category %}<span class="mp-chip">&#128194; {{ selected_category }}<a href="{{ url_for('marketplace.index', search=search, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></a></span>{% endif %}
+      {% if search %}<span class="mp-chip">&#128269; "{{ search }}"<a href="{{ url_for('marketplace.index', category=selected_category, sort=sort, district=district, min_price=min_price, max_price=max_price, availability=availability) }}"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></a></span>{% endif %}
+      {% if district %}<span class="mp-chip">&#128205; {{ district }}<a href="{{ url_for('marketplace.index', category=selected_category, search=search, sort=sort, min_price=min_price, max_price=max_price, availability=availability) }}"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></a></span>{% endif %}
+      {% if min_price or max_price %}<span class="mp-chip">Rs.{{ min_price or '0' }}-{{ max_price or 'Any' }}<a href="{{ url_for('marketplace.index', category=selected_category, search=search, sort=sort, district=district, availability=availability) }}"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></a></span>{% endif %}
+      {% if sort and sort != 'price_asc' %}<span class="mp-chip">Sort: {{ 'Price: High to Low' if sort=='price_desc' else ('Nearest' if sort=='nearest' else 'Newest') }}<a href="{{ url_for('marketplace.index', category=selected_category, search=search, district=district, min_price=min_price, max_price=max_price, availability=availability) }}"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></a></span>{% endif %}
+      {% if availability %}<span class="mp-chip">In stock<a href="{{ url_for('marketplace.index', category=selected_category, search=search, sort=sort, district=district, min_price=min_price, max_price=max_price) }}"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></a></span>{% endif %}
+      <a href="{{ url_for('marketplace.index') }}" class="text-xs text-red-500 font-bold hover:underline ml-1">Clear all</a>
     </div>
+  </div>
   {% endif %}
 
-  {# ─── 4. MAIN PRODUCE GRID ────────────────────────────────────────────── #}
-  <main class="container-app pt-6">
 
-    {# Result counter on mobile #}
-    <div class="md:hidden flex items-center justify-between mb-4 text-xs text-muted">
-      <span>Showing <strong class="text-ink">{{ products|length }}</strong> produce listings</span>
+
+    {# MAIN PRODUCE GRID #}
+  <main class="container-app pt-6">
+    <div class="flex items-center justify-between mb-5">
+      <p class="text-sm font-semibold" style="color:#1F2A24">
+        Showing <strong style="color:#2D6A4F">{{ products|length }}</strong> fresh listings
+        {% if selected_category %} &mdash; <span style="color:#1B4332;font-weight:700">{{ selected_category }}</span>{% endif %}
+        {% if district %} from <span style="color:#1B4332;font-weight:700">{{ district }}</span>{% endif %}
+      </p>
       {% if selected_category or search or district or min_price or max_price or availability %}
-        <a href="{{ url_for('marketplace.index') }}" class="text-leaf font-semibold hover:underline">
-          Clear Filters
-        </a>
+      <a href="{{ url_for('marketplace.index') }}" class="text-xs text-red-500 font-semibold hover:underline">Clear all</a>
       {% endif %}
     </div>
 
     {% if products %}
-      {# Guaranteed Responsive Grid: 1 col <400px, 2 cols >=400px, 3 on lg, 4 on xl #}
-      <div class="grid-marketplace gap-4 sm:gap-6">
+      <div class="grid-marketplace">
         {% for product in products %}
           {{ cards.product_card(product) }}
         {% endfor %}
       </div>
     {% else %}
-      {# ─── 5. EMPTY STATE ──────────────────────────────────────────────── #}
-      <div class="bg-white rounded-3xl p-10 sm:p-16 text-center border border-bdr shadow-xs max-w-lg mx-auto my-8">
-        <div class="w-16 h-16 rounded-2xl bg-leaf-pale text-leaf flex items-center justify-center mx-auto mb-4 shadow-inner">
-          {{ icon('search', size=28) }}
-        </div>
-        <h2 class="font-display font-bold text-xl sm:text-2xl text-ink mb-2">
-          No produce listings found
-        </h2>
-        <p class="text-sm text-muted mb-6 leading-relaxed">
+      <div class="text-center py-20 px-6 max-w-sm mx-auto">
+        <div style="font-size:4rem;margin-bottom:1.25rem">&#127806;</div>
+        <h2 class="font-bold text-xl mb-2" style="color:#1F2A24">No produce found</h2>
+        <p class="text-sm mb-6 leading-relaxed" style="color:#567361">
           {% if selected_category or search or district or min_price or max_price %}
-            We couldn't find any produce matching your current search or filter criteria. Try broadening your terms or resetting filters.
+            No listings match your current filters. Try broadening your search.
           {% else %}
-            No active produce listings are currently available in the marketplace. Check back shortly or list your harvest today.
+            The marketplace is being stocked. Check back soon!
           {% endif %}
         </p>
-
         <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-sm py-2.5 px-5 w-full sm:w-auto">
-            <span>Clear All Filters</span>
-          </a>
+          <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-sm py-2.5 px-5">Reset Filters</a>
           {% if current_user.is_authenticated and current_user.role == 'farmer' %}
-            <a href="{{ url_for('marketplace.list_product') }}" class="btn-secondary text-sm py-2.5 px-5 w-full sm:w-auto">
-              <span>List New Produce</span>
-            </a>
+          <a href="{{ url_for('marketplace.list_product') }}" class="btn-secondary text-sm py-2.5 px-5">List Produce</a>
           {% endif %}
         </div>
       </div>
     {% endif %}
-
   </main>
 
 </div>
+
 
 {# ─── 6. MOBILE BOTTOM SHEET FILTERS DRAWER ──────────────────────────────── #}
 <div
