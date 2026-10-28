@@ -34,11 +34,13 @@
   {# ── PRODUCE SUMMARY HEADER CARD ───────────────────────────────────────── #}
   <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs flex items-center gap-4">
     <div class="w-20 h-20 rounded-2xl overflow-hidden bg-canvas border border-bdr shrink-0">
+      {% set fallback_cat_img = '/static/images/categories/' ~ ((product.category or 'other')|lower|replace('&', '')|replace(' ', '')) ~ '.svg' %}
       <img
         src="{{ product.thumbnail_url or product.display_image_url }}"
         alt="{{ product.name }}"
         loading="lazy"
-        onerror="this.onerror=null; this.src='/static/images/categories/{{ (product.category or 'other')|lower|replace('&', '')|replace(' ', '') }}.svg';"
+        data-fallback="{{ fallback_cat_img }}"
+        onerror="this.onerror=null; this.src=this.dataset.fallback;"
         class="w-full h-full object-cover"
       />
     </div>
@@ -92,6 +94,13 @@
       data-product-id="{{ product.id }}"
       data-price="{{ product.price_per_kg }}"
       data-max-stock="{{ product.quantity_kg }}"
+      data-maps-enabled="{{ 'true' if maps_enabled else 'false' }}"
+      data-maps-key="{{ maps_browser_key }}"
+      data-map-id="{{ maps_map_id }}"
+      data-buyer-lat="{{ current_user.latitude if current_user.latitude is not none else '' }}"
+      data-buyer-lng="{{ current_user.longitude if current_user.longitude is not none else '' }}"
+      data-farmer-lat="{{ product.farmer.latitude if (farmer_has_pin and product.farmer) else '' }}"
+      data-farmer-lng="{{ product.farmer.longitude if (farmer_has_pin and product.farmer) else '' }}"
       class="space-y-6"
       novalidate
     >
@@ -578,43 +587,47 @@ document.addEventListener('DOMContentLoaded', function () {
   updateFulfillmentUI();
 
   // Initialize interactive maps if enabled
-  {% if maps_enabled %}
-  AgroMaps.load({
-    apiKey: '{{ maps_browser_key }}',
-    mapId: '{{ maps_map_id }}'
-  }).then(() => {
-    // 1. Initialize delivery picker with farmer and buyer pins
-    new AgroLocationPicker({
-      prefix: 'delivery-picker',
-      initialLat: {{ current_user.latitude if current_user.latitude is not none else 'null' }},
-      initialLng: {{ current_user.longitude if current_user.longitude is not none else 'null' }},
-      roleHint: 'delivery'
-    });
+  const mapsEnabled = form.dataset.mapsEnabled === 'true';
+  const buyerLat = form.dataset.buyerLat ? parseFloat(form.dataset.buyerLat) : null;
+  const buyerLng = form.dataset.buyerLng ? parseFloat(form.dataset.buyerLng) : null;
+  const farmerLat = form.dataset.farmerLat ? parseFloat(form.dataset.farmerLat) : null;
+  const farmerLng = form.dataset.farmerLng ? parseFloat(form.dataset.farmerLng) : null;
+  const mapsApiKey = form.dataset.mapsKey || '';
+  const mapsMapId = form.dataset.mapId || '';
 
-    // 2. Initialize farmer pickup preview map if farmer has pin
-    {% if farmer_has_pin %}
-    const pickupMapDiv = document.getElementById('farmer-pickup-map');
-    if (pickupMapDiv && window.google && google.maps) {
-      const fLat = {{ product.farmer.latitude }};
-      const fLng = {{ product.farmer.longitude }};
-      const pMap = new google.maps.Map(pickupMapDiv, {
-        center: { lat: fLat, lng: fLng },
-        zoom: 13,
-        mapId: '{{ maps_map_id }}',
-        disableDefaultUI: true,
-        zoomControl: true
+  if (mapsEnabled && window.AgroMaps) {
+    AgroMaps.load({
+      apiKey: mapsApiKey,
+      mapId: mapsMapId
+    }).then(() => {
+      // 1. Initialize delivery picker with farmer and buyer pins
+      new AgroLocationPicker({
+        prefix: 'delivery-picker',
+        initialLat: buyerLat,
+        initialLng: buyerLng,
+        roleHint: 'delivery'
       });
-      new google.maps.marker.AdvancedMarkerElement({
-        map: pMap,
-        position: { lat: fLat, lng: fLng },
-        title: 'Farmer Collection Point'
-      });
-    }
-    {% endif %}
-  }).catch((err) => {
-    console.warn('Google Maps could not be loaded on place order page:', err);
-  });
-  {% endif %}
+
+      // 2. Initialize farmer pickup preview map if farmer has pin
+      const pickupMapDiv = document.getElementById('farmer-pickup-map');
+      if (pickupMapDiv && farmerLat !== null && farmerLng !== null && window.google && google.maps) {
+        const pMap = new google.maps.Map(pickupMapDiv, {
+          center: { lat: farmerLat, lng: farmerLng },
+          zoom: 13,
+          mapId: mapsMapId || undefined,
+          disableDefaultUI: true,
+          zoomControl: true
+        });
+        new google.maps.marker.AdvancedMarkerElement({
+          map: pMap,
+          position: { lat: farmerLat, lng: farmerLng },
+          title: 'Farmer Collection Point'
+        });
+      }
+    }).catch((err) => {
+      console.warn('Google Maps could not be loaded on place order page:', err);
+    });
+  }
 });
 </script>
 {% endblock %}

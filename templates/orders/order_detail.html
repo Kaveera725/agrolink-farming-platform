@@ -98,9 +98,9 @@
         <div class="flex items-center justify-between relative">
           {# Track line #}
           <div class="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-gray-200 z-0"></div>
+          {% set step_track_w = 'w-0' if order.status == 'pending' else ('w-1/2' if order.status == 'confirmed' else 'right-6') %}
           <div
-            class="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500"
-            style="width: {{ '0%' if order.status == 'pending' else ('50%' if order.status == 'confirmed' else 'calc(100% - 3rem)') }};"
+            class="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500 {{ step_track_w }}"
           ></div>
 
           {# Step 1: Pending #}
@@ -380,15 +380,13 @@
       {% endif %}
 
       {# PRIVACY COMPLIANT DELIVERY DESTINATION & MAP #}
-      {% set is_deliv = (order.fulfillment_type == 'delivery' or (order.delivery_address and order.fulfillment_type != 'pickup') or (order.delivery_address and not order.fulfillment_type)) %}
+      {# is_deliv: true only when fulfillment_type is explicitly 'delivery' #}
+      {% set is_deliv = (order.fulfillment_type == 'delivery') %}
       {% if is_deliv %}
         <div class="pt-3 border-t border-gray-100 space-y-2">
           <div class="flex items-center justify-between text-xs">
             {% if can_manage %}
               <span class="font-medium text-gray-700">Buyer Delivery Pin</span>
-              {% if order.buyer.location_updated_at %}
-                <span class="text-[11px] text-gray-400">Updated {{ time_ago(order.buyer.location_updated_at) }}</span>
-              {% endif %}
             {% else %}
               <span class="text-xs font-bold text-gray-700 uppercase tracking-wider block">Delivery Destination</span>
             {% endif %}
@@ -399,9 +397,23 @@
             </p>
           {% endif %}
 
+          {#
+            Coordinate priority for the map pin:
+            1. order.delivery_lat/lng — snapshotted at order time (preferred; never changes)
+            2. buyer's saved profile pin — fallback visible ONLY to can_manage (farmer/admin).
+               This covers legacy orders placed before coordinate snapshots were added.
+               Privacy: buyer's raw pin is NEVER shown to the buyer themselves in this block.
+          #}
           {% set b_lat = order.delivery_lat or (order.buyer.latitude if can_manage else None) %}
           {% set b_lng = order.delivery_lng or (order.buyer.longitude if can_manage else None) %}
+          {% set pin_is_profile_fallback = (not order.delivery_lat and can_manage and order.buyer.latitude) %}
           {% if b_lat and b_lng %}
+            {% if pin_is_profile_fallback %}
+              <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl flex items-center gap-1.5">
+                {{ icon('alert-triangle', size=12, cls='shrink-0') }}
+                Showing buyer&rsquo;s saved profile location &mdash; no GPS pin was recorded with this order.
+              </p>
+            {% endif %}
             <div
               id="buyer-delivery-map"
               class="w-full h-44 rounded-2xl bg-gray-100 border border-gray-200 relative overflow-hidden"
@@ -634,19 +646,21 @@
 
 {% block extra_scripts %}
 {% set has_pickup_map = (order.product.farmer.latitude and order.product.farmer.longitude) %}
-{% set is_deliv = (order.fulfillment_type == 'delivery' or (order.delivery_address and order.fulfillment_type != 'pickup') or (order.delivery_address and not order.fulfillment_type)) %}
+{% set is_deliv = (order.fulfillment_type == 'delivery') %}
 {% set b_lat = order.delivery_lat or (order.buyer.latitude if can_manage else None) %}
 {% set b_lng = order.delivery_lng or (order.buyer.longitude if can_manage else None) %}
 {% set has_delivery_map = (is_deliv and b_lat and b_lng) %}
 
 {% if (has_pickup_map or has_delivery_map) and maps_enabled %}
 <script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+{% endif %}
+
+{% if has_pickup_map and maps_enabled %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   if (!window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) return;
 
-  window.AgroMapsLoader.load(['maps', 'marker']).then(() => {
-    {% if has_pickup_map %}
+  window.AgroMapsLoader.load(['maps', 'marker']).then(function() {
     const pickupEl = document.getElementById('farmer-pickup-map');
     if (pickupEl) {
       const lat = parseFloat(pickupEl.dataset.lat);
@@ -680,9 +694,19 @@ document.addEventListener('DOMContentLoaded', function() {
       const ph = document.getElementById('farmer-map-placeholder');
       if (ph) ph.style.display = 'none';
     }
-    {% endif %}
+  }).catch(function(err) {
+    console.warn('[AgroLink] Google Maps load failed on pickup map:', err);
+  });
+});
+</script>
+{% endif %}
 
-    {% if has_delivery_map %}
+{% if has_delivery_map and maps_enabled %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) return;
+
+  window.AgroMapsLoader.load(['maps', 'marker']).then(function() {
     const deliveryEl = document.getElementById('buyer-delivery-map');
     if (deliveryEl) {
       const lat = parseFloat(deliveryEl.dataset.lat);
@@ -716,9 +740,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const ph = document.getElementById('delivery-map-placeholder');
       if (ph) ph.style.display = 'none';
     }
-    {% endif %}
-  }).catch(err => {
-    console.warn('[AgroLink] Google Maps load failed on order detail:', err);
+  }).catch(function(err) {
+    console.warn('[AgroLink] Google Maps load failed on delivery map:', err);
   });
 });
 </script>

@@ -231,7 +231,8 @@
     placeholder_text='Map loading…',
     extra_cls=''
   ) %}
-<div class="map-container {{ extra_cls }}" id="{{ id }}-wrapper" style="aspect-ratio: {{ ratio }};">
+{% set ratio_attr = ('style="aspect-ratio: ' ~ ratio ~ ';"') if ratio and ratio != '16/9' else '' %}
+<div class="map-container {{ extra_cls }}" id="{{ id }}-wrapper" {{ ratio_attr|safe }}>
   {# Placeholder shown until map JS loads #}
   <div id="{{ id }}-placeholder" class="map-placeholder">
     {{ icon('map-pin', size=32, cls='text-muted/50') }}
