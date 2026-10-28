@@ -329,7 +329,8 @@
                 {# Reject Action Button (Triggers Accessible Modal) #}
                 <button
                   type="button"
-                  onclick="openRejectModal({{ order.id }}, this.dataset.productName, this.dataset.buyerName)"
+                  onclick="openRejectModal(this.dataset.orderId, this.dataset.productName, this.dataset.buyerName)"
+                  data-order-id="{{ order.id }}"
                   data-product-name="{{ order.product.name }}"
                   data-buyer-name="{{ order.buyer.name }}"
                   class="btn-danger-outline py-2 px-3 text-xs font-semibold inline-flex items-center justify-center gap-1"
@@ -686,7 +687,8 @@
                 </a>
                 <button
                   type="button"
-                  onclick="openDeleteListingModal({{ product.id }}, this.dataset.productName)"
+                  onclick="openDeleteListingModal(this.dataset.productId, this.dataset.productName)"
+                  data-product-id="{{ product.id }}"
                   data-product-name="{{ product.name }}"
                   class="btn-danger-outline flex-1 py-1.5 text-xs text-center font-semibold"
                 >

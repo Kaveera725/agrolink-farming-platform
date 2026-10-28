@@ -653,12 +653,14 @@
 
 {% if (has_pickup_map or has_delivery_map) and maps_enabled %}
 <script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+{% endif %}
+
+{% if has_pickup_map and maps_enabled %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   if (!window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) return;
 
-  window.AgroMapsLoader.load(['maps', 'marker']).then(() => {
-    {% if has_pickup_map %}
+  window.AgroMapsLoader.load(['maps', 'marker']).then(function() {
     const pickupEl = document.getElementById('farmer-pickup-map');
     if (pickupEl) {
       const lat = parseFloat(pickupEl.dataset.lat);
@@ -692,9 +694,19 @@ document.addEventListener('DOMContentLoaded', function() {
       const ph = document.getElementById('farmer-map-placeholder');
       if (ph) ph.style.display = 'none';
     }
-    {% endif %}
+  }).catch(function(err) {
+    console.warn('[AgroLink] Google Maps load failed on pickup map:', err);
+  });
+});
+</script>
+{% endif %}
 
-    {% if has_delivery_map %}
+{% if has_delivery_map and maps_enabled %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  if (!window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) return;
+
+  window.AgroMapsLoader.load(['maps', 'marker']).then(function() {
     const deliveryEl = document.getElementById('buyer-delivery-map');
     if (deliveryEl) {
       const lat = parseFloat(deliveryEl.dataset.lat);
@@ -728,9 +740,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const ph = document.getElementById('delivery-map-placeholder');
       if (ph) ph.style.display = 'none';
     }
-    {% endif %}
-  }).catch(err => {
-    console.warn('[AgroLink] Google Maps load failed on order detail:', err);
+  }).catch(function(err) {
+    console.warn('[AgroLink] Google Maps load failed on delivery map:', err);
   });
 });
 </script>
