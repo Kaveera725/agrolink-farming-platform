@@ -154,9 +154,9 @@
                   <div class="flex items-center justify-between relative">
                     {# Track line #}
                     <div class="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-0.5 bg-bdr z-0"></div>
+                    {% set step_w = 'w-0' if order.status == 'pending' else ('w-1/2' if order.status == 'confirmed' else 'right-4') %}
                     <div
-                      class="absolute left-4 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500"
-                      style="width: {{ '0%' if order.status == 'pending' else ('50%' if order.status == 'confirmed' else '100%') }};"
+                      class="absolute left-4 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500 {{ step_w }}"
                     ></div>
 
                     {# Step 1: Pending #}

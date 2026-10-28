@@ -329,7 +329,9 @@
                 {# Reject Action Button (Triggers Accessible Modal) #}
                 <button
                   type="button"
-                  onclick="openRejectModal('{{ order.id }}', '{{ order.product.name|replace('\'', '\\\'') }}', '{{ order.buyer.name|replace('\'', '\\\'') }}')"
+                  onclick="openRejectModal({{ order.id }}, this.dataset.productName, this.dataset.buyerName)"
+                  data-product-name="{{ order.product.name }}"
+                  data-buyer-name="{{ order.buyer.name }}"
                   class="btn-danger-outline py-2 px-3 text-xs font-semibold inline-flex items-center justify-center gap-1"
                 >
                   {{ icon('x', size=14) }}
@@ -658,8 +660,9 @@
                     </div>
                     {% set max_stock = 500.0 %}
                     {% set pct = [((product.quantity_kg / max_stock) * 100)|round, 100]|min %}
+                    {% set bar_style = 'style="width: ' ~ pct ~ '%;"' %}
                     <div class="w-full h-1.5 bg-canvas rounded-full overflow-hidden border border-bdr/50" role="progressbar" aria-valuenow="{{ product.quantity_kg }}" aria-valuemin="0" aria-valuemax="500">
-                      <div class="h-full rounded-full {{ 'bg-danger' if product.quantity_kg <= 50 else 'bg-leaf' }}" style="width: {{ pct }}%"></div>
+                      <div class="h-full rounded-full {{ 'bg-danger' if product.quantity_kg <= 50 else 'bg-leaf' }}" {{ bar_style|safe }}></div>
                     </div>
                   </div>
 
@@ -683,7 +686,8 @@
                 </a>
                 <button
                   type="button"
-                  onclick="openDeleteListingModal('{{ product.id }}', '{{ product.name|replace('\'', '\\\'') }}')"
+                  onclick="openDeleteListingModal({{ product.id }}, this.dataset.productName)"
+                  data-product-name="{{ product.name }}"
                   class="btn-danger-outline flex-1 py-1.5 text-xs text-center font-semibold"
                 >
                   Remove

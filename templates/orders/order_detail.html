@@ -98,9 +98,9 @@
         <div class="flex items-center justify-between relative">
           {# Track line #}
           <div class="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-gray-200 z-0"></div>
+          {% set step_track_w = 'w-0' if order.status == 'pending' else ('w-1/2' if order.status == 'confirmed' else 'right-6') %}
           <div
-            class="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500"
-            style="width: {{ '0%' if order.status == 'pending' else ('50%' if order.status == 'confirmed' else 'calc(100% - 3rem)') }};"
+            class="absolute left-6 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500 {{ step_track_w }}"
           ></div>
 
           {# Step 1: Pending #}
@@ -646,7 +646,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) return;
 
   window.AgroMapsLoader.load(['maps', 'marker']).then(() => {
-    {% if has_pickup_map %}
     const pickupEl = document.getElementById('farmer-pickup-map');
     if (pickupEl) {
       const lat = parseFloat(pickupEl.dataset.lat);
@@ -680,9 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const ph = document.getElementById('farmer-map-placeholder');
       if (ph) ph.style.display = 'none';
     }
-    {% endif %}
 
-    {% if has_delivery_map %}
     const deliveryEl = document.getElementById('buyer-delivery-map');
     if (deliveryEl) {
       const lat = parseFloat(deliveryEl.dataset.lat);
@@ -716,7 +713,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const ph = document.getElementById('delivery-map-placeholder');
       if (ph) ph.style.display = 'none';
     }
-    {% endif %}
   }).catch(err => {
     console.warn('[AgroLink] Google Maps load failed on order detail:', err);
   });
