@@ -309,6 +309,45 @@
   // Expose AgroMaps globally
   window.AgroMaps = AgroMaps;
 
+  // AgroMapsLoader compatibility alias used by order and marketplace templates.
+  // Provides isAvailable(), getMapId(), and a promise-based load() wrapper.
+  window.AgroMapsLoader = {
+    /**
+     * Returns true when a browser API key is present in meta tags or config.
+     * Maps may still fail to render if the key is invalid or billing is off,
+     * but this check gates whether we attempt to load at all.
+     */
+    isAvailable: function () {
+      const key =
+        window.__AGRO_MAPS_CONFIG__?.browserKey ||
+        document.querySelector('meta[name="maps-browser-key"]')?.getAttribute('content') ||
+        '';
+      return !!key && !AgroMaps.authFailed;
+    },
+
+    /** Return the Map ID (needed for AdvancedMarkerElement). */
+    getMapId: function () {
+      return (
+        AgroMaps.mapId ||
+        window.__AGRO_MAPS_CONFIG__?.mapId ||
+        document.querySelector('meta[name="maps-map-id"]')?.getAttribute('content') ||
+        ''
+      );
+    },
+
+    /**
+     * Load Google Maps (delegates to AgroMaps.load).
+     * The `_libraries` argument is accepted for backwards-compat but ignored
+     * because AgroMaps.load always imports maps + marker + places.
+     *
+     * @param {string[]} [_libraries] Ignored – kept for call-site compatibility.
+     * @returns {Promise} Resolves when Google Maps is ready.
+     */
+    load: function (_libraries) {
+      return AgroMaps.load();
+    }
+  };
+
   // Auto-initialize if credentials exist on DOMContentLoaded
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
