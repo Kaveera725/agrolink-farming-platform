@@ -1,349 +1,591 @@
 {% extends "base.html" %}
 {% import "components/badges.html" as badges with context %}
-{% import "components/buttons.html" as buttons with context %}
-{% import "components/cards.html" as cards with context %}
+{% from "components/ui.html" import empty_state, price_compare_bar %}
+{% from "components/icons.html" import icon %}
 
-{% block title %}Market Prices & Deals — AgroLink{% endblock %}
+{% block title %}Market Prices — AgroLink{% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER -->
-<section class="bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white py-10 sm:py-14 relative overflow-hidden" aria-labelledby="prices-title">
-  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" aria-hidden="true"></div>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-    <div class="space-y-2 max-w-2xl">
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-xs font-semibold text-green-100 border border-white/20">
-        <span>📊</span> Real-Time Agricultural Benchmarks
-      </div>
-      <h1 id="prices-title" class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-        Sri Lanka Market Prices
-      </h1>
-      <p class="text-sm sm:text-base text-green-100/90 leading-relaxed font-normal">
-        Official wholesale buying &amp; selling price intelligence from key commercial trading centres including Colombo Pettah.
-      </p>
-    </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
 
-    <div>
-      <a
-        href="{{ url_for('prices.bids') }}"
-        class="inline-flex items-center justify-center gap-2 bg-gold hover:bg-gold-light active:bg-amber-600 text-gray-900 font-bold px-6 py-3.5 min-h-[46px] rounded-xl shadow-lg transition-all duration-200 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-      >
-        <span>Compare Direct Farmer Deals</span>
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-        </svg>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ADVISORY NOTICE -->
-<aside class="bg-amber-50/90 border-b border-amber-200 py-3 text-xs sm:text-sm text-amber-900" aria-label="Pricing note">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2">
-    <svg class="w-4 h-4 text-amber-700 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-    </svg>
-    <span>
-      <strong>Note:</strong> Wholesale benchmarks are updated daily and serve as indicative guidance. Actual transaction prices depend on crop quality grade, freshness, and transport distance.
-    </span>
-  </div>
-</aside>
-
-<!-- MAIN CONTAINER -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
-
-  <!-- BEST DEALS SECTION -->
-  {% if best_deals %}
-    <section aria-labelledby="best-deals-title" class="space-y-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-leaf-dark text-xs font-semibold mb-1">
-            <span>🔥</span> Direct Farmer Savings
-          </div>
-          <h2 id="best-deals-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-            Best Deals for Commercial Buyers
-          </h2>
-          <p class="text-xs sm:text-sm text-gray-600">Farmer listings priced below Colombo wholesale benchmark selling rates.</p>
+  {# ── 1. HEADER & PLAIN-LANGUAGE ADVISORY ────────────────────────────────── #}
+  <header class="space-y-5" aria-labelledby="prices-title">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="space-y-1.5">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold">
+          {{ icon('trending-up', size=13) }}
+          <span>Official Wholesale &amp; Retail Intelligence</span>
+        </div>
+        <h1 id="prices-title" class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink tracking-tight">
+          Market Prices
+        </h1>
+        <div class="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted">
+          <span>Official benchmarks from Colombo Pettah and major commercial regional hubs.</span>
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-canvas border border-bdr text-inksoft text-xs font-semibold">
+            {{ icon('clock', size=12, cls='text-muted') }}
+            <span>Last updated {{ last_updated.strftime('%d %b %Y') if last_updated else 'Today' }}</span>
+          </span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for deal in best_deals %}
-          <article class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md border border-emerald-200/70 transition flex flex-col justify-between">
-            <div>
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <h3 class="font-display font-bold text-gray-900 text-lg leading-tight">
-                  <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}" class="hover:text-leaf transition">
-                    {{ deal.product_name }}
-                  </a>
-                </h3>
-                {{ badges.deal_badge("Save Rs. " ~ "{:,.0f}".format(deal.saving) ~ "/kg") }}
-              </div>
-
-              <span class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-4">
-                {{ deal.category }}
-              </span>
-
-              <div class="bg-emerald-50/50 rounded-xl p-3.5 space-y-1.5 mb-4 border border-emerald-100">
-                <div class="flex items-baseline justify-between text-xs text-gray-500">
-                  <span>Colombo Wholesale:</span>
-                  <span class="line-through font-medium">Rs. {{ "{:,.0f}".format(deal.market_price) }}/kg</span>
-                </div>
-                <div class="flex items-baseline justify-between">
-                  <span class="text-xs font-bold text-gray-700">Direct Farm Price:</span>
-                  <span class="font-display font-extrabold text-xl text-leaf-dark">Rs. {{ "{:,.0f}".format(deal.price) }}<span class="text-xs font-normal text-gray-500">/kg</span></span>
-                </div>
-                <div class="pt-1 border-t border-emerald-200/60 text-xs font-semibold text-emerald-800 flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 text-leaf" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                  </svg>
-                  <span>You save Rs. {{ "{:,.0f}".format(deal.saving) }} on every kg</span>
-                </div>
-              </div>
-            </div>
-
-            <a
-              href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}"
-              class="w-full btn-primary text-sm py-2.5 text-center shadow-xs"
-            >
-              <span>View Product Listing</span>
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </a>
-          </article>
-        {% endfor %}
-      </div>
-    </section>
-  {% endif %}
-
-  <!-- CATEGORY FILTER & BENCHMARK PRICE TABLES -->
-  <section aria-labelledby="benchmark-tables-title" class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div>
-        <h2 id="benchmark-tables-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-          Daily Wholesale Benchmark Rates
-        </h2>
-        <p class="text-xs sm:text-sm text-gray-600">Comparing farmer buying prices vs. retail selling prices with wholesale margins.</p>
-      </div>
-
-      <!-- Category Filter Pills (Mobile friendly wrapping) -->
-      <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter prices by category">
-        <button
-          type="button"
-          id="filter-btn-all"
-          onclick="filterCategory('all')"
-          aria-pressed="true"
-          class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-leaf text-white"
+      <div class="flex items-center gap-3">
+        <a
+          href="{{ url_for('prices.bids') }}"
+          class="btn-primary text-sm py-2.5 px-5 shadow-xs inline-flex items-center gap-2"
         >
-          All
-        </button>
-        {% for cat in categories %}
-          <button
-            type="button"
-            id="filter-btn-{{ loop.index }}"
-            onclick="filterCategory('{{ cat }}')"
-            aria-pressed="false"
-            class="cat-filter-btn px-4 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-xs bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-leaf"
-          >
-            {{ cat }}
-          </button>
-        {% endfor %}
+          <span>Best Price Comparison</span>
+          {{ icon('arrow-right', size=15) }}
+        </a>
       </div>
     </div>
 
-    <!-- Grouped Tables by Category -->
-    <div class="space-y-8">
+    {# Plain-Language Helper Card #}
+    <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-leaf-50/70 via-white to-sky-50/50 border border-bdr shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center shrink-0 mt-0.5">
+          {{ icon('info', size=18) }}
+        </div>
+        <div class="space-y-0.5">
+          <span class="font-bold text-xs uppercase tracking-wider text-ink block">
+            How to read market rates
+          </span>
+          <p class="text-xs sm:text-sm text-inksoft leading-relaxed">
+            <strong class="text-sky font-bold">Buying price</strong> = what dealers pay farmers &middot; 
+            <strong class="text-leaf-dark font-bold">Selling price</strong> = retail price.
+            Compare these with direct farmer listings to capture savings without middlemen markups.
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {# ── 2. BEST DEALS SECTION ──────────────────────────────────────────────── #}
+  <section aria-labelledby="best-deals-title" class="space-y-6 pt-2">
+    <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 pb-2 border-b border-bdr/60">
+      <div>
+        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-gold-dark uppercase tracking-wider mb-1">
+          <span>Direct Farmer Savings</span>
+        </div>
+        <h2 id="best-deals-title" class="font-display text-2xl sm:text-3xl font-bold text-ink tracking-tight">
+          Best Deals
+        </h2>
+        <p class="text-xs sm:text-sm text-muted">
+          Active farmer produce priced strictly below official retail market rates.
+        </p>
+      </div>
+
+      {% if best_deals %}
+        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gold-pale text-gold-dark border border-gold/30">
+          {{ best_deals|length }} discounted deals available
+        </span>
+      {% endif %}
+    </div>
+
+    {% if best_deals %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for deal in best_deals %}
+          <article class="card p-5 sm:p-6 bg-white border border-bdr hover:border-leaf/40 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
+            <div class="space-y-3">
+              {# Header: Name + Saving % Badge in gold-pale #}
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <span class="text-[11px] font-semibold text-muted uppercase tracking-wider block mb-0.5 truncate">
+                    {{ deal.category }}
+                  </span>
+                  <h3 class="font-display font-bold text-lg text-ink group-hover:text-leaf transition-colors truncate">
+                    <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}">
+                      {{ deal.product_name }}
+                    </a>
+                  </h3>
+                </div>
+
+                {# Saving % badge in gold-pale #}
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-gold-pale text-gold-dark border border-gold/30 shrink-0 shadow-2xs">
+                  {{ icon('trending-down', size=12) }}
+                  <span>Save {{ deal.saving_pct }}%</span>
+                </span>
+              </div>
+
+              {# Seller & Location Metadata #}
+              <div class="flex items-center gap-2 text-xs text-muted">
+                <span class="w-5 h-5 rounded-full bg-earth-pale text-earth font-bold text-[10px] flex items-center justify-center shrink-0">
+                  {{ deal.seller[0].upper() }}
+                </span>
+                <span class="truncate font-medium text-inksoft">{{ deal.seller }}</span>
+                <span>&bull;</span>
+                <span class="truncate">{{ deal.seller_location }}</span>
+              </div>
+
+              {# Price Highlight Block #}
+              <div class="p-3.5 rounded-2xl bg-canvas border border-bdr/60 space-y-2">
+                <div class="flex items-baseline justify-between text-xs text-muted">
+                  <span>Retail Market Price:</span>
+                  <span class="line-through font-medium">LKR {{ "{:,.0f}".format(deal.market_price) }} / kg</span>
+                </div>
+
+                <div class="flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-ink">Direct Farmer Price:</span>
+                  <div class="text-right">
+                    <span class="font-display font-black text-xl text-leaf-dark">
+                      LKR {{ "{:,.0f}".format(deal.price) }}
+                    </span>
+                    <span class="text-xs font-normal text-muted">/ kg</span>
+                  </div>
+                </div>
+
+                {# Reusable Price Compare Bar #}
+                <div class="pt-1">
+                  {{ price_compare_bar(deal.price, deal.buying_price, deal.market_price, compact=true, show_labels=false) }}
+                </div>
+
+                <div class="pt-1.5 border-t border-bdr/50 flex items-center justify-between text-[11px] font-semibold text-leaf-dark">
+                  <span>Direct Savings:</span>
+                  <span>Save LKR {{ "{:,.0f}".format(deal.saving) }} / kg</span>
+                </div>
+              </div>
+
+              {% if deal.quantity_kg %}
+                <p class="text-[11px] text-muted text-right">
+                  {{ "{:,.0f}".format(deal.quantity_kg) }} kg ready in stock
+                </p>
+              {% endif %}
+            </div>
+
+            {# Actions #}
+            <div class="pt-4 mt-2 border-t border-bdr/60 flex items-center gap-2">
+              <a
+                href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}"
+                class="btn-secondary text-xs py-2 px-3 flex-initial text-center"
+              >
+                Details
+              </a>
+              <a
+                href="{{ url_for('orders.place_order', product_id=deal.product_id) }}"
+                class="btn-primary text-xs py-2 px-4 flex-1 text-center font-semibold shadow-2xs inline-flex items-center justify-center gap-1.5"
+              >
+                {{ icon('shopping-bag', size=13) }}
+                <span>Order now</span>
+              </a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      {{ empty_state(
+          title='No Active Below-Market Deals',
+          description='All active farmer produce is currently priced at or above wholesale benchmarks. Check back soon for fresh harvest offerings or explore the open marketplace.',
+          icon_name='package',
+          action_url=url_for('marketplace.index'),
+          action_text='Explore Marketplace'
+      ) }}
+    {% endif %}
+  </section>
+
+  {# ── 3. SEARCH & BENCHMARK PRICE TABLES ─────────────────────────────────── #}
+  <section aria-labelledby="benchmark-tables-title" class="space-y-6 pt-4">
+    <div class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 pb-2 border-b border-bdr/60">
+        <div>
+          <h2 id="benchmark-tables-title" class="font-display text-2xl sm:text-3xl font-bold text-ink tracking-tight">
+            Daily Benchmark Rates
+          </h2>
+          <p class="text-xs sm:text-sm text-muted">
+            Track wholesale dealer buying vs retail selling spreads across Sri Lanka.
+          </p>
+        </div>
+        <span class="text-xs text-muted font-medium">
+          {{ prices|length }} tracked commodities
+        </span>
+      </div>
+
+      {# Search & Category Filter Toolbar #}
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        {# Instant Search Input #}
+        <div class="relative w-full md:w-80">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted">
+            {{ icon('search', size=16) }}
+          </div>
+          <input
+            type="search"
+            id="crop-search-input"
+            placeholder="Search crops (e.g. Tomato, Carrot, Rice)..."
+            aria-label="Search crops"
+            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-bdr bg-white text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:border-leaf transition"
+          />
+        </div>
+
+        {# Category Tabs #}
+        <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter prices by crop category">
+          <button
+            type="button"
+            onclick="filterCategory('all')"
+            data-cat="all"
+            aria-pressed="true"
+            class="cat-filter-btn px-4 py-2 min-h-[38px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-2xs bg-leaf text-white border border-transparent"
+          >
+            All
+          </button>
+          {% for cat in categories %}
+            <button
+              type="button"
+              onclick="filterCategory('{{ cat }}')"
+              data-cat="{{ cat }}"
+              aria-pressed="false"
+              class="cat-filter-btn px-4 py-2 min-h-[38px] rounded-xl text-xs sm:text-sm font-semibold transition shadow-2xs bg-white text-inksoft border border-bdr hover:bg-canvas hover:text-leaf"
+            >
+              {{ cat }}
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# Desktop Tables with Sticky Header & Horizontal Scroll Shadow Hint #}
+    <div class="hidden md:block space-y-6" id="desktop-benchmark-tables">
       {% for cat, items in grouped.items() %}
-        <div class="category-section bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden" data-category="{{ cat }}">
-          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="font-display font-bold text-lg text-gray-900 flex items-center gap-2">
+        <div class="category-block card bg-white border border-bdr shadow-xs overflow-hidden" data-category="{{ cat }}">
+          <div class="px-6 py-3.5 bg-canvas border-b border-bdr flex items-center justify-between">
+            <h3 class="font-display font-bold text-base text-ink flex items-center gap-2">
               <span>{{ cat }}</span>
-              <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
-                {{ items|length }} crops
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-leaf-pale text-leaf-dark">
+                {{ items|length }} items
               </span>
             </h3>
-            <span class="text-xs text-gray-500">Colombo Market Benchmark</span>
+            <span class="text-xs text-muted font-medium">Colombo Wholesale Benchmark</span>
           </div>
 
-          <!-- Responsive Scroll Wrapper -->
-          <div class="overflow-x-auto w-full">
-            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[600px]">
-              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
-                <tr>
-                  <th scope="col" class="py-3.5 px-4 sm:px-6">Crop Variety</th>
-                  <th scope="col" class="py-3.5 px-4 text-right text-sky font-bold">Farmer Buying (Rs./kg)</th>
-                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Retail Selling (Rs./kg)</th>
-                  <th scope="col" class="py-3.5 px-4 text-right">Wholesale Margin</th>
-                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Location</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                {% for price in items %}
-                  <tr class="hover:bg-gray-50/80 transition-colors">
-                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
-                      {{ price.crop_name }}
-                    </td>
-                    <td class="py-3.5 px-4 text-right font-display font-bold text-sky text-base">
-                      Rs. {{ "{:,.0f}".format(price.buying_price) }}
-                    </td>
-                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
-                      Rs. {{ "{:,.0f}".format(price.selling_price) }}
-                    </td>
-                    <td class="py-3.5 px-4 text-right">
-                      {% set margin = ((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1) if price.buying_price > 0 else 0 %}
-                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold
-                        {% if margin > 50 %}
-                          bg-rose-100 text-rose-900 border border-rose-200
-                        {% elif margin > 30 %}
-                          bg-amber-100 text-amber-900 border border-amber-200
-                        {% else %}
-                          bg-emerald-100 text-emerald-900 border border-emerald-200
-                        {% endif %}">
-                        +{{ margin }}%
-                      </span>
-                    </td>
-                    <td class="py-3.5 px-4 sm:px-6 text-right text-xs text-gray-500">
-                      {{ price.market_location }}
-                    </td>
+          {# Container with sticky header and horizontal scroll with shadow hint #}
+          <div class="relative w-full overflow-hidden">
+            {# Horizontal scroll right-shadow hint #}
+            <div class="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/5 to-transparent z-20" aria-hidden="true"></div>
+
+            <div class="overflow-x-auto max-h-[500px]">
+              <table class="w-full text-left text-sm divide-y divide-bdr/60 min-w-[650px]">
+                <thead class="sticky top-0 bg-canvas/95 backdrop-blur-xs z-10 text-xs font-bold uppercase tracking-wider text-muted border-b border-bdr">
+                  <tr>
+                    <th scope="col" class="py-3 px-6">Crop</th>
+                    <th scope="col" class="py-3 px-4 text-right text-sky font-bold">Buying</th>
+                    <th scope="col" class="py-3 px-4 text-right text-leaf-dark font-bold">Selling</th>
+                    <th scope="col" class="py-3 px-6 text-right">Dealer Margin</th>
+                    <th scope="col" class="py-3 px-6 text-right">Market Location</th>
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-bdr/40">
+                  {% for price in items %}
+                    {% set margin_pct = (((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1)) if price.buying_price > 0 else 0 %}
+                    <tr class="crop-row hover:bg-canvas/50 transition-colors" data-crop-name="{{ price.crop_name|lower }}" data-crop-category="{{ cat|lower }}">
+                      <td class="py-3 px-6 font-semibold text-ink">
+                        {{ price.crop_name }}
+                      </td>
+                      <td class="py-3 px-4 text-right font-display font-bold text-sky text-sm">
+                        LKR {{ "{:,.0f}".format(price.buying_price) }}
+                      </td>
+                      <td class="py-3 px-4 text-right font-display font-bold text-leaf-dark text-sm">
+                        LKR {{ "{:,.0f}".format(price.selling_price) }}
+                      </td>
+                      <td class="py-3 px-6 text-right">
+                        <div class="inline-flex items-center justify-end gap-2">
+                          {# Small margin progress bar #}
+                          <div class="w-14 h-2 bg-gray-100 rounded-full overflow-hidden border border-bdr/50 shrink-0">
+                            <div
+                              class="h-full rounded-full {% if margin_pct > 50 %}bg-amber-500{% elif margin_pct > 30 %}bg-leaf{% else %}bg-sky{% endif %}"
+                              style="width: {{ [margin_pct, 100]|min }}%;"
+                            ></div>
+                          </div>
+                          <span class="font-bold text-xs tabular-nums text-inksoft">
+                            +{{ margin_pct }}%
+                          </span>
+                        </div>
+                      </td>
+                      <td class="py-3 px-6 text-right text-xs text-muted">
+                        {{ price.market_location }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       {% endfor %}
     </div>
+
+    {# Mobile Stacked Cards (Optimized for 375px screens) #}
+    <div class="md:hidden space-y-4" id="mobile-benchmark-cards">
+      {% for cat, items in grouped.items() %}
+        <div class="category-block space-y-3" data-category="{{ cat }}">
+          <div class="flex items-center justify-between px-1">
+            <h3 class="font-display font-bold text-sm text-ink">{{ cat }}</h3>
+            <span class="text-[11px] text-muted">{{ items|length }} items</span>
+          </div>
+
+          <div class="space-y-2.5">
+            {% for price in items %}
+              {% set margin_pct = (((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1)) if price.buying_price > 0 else 0 %}
+              <div class="crop-row card p-4 bg-white border border-bdr shadow-2xs space-y-2" data-crop-name="{{ price.crop_name|lower }}" data-crop-category="{{ cat|lower }}">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="font-display font-bold text-sm text-ink">{{ price.crop_name }}</span>
+                  <span class="text-[10px] text-muted bg-canvas px-2 py-0.5 rounded border border-bdr">{{ price.market_location }}</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                  <div class="p-2 rounded-xl bg-sky-50/50 border border-sky-100">
+                    <span class="text-[10px] uppercase font-bold text-sky block">Buying (Dealer)</span>
+                    <span class="font-display font-extrabold text-sm text-sky">LKR {{ "{:,.0f}".format(price.buying_price) }}</span>
+                  </div>
+                  <div class="p-2 rounded-xl bg-leaf-50/50 border border-leaf-100">
+                    <span class="text-[10px] uppercase font-bold text-leaf-dark block">Selling (Retail)</span>
+                    <span class="font-display font-extrabold text-sm text-leaf-dark">LKR {{ "{:,.0f}".format(price.selling_price) }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs pt-1 border-t border-bdr/50">
+                  <span class="text-[11px] text-muted">Dealer Margin:</span>
+                  <div class="inline-flex items-center gap-1.5">
+                    <div class="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden border border-bdr/50 shrink-0">
+                      <div
+                        class="h-full rounded-full {% if margin_pct > 50 %}bg-amber-500{% elif margin_pct > 30 %}bg-leaf{% else %}bg-sky{% endif %}"
+                        style="width: {{ [margin_pct, 100]|min }}%;"
+                      ></div>
+                    </div>
+                    <span class="font-bold text-xs tabular-nums text-ink">+{{ margin_pct }}%</span>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    {# No Crops Found Search Empty State #}
+    <div id="no-crops-search-state" class="hidden">
+      {{ empty_state(
+          title='No matching crops found',
+          description='No commodities match your current search query. Try clearing your search or selecting a different category.',
+          icon_name='search'
+      ) }}
+    </div>
   </section>
 
-  <!-- CHEAPEST SELLERS (DIRECT FROM FARMERS) -->
+  {# ── 4. CHEAPEST SELLERS (ACCORDION PER CATEGORY) ───────────────────────── #}
   <section aria-labelledby="sellers-title" class="space-y-6 pt-4">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 pb-2 border-b border-bdr/60">
       <div>
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-earth-pale text-earth text-xs font-semibold mb-1">
-          <span>👨‍🌾</span> Verified Farmer Listings
+        <div class="inline-flex items-center gap-1.5 text-xs font-bold text-earth uppercase tracking-wider mb-1">
+          <span>Direct Grower Directory</span>
         </div>
-        <h2 id="sellers-title" class="font-display text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-          Cheapest Local Sellers (Direct from Farmers)
+        <h2 id="sellers-title" class="font-display text-2xl sm:text-3xl font-bold text-ink tracking-tight">
+          Cheapest Sellers
         </h2>
-        <p class="text-xs sm:text-sm text-gray-600">Lowest priced active produce from registered growers across all categories.</p>
+        <p class="text-xs sm:text-sm text-muted">
+          Compare active produce by seller. Prices above market benchmarks are presented neutrally.
+        </p>
       </div>
     </div>
 
-    {% for cat, items in seller_map.items() %}
-      {% if items %}
-        <div class="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden mb-6">
-          <div class="px-5 py-4 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between">
-            <h3 class="font-display font-bold text-base sm:text-lg text-gray-900">{{ cat }}</h3>
-            <span class="text-xs text-gray-500">Direct Farmer Offerings</span>
-          </div>
+    {% if seller_map %}
+      <div class="space-y-4">
+        {% for cat, items in seller_map.items() %}
+          {% if items %}
+            <details class="group card bg-white border border-bdr shadow-xs overflow-hidden transition-all duration-200" open>
+              {# Accordion Summary Header #}
+              <summary class="px-5 py-4 bg-canvas/60 hover:bg-canvas cursor-pointer flex items-center justify-between select-none list-none transition-colors border-b border-bdr/60">
+                <div class="flex items-center gap-3">
+                  <div class="w-7 h-7 rounded-lg bg-leaf-pale text-leaf-dark flex items-center justify-center shrink-0">
+                    {{ icon('sprout', size=16) }}
+                  </div>
+                  <div>
+                    <h3 class="font-display font-bold text-base text-ink inline">
+                      {{ cat }}
+                    </h3>
+                    <span class="text-xs font-semibold px-2 py-0.5 ml-2 rounded-full bg-canvas text-inksoft border border-bdr">
+                      {{ items|length }} listings
+                    </span>
+                  </div>
+                </div>
 
-          <div class="overflow-x-auto w-full">
-            <table class="w-full text-left text-sm divide-y divide-gray-100 min-w-[640px]">
-              <thead class="bg-gray-50/50 text-xs font-bold text-gray-600 uppercase tracking-wider">
-                <tr>
-                  <th scope="col" class="py-3.5 px-4 sm:px-6">Product</th>
-                  <th scope="col" class="py-3.5 px-4">Farmer</th>
-                  <th scope="col" class="py-3.5 px-4 text-right text-leaf-dark font-bold">Farmer Price</th>
-                  <th scope="col" class="py-3.5 px-4 text-right">Market Benchmark</th>
-                  <th scope="col" class="py-3.5 px-4 text-right">Potential Savings</th>
-                  <th scope="col" class="py-3.5 px-4 sm:px-6 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100">
-                {% for item in items[:5] %}
-                  <tr class="hover:bg-gray-50/80 transition-colors">
-                    <td class="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
-                      {{ item.product.name }}
-                    </td>
-                    <td class="py-3.5 px-4 text-gray-700">
-                      <div class="flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-xs font-bold flex items-center justify-center">
-                          {{ item.product.farmer.name[0].upper() }}
-                        </span>
-                        <span class="truncate max-w-[140px]">{{ item.product.farmer.name }}</span>
-                      </div>
-                    </td>
-                    <td class="py-3.5 px-4 text-right font-display font-bold text-leaf-dark text-base">
-                      Rs. {{ "{:,.0f}".format(item.product.price_per_kg) }}
-                    </td>
-                    <td class="py-3.5 px-4 text-right text-gray-600">
-                      {% if item.market_price %}
-                        Rs. {{ "{:,.0f}".format(item.market_price) }}
-                      {% else %}
-                        <span class="text-xs text-gray-400">N/A</span>
-                      {% endif %}
-                    </td>
-                    <td class="py-3.5 px-4 text-right">
-                      {% if item.diff is not none %}
-                        {% if item.diff > 0 %}
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
-                            Save Rs. {{ "{:,.0f}".format(item.diff) }}/kg
-                          </span>
-                        {% elif item.diff == 0 %}
-                          <span class="text-xs text-gray-600">Market Rate</span>
-                        {% else %}
-                          <span class="text-xs text-amber-700 font-medium">Above market (+Rs. {{ "{:,.0f}".format(item.diff|abs) }})</span>
-                        {% endif %}
-                      {% else %}
-                        <span class="text-xs text-gray-400">—</span>
-                      {% endif %}
-                    </td>
-                    <td class="py-3.5 px-4 sm:px-6 text-right">
-                      <a
-                        href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}"
-                        class="btn-primary text-xs py-1.5 px-3"
-                      >
-                        Buy Now
-                      </a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      {% endif %}
-    {% endfor %}
+                <div class="flex items-center gap-3">
+                  {% set cheapest_item = items[0] %}
+                  <span class="hidden sm:inline-block text-xs font-semibold text-leaf-dark bg-leaf-50 px-2.5 py-1 rounded-full border border-leaf/20">
+                    Lowest: LKR {{ "{:,.0f}".format(cheapest_item.product.price_per_kg) }} / kg ({{ cheapest_item.product.name }})
+                  </span>
+                  <div class="w-6 h-6 rounded-full bg-white border border-bdr flex items-center justify-center text-muted group-open:rotate-180 transition-transform duration-200">
+                    {{ icon('chevron-down', size=14) }}
+                  </div>
+                </div>
+              </summary>
+
+              {# Table of Sellers inside Accordion #}
+              <div class="overflow-x-auto w-full">
+                <table class="w-full text-left text-sm divide-y divide-bdr/40 min-w-[620px]">
+                  <thead class="bg-canvas/50 text-xs font-bold text-muted uppercase tracking-wider">
+                    <tr>
+                      <th scope="col" class="py-3 px-5">Produce</th>
+                      <th scope="col" class="py-3 px-4">Seller</th>
+                      <th scope="col" class="py-3 px-4">Location</th>
+                      <th scope="col" class="py-3 px-4 text-right font-bold text-leaf-dark">Price</th>
+                      <th scope="col" class="py-3 px-4 text-right">Saving vs Market</th>
+                      <th scope="col" class="py-3 px-5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-bdr/30">
+                    {% for item in items %}
+                      <tr class="hover:bg-canvas/40 transition-colors">
+                        {# Produce Name #}
+                        <td class="py-3 px-5 font-semibold text-ink">
+                          <a href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}" class="hover:text-leaf transition-colors">
+                            {{ item.product.name }}
+                          </a>
+                        </td>
+
+                        {# Seller Farmer #}
+                        <td class="py-3 px-4 text-inksoft">
+                          <div class="flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-earth-pale text-earth text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {{ item.product.farmer.name[0].upper() if item.product.farmer else 'F' }}
+                            </span>
+                            <span class="truncate max-w-[130px]">{{ item.product.farmer.name if item.product.farmer else 'Farmer' }}</span>
+                          </div>
+                        </td>
+
+                        {# Location #}
+                        <td class="py-3 px-4 text-xs text-muted truncate max-w-[120px]">
+                          {{ item.product.location or (item.product.farmer.location if item.product.farmer else '') or 'Sri Lanka' }}
+                        </td>
+
+                        {# Farmer Price #}
+                        <td class="py-3 px-4 text-right font-display font-bold text-leaf-dark text-sm">
+                          LKR {{ "{:,.0f}".format(item.product.price_per_kg) }} <span class="text-xs font-normal text-muted">/ kg</span>
+                        </td>
+
+                        {# Saving Indicator (Neutral when above market!) #}
+                        <td class="py-3 px-4 text-right">
+                          {% if item.diff is not none %}
+                            {% if item.diff > 0 %}
+                              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                {{ icon('trending-down', size=11) }}
+                                <span>Save LKR {{ "{:,.0f}".format(item.diff) }} ({{ item.saving_pct }}%)</span>
+                              </span>
+                            {% elif item.diff == 0 %}
+                              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-muted bg-canvas border border-bdr">
+                                Market Rate
+                              </span>
+                            {% else %}
+                              {# Neutral styling for above market - NEVER negative alarm or red #}
+                              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200" title="Priced higher than standard retail benchmark">
+                                Above market
+                              </span>
+                            {% endif %}
+                          {% else %}
+                            <span class="text-xs text-muted">&mdash;</span>
+                          {% endif %}
+                        </td>
+
+                        {# Action #}
+                        <td class="py-3 px-5 text-right">
+                          <a
+                            href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}"
+                            class="btn-secondary text-xs py-1.5 px-3"
+                          >
+                            View
+                          </a>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {{ empty_state(
+          title='No active farmer listings',
+          description='There are currently no active produce listings from growers.',
+          icon_name='package'
+      ) }}
+    {% endif %}
   </section>
-
-  <!-- SUMMARY STATS -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4">
-    <div class="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-xs">
-      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Tracked Categories</span>
-      <p class="font-display font-extrabold text-3xl text-gray-900 mt-1">{{ categories|length }}</p>
-    </div>
-    <div class="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-xs">
-      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Active Best Deals</span>
-      <p class="font-display font-extrabold text-3xl text-leaf mt-1">{{ best_deals|length }}</p>
-    </div>
-    <div class="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-xs">
-      <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Tracked Produce Items</span>
-      <p class="font-display font-extrabold text-3xl text-sky mt-1">{{ grouped|length }}</p>
-    </div>
-  </div>
 
 </div>
 
-<!-- INTERACTIVE FILTER SCRIPT -->
+{# ── CLIENT-SIDE INTERACTIVE SEARCH & CATEGORY FILTER SCRIPT ─────────────── #}
 <script>
+  let activeCategory = 'all';
+
   function filterCategory(cat) {
-    document.querySelectorAll('.category-section').forEach(el => {
-      el.style.display = (cat === 'all' || el.dataset.category === cat) ? 'block' : 'none';
-    });
+    activeCategory = cat;
 
-    // Update active filter pill button styles
+    // Update active tab buttons
     document.querySelectorAll('.cat-filter-btn').forEach(btn => {
-      btn.setAttribute('aria-pressed', 'false');
-      btn.classList.remove('bg-leaf', 'text-white');
-      btn.classList.add('bg-white', 'text-gray-700', 'border', 'border-gray-200');
+      const isMatch = btn.getAttribute('data-cat') === cat;
+      btn.setAttribute('aria-pressed', isMatch ? 'true' : 'false');
+      if (isMatch) {
+        btn.classList.add('bg-leaf', 'text-white', 'border-transparent');
+        btn.classList.remove('bg-white', 'text-inksoft', 'border-bdr', 'hover:bg-canvas');
+      } else {
+        btn.classList.remove('bg-leaf', 'text-white', 'border-transparent');
+        btn.classList.add('bg-white', 'text-inksoft', 'border-bdr', 'hover:bg-canvas');
+      }
     });
 
-    const activeBtn = event?.currentTarget;
-    if (activeBtn) {
-      activeBtn.setAttribute('aria-pressed', 'true');
-      activeBtn.classList.remove('bg-white', 'text-gray-700', 'border', 'border-gray-200');
-      activeBtn.classList.add('bg-leaf', 'text-white');
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const searchVal = document.getElementById('crop-search-input')?.value.toLowerCase().trim() || '';
+    let visibleCount = 0;
+
+    // Filter desktop rows
+    document.querySelectorAll('#desktop-benchmark-tables .crop-row').forEach(row => {
+      const name = row.dataset.cropName || '';
+      const cat = row.dataset.cropCategory || '';
+      const matchCat = (activeCategory === 'all' || cat.toLowerCase() === activeCategory.toLowerCase());
+      const matchSearch = (!searchVal || name.includes(searchVal));
+
+      if (matchCat && matchSearch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    // Hide empty desktop category blocks
+    document.querySelectorAll('#desktop-benchmark-tables .category-block').forEach(block => {
+      const visibleRows = block.querySelectorAll('.crop-row:not([style*="display: none"])');
+      block.style.display = visibleRows.length > 0 ? '' : 'none';
+    });
+
+    // Filter mobile cards
+    document.querySelectorAll('#mobile-benchmark-cards .crop-row').forEach(card => {
+      const name = card.dataset.cropName || '';
+      const cat = card.dataset.cropCategory || '';
+      const matchCat = (activeCategory === 'all' || cat.toLowerCase() === activeCategory.toLowerCase());
+      const matchSearch = (!searchVal || name.includes(searchVal));
+
+      if (matchCat && matchSearch) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    // Hide empty mobile category blocks
+    document.querySelectorAll('#mobile-benchmark-cards .category-block').forEach(block => {
+      const visibleCards = block.querySelectorAll('.crop-row:not([style*="display: none"])');
+      block.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+
+    // Toggle search empty state
+    const emptyStateEl = document.getElementById('no-crops-search-state');
+    if (emptyStateEl) {
+      emptyStateEl.classList.toggle('hidden', visibleCount > 0);
     }
   }
+
+  document.getElementById('crop-search-input')?.addEventListener('input', applyFilters);
 </script>
 {% endblock %}

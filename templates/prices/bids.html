@@ -1,163 +1,227 @@
 {% extends "base.html" %}
 {% import "components/badges.html" as badges with context %}
-{% import "components/buttons.html" as buttons with context %}
+{% from "components/ui.html" import empty_state, price_compare_bar, page_header %}
+{% from "components/icons.html" import icon %}
 
 {% block title %}Best Price Comparison — AgroLink{% endblock %}
 
 {% block content %}
-<!-- HEADER BANNER -->
-<section class="bg-gradient-to-br from-leaf-dark via-leaf to-leaf-light text-white py-10 sm:py-12 relative overflow-hidden" aria-labelledby="bids-heading">
-  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" aria-hidden="true"></div>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-3">
-    <div>
-      <a
-        href="{{ url_for('prices.index') }}"
-        class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-green-200 hover:text-white transition-colors"
-      >
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-        <span>Back to Market Prices Board</span>
-      </a>
-    </div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
 
-    <h1 id="bids-heading" class="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
-      Best Price Comparison
-    </h1>
-    <p class="text-sm sm:text-base text-green-100/90 leading-relaxed font-normal max-w-2xl">
-      Lowest-priced farmer listings ranked first within each agricultural category. Buy directly with complete price transparency.
-    </p>
-  </div>
-</section>
+  {# ── 1. HEADER & BREADCRUMBS ────────────────────────────────────────────── #}
+  {{ page_header(
+      title='Best Price Comparison',
+      subtitle='Ranked producer listings with direct wholesale & retail benchmark comparisons.',
+      breadcrumbs=[
+          {'text': 'Home', 'url': url_for('main.home')},
+          {'text': 'Market Prices', 'url': url_for('prices.index')},
+          {'text': 'Price Comparison'}
+      ],
+      back_url=url_for('prices.index'),
+      back_text='Back to Market Prices'
+  ) }}
 
-<!-- COMPARISON LISTINGS CONTAINER -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
-
-  {% if grouped %}
-    {% for category, products in grouped.items() %}
-      <section class="space-y-4" aria-labelledby="cat-heading-{{ loop.index }}">
-        <!-- CATEGORY HEADER -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 border-b border-gray-200">
-          <div class="flex items-center gap-3">
-            <h2 id="cat-heading-{{ loop.index }}" class="font-display text-xl sm:text-2xl font-bold text-gray-900">
-              {{ category }}
-            </h2>
-            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700">
-              {{ products|length }} listings
-            </span>
+  {# ── 2. FILTER & SORT TOOLBAR ───────────────────────────────────────────── #}
+  <section class="card p-4 sm:p-5 bg-white border border-bdr shadow-xs space-y-4" aria-label="Search and filter produce comparisons">
+    <form method="GET" action="{{ url_for('prices.bids') }}" id="bids-filter-form" class="space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        
+        {# Produce Search #}
+        <div class="relative flex-1 max-w-md">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted">
+            {{ icon('search', size=16) }}
           </div>
-
-          {% if cheapest_map.get(category) %}
-            <div class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-200">
-              <span>🔥</span> Lowest rate: <strong class="text-leaf-dark">{{ cheapest_map[category].name }}</strong>
-            </div>
-          {% endif %}
+          <input
+            type="search"
+            name="q"
+            value="{{ search }}"
+            placeholder="Search produce name or category..."
+            aria-label="Search produce"
+            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-bdr bg-canvas text-ink text-sm focus:outline-none focus:ring-2 focus:ring-leaf focus:bg-white transition"
+          />
         </div>
 
-        <!-- PRODUCT COMPARISON CARDS (Mobile-First Stacked Grid) -->
-        <div class="space-y-3">
-          {% for product in products %}
-            {% set market = market_dict.get(product.name|lower) %}
-            <article class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-xs hover:shadow-md transition flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              
-              <!-- LEFT: Product & Farmer Meta -->
-              <div class="space-y-1.5 flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-display font-bold text-base sm:text-lg text-gray-900 truncate">
-                    <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" class="hover:text-leaf transition">
-                      {{ product.name }}
-                    </a>
-                  </h3>
+        {# Sort Selector #}
+        <div class="flex items-center gap-2 self-start md:self-auto">
+          <label for="sort-select" class="text-xs font-bold text-muted uppercase tracking-wider shrink-0 flex items-center gap-1">
+            {{ icon('filter', size=13) }}
+            <span>Sort By:</span>
+          </label>
+          <select
+            id="sort-select"
+            name="sort"
+            onchange="this.form.submit()"
+            class="py-2 px-3 rounded-xl border border-bdr bg-white text-xs sm:text-sm font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-leaf transition"
+          >
+            <option value="price_asc" {% if selected_sort == 'price_asc' %}selected{% endif %}>Lowest Price First</option>
+            <option value="highest_savings" {% if selected_sort == 'highest_savings' %}selected{% endif %}>Highest Savings First</option>
+            <option value="price_desc" {% if selected_sort == 'price_desc' %}selected{% endif %}>Highest Price First</option>
+            <option value="name_asc" {% if selected_sort == 'name_asc' %}selected{% endif %}>Crop Name (A–Z)</option>
+          </select>
+        </div>
+      </div>
 
-                  {% if loop.first %}
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-leaf-dark border border-emerald-200 shadow-2xs">
-                      <span>✓</span> Cheapest in Category
-                    </span>
-                  {% endif %}
-                </div>
+      {# Category Filter Pills #}
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 border-t border-bdr/50" role="tablist">
+        <a
+          href="{{ url_for('prices.bids', sort=selected_sort, q=search, category='all') }}"
+          class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-2xs {{ 'bg-leaf text-white' if selected_category == 'all' else 'bg-canvas text-inksoft hover:bg-leaf-pale hover:text-leaf border border-bdr/60' }}"
+        >
+          All Categories
+        </a>
+        {% for cat in categories %}
+          <a
+            href="{{ url_for('prices.bids', sort=selected_sort, q=search, category=cat) }}"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition shadow-2xs {{ 'bg-leaf text-white' if selected_category == cat else 'bg-canvas text-inksoft hover:bg-leaf-pale hover:text-leaf border border-bdr/60' }}"
+          >
+            {{ cat }}
+          </a>
+        {% endfor %}
+      </div>
+    </form>
+  </section>
 
-                <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                  <span class="flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                    <span>{{ product.farmer.name }}</span>
-                  </span>
-                  <span>•</span>
-                  <span class="flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    <span>{{ product.location or (product.farmer.location or product.farmer.district) or "Sri Lanka" }}</span>
-                  </span>
-                  <span>•</span>
-                  <span class="font-medium text-gray-700">{{ "{:,.0f}".format(product.quantity_kg) }} kg ready</span>
-                </div>
+  {# ── 3. COMPARISON LISTINGS ─────────────────────────────────────────────── #}
+  {% if products %}
+    <div class="space-y-10">
+      {% for category, cat_products in grouped.items() %}
+        {% if cat_products %}
+          <section class="space-y-4" aria-labelledby="cat-heading-{{ loop.index }}">
+            
+            {# Category Header & Cheapest Highlight #}
+            <div class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 pb-2.5 border-b border-bdr/60">
+              <div class="flex items-center gap-2.5">
+                <h2 id="cat-heading-{{ loop.index }}" class="font-display text-xl sm:text-2xl font-bold text-ink">
+                  {{ category }}
+                </h2>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-canvas text-inksoft border border-bdr">
+                  {{ cat_products|length }} listings
+                </span>
               </div>
 
-              <!-- MIDDLE: Pricing & Savings -->
-              <div class="flex items-baseline justify-between md:justify-end md:text-right gap-4 pt-2 md:pt-0 border-t md:border-t-0 border-gray-100 min-w-[180px]">
-                <div>
-                  {% if market %}
-                    <p class="text-xs text-gray-400 line-through">
-                      Colombo: Rs. {{ "{:,.0f}".format(market.selling_price) }}
-                    </p>
-                  {% endif %}
+              {% set cheap_p = cheapest_map.get(category) %}
+              {% if cheap_p and cheap_p.price_per_kg %}
+                <div class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-leaf-50 text-leaf-dark border border-leaf/20">
+                  {{ icon('check-circle', size=13) }}
+                  <span>Lowest in category: <strong>{{ cheap_p.name }}</strong> (LKR {{ "{:,.0f}".format(cheap_p.price_per_kg) }}/kg)</span>
+                </div>
+              {% endif %}
+            </div>
 
-                  <div class="flex items-baseline gap-1 md:justify-end">
-                    <span class="font-display font-extrabold text-xl sm:text-2xl text-leaf-dark">
-                      Rs. {{ "{:,.0f}".format(product.price_per_kg) }}
-                    </span>
-                    <span class="text-xs text-gray-500">/ kg</span>
+            {# Comparison Cards Grid #}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {% for product in cat_products %}
+                {% set market = product.market_benchmark %}
+                <article class="card p-5 sm:p-6 bg-white border border-bdr hover:border-leaf/30 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4 group">
+                  
+                  {# Top Row: Image, Title, Farmer, Stock #}
+                  <div class="flex gap-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-canvas border border-bdr/80 shrink-0">
+                      <img
+                        src="{{ product.thumbnail_url or product.display_image_url }}"
+                        alt="{{ product.name }}"
+                        loading="lazy"
+                        onerror="this.onerror=null; this.src='/static/images/categories/{{ (product.category or 'other')|lower|replace('&', '')|replace(' ', '') }}.svg'; this.classList.add('p-3', 'opacity-60');"
+                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+
+                    <div class="min-w-0 flex-1 space-y-1">
+                      <div class="flex items-start justify-between gap-1.5">
+                        <h3 class="font-display font-bold text-base sm:text-lg text-ink truncate group-hover:text-leaf transition-colors">
+                          <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}">
+                            {{ product.name }}
+                          </a>
+                        </h3>
+
+                        {# Saving % badge in gold-pale #}
+                        {% if product.diff and product.diff > 0 %}
+                          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-gold-pale text-gold-dark border border-gold/30 shrink-0">
+                            {{ icon('trending-down', size=11) }}
+                            <span>Save {{ product.saving_pct }}%</span>
+                          </span>
+                        {% elif product.diff and product.diff < 0 %}
+                          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200 shrink-0">
+                            Above market
+                          </span>
+                        {% endif %}
+                      </div>
+
+                      {# Farmer & Location #}
+                      <p class="text-xs text-muted truncate">
+                        Sold by <strong class="text-inksoft">{{ product.farmer.name if product.farmer else 'Verified Farmer' }}</strong> &middot; {{ product.location or (product.farmer.location if product.farmer else '') or 'Sri Lanka' }}
+                      </p>
+
+                      <div class="flex items-baseline gap-2 pt-0.5">
+                        <span class="font-display font-extrabold text-xl text-leaf-dark">
+                          LKR {{ "{:,.0f}".format(product.price_per_kg) }}
+                        </span>
+                        <span class="text-xs text-muted">/ kg</span>
+                        <span class="text-xs text-muted/60">&bull;</span>
+                        <span class="text-xs text-muted">{{ "{:,.0f}".format(product.quantity_kg) }} kg ready</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {% if market and product.price_per_kg < market.selling_price %}
-                    <p class="text-xs font-bold text-emerald-800">
-                      Save Rs. {{ "{:,.0f}".format(market.selling_price - product.price_per_kg) }}/kg
-                    </p>
+                  {# Middle: Reusable Price Compare Bar #}
+                  {% if product.market_price and product.buying_price %}
+                    <div class="p-3.5 rounded-2xl bg-canvas/70 border border-bdr/60 space-y-2">
+                      <div class="flex items-center justify-between text-xs">
+                        <span class="text-muted font-medium">Market Benchmark Comparison</span>
+                        {% if product.diff and product.diff > 0 %}
+                          <span class="font-bold text-leaf-dark">LKR {{ "{:,.0f}".format(product.diff) }} cheaper</span>
+                        {% elif product.diff and product.diff == 0 %}
+                          <span class="text-muted font-medium">At market rate</span>
+                        {% else %}
+                          <span class="text-gray-500 font-medium">Above retail</span>
+                        {% endif %}
+                      </div>
+
+                      {{ price_compare_bar(product.price_per_kg, product.buying_price, product.market_price) }}
+                    </div>
+                  {% else %}
+                    <div class="p-3 rounded-xl bg-canvas border border-bdr/60 text-xs text-muted flex items-center gap-1.5">
+                      {{ icon('info', size=13) }}
+                      <span>Official wholesale benchmark not tracked for this specific crop variety.</span>
+                    </div>
                   {% endif %}
-                </div>
-              </div>
 
-              <!-- RIGHT: Actions -->
-              <div class="flex items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-gray-100">
-                <a
-                  href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
-                  class="btn-secondary text-xs py-2 px-3 flex-1 md:flex-initial text-center"
-                >
-                  Details
-                </a>
+                  {# Bottom: Actions #}
+                  <div class="flex items-center gap-2 pt-2 border-t border-bdr/50">
+                    <a
+                      href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
+                      class="btn-secondary text-xs py-2 px-3.5 flex-initial text-center"
+                    >
+                      View Details
+                    </a>
 
-                {% if current_user.is_authenticated and current_user.role == 'buyer' %}
-                  <a
-                    href="{{ url_for('orders.place_order', product_id=product.id) }}"
-                    class="btn-primary text-xs py-2 px-3.5 flex-1 md:flex-initial text-center shadow-xs"
-                  >
-                    Order Now
-                  </a>
-                {% else %}
-                  <a
-                    href="{{ url_for('marketplace.product_detail', product_id=product.id) }}"
-                    class="btn-primary text-xs py-2 px-3.5 flex-1 md:flex-initial text-center shadow-xs"
-                  >
-                    View Offer
-                  </a>
-                {% endif %}
-              </div>
+                    <a
+                      href="{{ url_for('orders.place_order', product_id=product.id) }}"
+                      class="btn-primary text-xs py-2 px-4 flex-1 text-center font-semibold shadow-2xs inline-flex items-center justify-center gap-1.5"
+                    >
+                      {{ icon('shopping-bag', size=14) }}
+                      <span>Order now</span>
+                    </a>
+                  </div>
 
-            </article>
-          {% endfor %}
-        </div>
-      </section>
-    {% endfor %}
-  {% else %}
-    <div class="bg-white rounded-3xl p-12 text-center border border-gray-200">
-      <p class="text-base font-semibold text-gray-700">No active produce comparisons currently available.</p>
-      <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-xs py-2 px-4 mt-3 inline-block">
-        Explore Marketplace
-      </a>
+                </article>
+              {% endfor %}
+            </div>
+
+          </section>
+        {% endif %}
+      {% endfor %}
     </div>
+  {% else %}
+    {{ empty_state(
+        title='No produce found',
+        description='No active listings match your current search or category filter. Try clearing filters or exploring the general marketplace.',
+        icon_name='search',
+        action_url=url_for('prices.bids'),
+        action_text='Clear Filters',
+        secondary_url=url_for('marketplace.index'),
+        secondary_text='Browse Marketplace'
+    ) }}
   {% endif %}
 
 </div>

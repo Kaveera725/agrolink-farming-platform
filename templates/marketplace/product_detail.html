@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% import "components/cards.html" as cards with context %}
+{% from "components/ui.html" import price_compare_bar %}
 {% from "components/icons.html" import icon %}
 
 {% block title %}{{ product.name }} — AgroLink Sri Lanka{% endblock %}
@@ -394,28 +395,9 @@
               </div>
             {% endif %}
 
-            {# Small Horizontal Range Bar #}
-            {% set min_p = mb.buying_price if mb.buying_price < product.price_per_kg else product.price_per_kg * 0.9 %}
-            {% set max_p = mb.selling_price if mb.selling_price > product.price_per_kg else product.price_per_kg * 1.1 %}
-            {% set range_span = (max_p - min_p) if (max_p - min_p) > 0 else 1 %}
-            {% set marker_pct = [([((product.price_per_kg - min_p) / range_span * 100)|round, 4]|max), 96]|min %}
-
+            {# Reusable Horizontal Market Price Compare Bar #}
             <div class="pt-2">
-              <div class="relative w-full h-3 bg-gradient-to-r from-leaf-200 via-gold-pale to-danger-100 rounded-full border border-bdr">
-                {# Farmer Price Marker Pin #}
-                <div
-                  class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-leaf rounded-full ring-2 ring-white shadow-xs"
-                  style="left: {{ marker_pct }}%;"
-                  title="Farmer Price: LKR {{ product.price_per_kg }}"
-                ></div>
-              </div>
-
-              {# Range Labels #}
-              <div class="flex items-center justify-between text-[11px] text-muted font-medium mt-2">
-                <span>Wholesale: Rs. {{ "{:,.0f}".format(mb.buying_price) }}</span>
-                <span class="font-bold text-leaf-dark">Farmer: Rs. {{ "{:,.0f}".format(product.price_per_kg) }}</span>
-                <span>Retail: Rs. {{ "{:,.0f}".format(mb.selling_price) }}</span>
-              </div>
+              {{ price_compare_bar(product.price_per_kg, mb.buying_price, mb.selling_price) }}
             </div>
           </div>
         {% endif %}
