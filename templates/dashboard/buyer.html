@@ -6,6 +6,41 @@
 
 {% block title %}Buyer Dashboard — AgroLink{% endblock %}
 
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  .kpi-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.03em;
+    line-height: 1.05;
+  }
+  .price-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+  }
+  .kpi-card {
+    transition: transform 180ms cubic-bezier(.4,0,.2,1),
+                box-shadow 180ms cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+  }
+  .kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(14,86,141,.09), 0 1px 4px rgba(14,86,141,.05);
+  }
+  .kpi-card-bar {
+    height: 3px;
+    border-radius: 9999px 9999px 0 0;
+    margin: -1.25rem -1.5rem 1.25rem;
+  }
+  .order-price { font-family: 'JetBrains Mono', monospace; font-weight: 700; letter-spacing: -.02em; }
+  .order-qty   { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="bg-canvas min-h-screen py-8 sm:py-12 pb-24 sm:pb-16 space-y-8 sm:space-y-10">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
@@ -39,12 +74,13 @@
     {# ─── 7. KPI STAT CARDS (Total Spent, Active Orders, Completed Orders) ── #}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
       {# KPI 1: Total Spent #}
-      <div class="card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs space-y-1">
-        <span class="text-xs font-semibold text-muted uppercase tracking-wider block">Total Spent</span>
-        <p class="font-display font-extrabold text-2xl sm:text-3xl text-leaf-dark">
-          Rs. {{ "{:,.0f}".format(total_spent) }}
+      <div class="card kpi-card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs">
+        <div class="kpi-card-bar" style="background:linear-gradient(90deg,#1B4332,#52B788)"></div>
+        <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Total Spent</span>
+        <p class="kpi-num font-extrabold text-2xl sm:text-3xl text-leaf-dark">
+          Rs.&thinsp;{{ "{:,.0f}".format(total_spent) }}
         </p>
-        <p class="text-[11px] text-muted flex items-center gap-1 pt-1">
+        <p class="text-[11px] text-muted flex items-center gap-1 pt-1.5">
           {{ icon('trending-up', size=13, cls='text-leaf') }}
           <span>Direct trade savings vs middleman rates</span>
         </p>
@@ -52,8 +88,9 @@
 
       {# KPI 2: Active Orders #}
       {% set active_count = active_orders|length if active_orders is defined else (orders|selectattr('status', 'in', ['pending', 'confirmed'])|list|length) %}
-      <div class="card p-5 sm:p-6 rounded-2xl shadow-xs space-y-1 transition {{ 'bg-sky-50/80 border-2 border-sky/40' if active_count > 0 else 'bg-white border border-bdr' }}">
-        <div class="flex items-center justify-between">
+      <div class="card kpi-card p-5 sm:p-6 rounded-2xl shadow-xs transition {{ 'bg-sky-50/80 border-2 border-sky/40' if active_count > 0 else 'bg-white border border-bdr' }}">
+        <div class="kpi-card-bar" style="background:{{ 'linear-gradient(90deg,#0E568D,#7DD3FC)' if active_count > 0 else 'linear-gradient(90deg,#E2E8E0,#F0F4EF)' }}"></div>
+        <div class="flex items-center justify-between mb-1">
           <span class="text-xs font-semibold uppercase tracking-wider block {{ 'text-sky-dark font-bold' if active_count > 0 else 'text-muted' }}">
             Active Orders
           </span>
@@ -61,23 +98,24 @@
             <span class="w-2.5 h-2.5 rounded-full bg-sky animate-ping"></span>
           {% endif %}
         </div>
-        <p class="font-display font-extrabold text-2xl sm:text-3xl {{ 'text-sky-dark' if active_count > 0 else 'text-ink' }}">
+        <p class="kpi-num font-extrabold text-2xl sm:text-3xl {{ 'text-sky-dark' if active_count > 0 else 'text-ink' }}">
           {{ active_count }}
         </p>
-        <p class="text-[11px] {{ 'text-sky font-semibold' if active_count > 0 else 'text-muted' }} pt-1">
+        <p class="text-[11px] {{ 'text-sky font-semibold' if active_count > 0 else 'text-muted' }} pt-1.5">
           In confirmation or delivery transit
         </p>
       </div>
 
       {# KPI 3: Completed Orders #}
       {% set completed_count = completed_orders|length if completed_orders is defined else (orders|selectattr('status', 'equalto', 'delivered')|list|length) %}
-      <div class="card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs space-y-1">
-        <span class="text-xs font-semibold text-muted uppercase tracking-wider block">Completed Orders</span>
-        <p class="font-display font-extrabold text-2xl sm:text-3xl text-ink">
+      <div class="card kpi-card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs">
+        <div class="kpi-card-bar" style="background:linear-gradient(90deg,#2D6A4F,#B7E4C7)"></div>
+        <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Completed Orders</span>
+        <p class="kpi-num font-extrabold text-2xl sm:text-3xl text-ink">
           {{ completed_count }}
         </p>
-        <p class="text-[11px] text-muted pt-1">
-          {{ orders|length }} total orders placed
+        <p class="text-[11px] text-muted pt-1.5">
+          <span class="price-num">{{ orders|length }}</span> total orders placed
         </p>
       </div>
     </div>

@@ -6,18 +6,50 @@
 {% block title %}Farmer Dashboard — AgroLink{% endblock %}
 
 {% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* Mobile Crop Tracker Tabs */
+  /* ── Finance / Data numerals ──────────────────────────────────────── */
+  .kpi-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.03em;
+    line-height: 1.05;
+  }
+  .price-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+  }
+  /* ── KPI card hover lift ───────────────────────────────────────────── */
+  .kpi-card {
+    transition: transform 180ms cubic-bezier(.4,0,.2,1),
+                box-shadow 180ms cubic-bezier(.4,0,.2,1);
+  }
+  .kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(27,67,50,.10), 0 1px 4px rgba(27,67,50,.06);
+  }
+  .kpi-card-bar {
+    height: 3px;
+    border-radius: 9999px 9999px 0 0;
+    margin: -1.25rem -1.5rem 1.25rem;
+  }
+  /* ── Mobile Crop Tracker Tabs ─────────────────────────────────────── */
   .crop-tab-btn[aria-selected="true"] {
     background-color: var(--color-leaf, #2d7a4f);
     color: #ffffff;
     font-weight: 700;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
   }
   .crop-tab-btn[aria-selected="false"] {
     background-color: transparent;
     color: var(--color-muted, #64748b);
   }
+  /* ── Order price / qty in cards ───────────────────────────────────── */
+  .order-price { font-family: 'JetBrains Mono', monospace; font-weight: 700; letter-spacing: -.02em; }
+  .order-qty   { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
 </style>
 {% endblock %}
 
@@ -192,12 +224,13 @@
     {# ─── 2. KPI STAT CARDS (2x2 Grid on Mobile, 4 Cols on Desktop) ──────── #}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
       {# KPI 1: Revenue #}
-      <div class="card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs space-y-1">
-        <span class="text-xs font-semibold text-muted uppercase tracking-wider block">Total Revenue</span>
-        <p class="font-display font-extrabold text-xl sm:text-2xl lg:text-3xl text-leaf-dark">
-          Rs. {{ "{:,.0f}".format(total_revenue) }}
+      <div class="card kpi-card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs overflow-hidden">
+        <div class="kpi-card-bar" style="background:linear-gradient(90deg,#1B4332,#52B788)"></div>
+        <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Total Revenue</span>
+        <p class="kpi-num font-extrabold text-xl sm:text-2xl lg:text-3xl text-leaf-dark">
+          Rs.&thinsp;{{ "{:,.0f}".format(total_revenue) }}
         </p>
-        <p class="text-[11px] text-muted flex items-center gap-1 pt-1">
+        <p class="text-[11px] text-muted flex items-center gap-1 pt-1.5">
           {{ icon('trending-up', size=13, cls='text-leaf') }}
           <span>Direct wholesale sales</span>
         </p>
@@ -205,20 +238,22 @@
 
       {# KPI 2: Active Listings #}
       {% set active_products_count = products|selectattr('is_available')|list|length %}
-      <div class="card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs space-y-1">
-        <span class="text-xs font-semibold text-muted uppercase tracking-wider block">Active Listings</span>
-        <p class="font-display font-extrabold text-2xl sm:text-3xl text-ink">
+      <div class="card kpi-card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs overflow-hidden">
+        <div class="kpi-card-bar" style="background:linear-gradient(90deg,#2D6A4F,#B7E4C7)"></div>
+        <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Active Listings</span>
+        <p class="kpi-num font-extrabold text-2xl sm:text-3xl text-ink">
           {{ active_products_count }}
         </p>
-        <p class="text-[11px] text-muted pt-1">
-          {{ products|length }} total products recorded
+        <p class="text-[11px] text-muted pt-1.5">
+          <span class="price-num">{{ products|length }}</span> total products recorded
         </p>
       </div>
 
       {# KPI 3: Pending Orders (HIGHLIGHTED in gold-pale if > 0) #}
       {% set pending_count = pending_orders|length %}
-      <div class="card p-5 sm:p-6 rounded-2xl shadow-xs space-y-1 transition {{ 'bg-amber-50/90 border-2 border-amber-300 ring-2 ring-amber-400/20' if pending_count > 0 else 'bg-white border border-bdr' }}">
-        <div class="flex items-center justify-between">
+      <div class="card kpi-card p-5 sm:p-6 rounded-2xl shadow-xs overflow-hidden transition {{ 'bg-amber-50/90 border-2 border-amber-300 ring-2 ring-amber-400/20' if pending_count > 0 else 'bg-white border border-bdr' }}">
+        <div class="kpi-card-bar" style="background:{{ 'linear-gradient(90deg,#D97706,#FCD34D)' if pending_count > 0 else 'linear-gradient(90deg,#E2E8E0,#F0F4EF)' }}"></div>
+        <div class="flex items-center justify-between mb-1">
           <span class="text-xs font-semibold uppercase tracking-wider block {{ 'text-amber-900 font-bold' if pending_count > 0 else 'text-muted' }}">
             Pending Orders
           </span>
@@ -226,23 +261,24 @@
             <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
           {% endif %}
         </div>
-        <p class="font-display font-extrabold text-2xl sm:text-3xl {{ 'text-amber-800' if pending_count > 0 else 'text-ink' }}">
+        <p class="kpi-num font-extrabold text-2xl sm:text-3xl {{ 'text-amber-800' if pending_count > 0 else 'text-ink' }}">
           {{ pending_count }}
         </p>
-        <p class="text-[11px] {{ 'text-amber-900 font-semibold' if pending_count > 0 else 'text-muted' }} pt-1">
+        <p class="text-[11px] {{ 'text-amber-900 font-semibold' if pending_count > 0 else 'text-muted' }} pt-1.5">
           {{ 'Requires action below' if pending_count > 0 else 'All orders addressed' }}
         </p>
       </div>
 
       {# KPI 4: Active Crops #}
       {% set active_crops = crops|selectattr('status', 'in', ['growing', 'ready'])|list %}
-      <div class="card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs space-y-1">
-        <span class="text-xs font-semibold text-muted uppercase tracking-wider block">Active Crops</span>
-        <p class="font-display font-extrabold text-2xl sm:text-3xl text-emerald-700">
+      <div class="card kpi-card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs overflow-hidden">
+        <div class="kpi-card-bar" style="background:linear-gradient(90deg,#065F46,#34D399)"></div>
+        <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Active Crops</span>
+        <p class="kpi-num font-extrabold text-2xl sm:text-3xl text-emerald-700">
           {{ active_crops|length }}
         </p>
-        <p class="text-[11px] text-muted pt-1">
-          {{ crops|length }} total planting cycles
+        <p class="text-[11px] text-muted pt-1.5">
+          <span class="price-num">{{ crops|length }}</span> total planting cycles
         </p>
       </div>
     </div>
@@ -295,9 +331,9 @@
                 <div class="p-3 bg-white rounded-xl border border-bdr/60 space-y-1">
                   <p class="text-xs font-bold text-ink truncate">{{ order.product.name }}</p>
                   <div class="flex items-center justify-between text-xs text-muted">
-                    <span>{{ "{:,.0f}".format(order.quantity_kg) }} kg ordered</span>
-                    <span class="font-bold text-leaf-dark font-display text-sm">
-                      Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}
+                    <span><span class="order-qty">{{ "{:,.0f}".format(order.quantity_kg) }}</span> kg ordered</span>
+                    <span class="order-price text-leaf-dark text-sm">
+                      Rs.&thinsp;{{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}
                     </span>
                   </div>
                 </div>
