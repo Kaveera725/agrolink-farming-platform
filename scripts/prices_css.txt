@@ -1,0 +1,228 @@
+﻿{% extends "base.html" %}
+{% import "components/badges.html" as badges with context %}
+{% from "components/ui.html" import empty_state, price_compare_bar %}
+{% from "components/icons.html" import icon %}
+
+{% block title %}Market Prices — AgroLink{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* ── Finance typography ────────────────────────────────────────────── */
+  .price-num {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em;
+  }
+
+  /* ── Hero banner ────────────────────────────────────────────────────── */
+  .mp-prices-hero {
+    background: linear-gradient(135deg, #0a1f14 0%, #1B4332 35%, #2D6A4F 65%, #40916C 88%, #52B788 100%);
+    position: relative; overflow: hidden;
+    padding: 2.75rem 0 4rem;
+  }
+  .mp-prices-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .mp-prices-hero .bubble {
+    position: absolute; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(183,228,199,.12), transparent);
+    animation: hbFloat 10s ease-in-out infinite;
+  }
+  @keyframes hbFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .3rem .9rem; border-radius: 9999px;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    backdrop-filter: blur(6px); font-size: .7rem; font-weight: 800;
+    color: #D8F3DC; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .mp-prices-hero h1 { color: #fff; text-shadow: 0 2px 20px rgba(0,0,0,.2); }
+  .mp-prices-hero p  { color: rgba(255,255,255,.75); }
+
+  /* ── Stat pills on hero ─────────────────────────────────────────────── */
+  .hero-stat {
+    display: flex; align-items: center; gap: .625rem;
+    padding: .6rem 1rem; border-radius: .75rem;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    backdrop-filter: blur(8px);
+  }
+  .hero-stat-num { font-size: 1.25rem; font-weight: 800; color: #fff; line-height: 1; }
+  .hero-stat-lbl { font-size: .6875rem; color: rgba(255,255,255,.7); font-weight: 500; }
+
+  /* ── Section label accent ────────────────────────────────────────────── */
+  .section-eyebrow {
+    display: inline-flex; align-items: center; gap: .375rem;
+    font-size: .6875rem; font-weight: 800; letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .section-eyebrow.gold { color: #B7791F; }
+  .section-eyebrow.earth { color: #9C4221; }
+
+  /* ── Deal card ───────────────────────────────────────────────────────── */
+  .deal-card {
+    background: #fff; border: 1.5px solid #E2E8E0;
+    border-radius: 1rem; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(27,67,50,.05);
+    transition: transform 200ms cubic-bezier(.4,0,.2,1),
+                box-shadow 200ms cubic-bezier(.4,0,.2,1),
+                border-color 200ms;
+  }
+  .deal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(27,67,50,.12), 0 2px 6px rgba(27,67,50,.06);
+    border-color: #B7E4C7;
+  }
+  .deal-card-accent {
+    height: 4px;
+    background: linear-gradient(90deg, #1B4332, #40916C, #52B788);
+  }
+  .deal-save-badge {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .3rem .75rem; border-radius: 9999px; font-size: .75rem; font-weight: 800;
+    background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+    color: #92400E; border: 1px solid #FCD34D;
+    box-shadow: 0 1px 4px rgba(251,191,36,.2);
+  }
+  .price-block {
+    background: linear-gradient(135deg, #F7FAF5, #F0FAF4);
+    border: 1.5px solid #E2E8E0; border-radius: .75rem; padding: 1rem;
+  }
+  .price-block .retail-price {
+    font-size: .8125rem; color: #9DB5A0; text-decoration: line-through;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .price-block .farmer-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.625rem; font-weight: 700;
+    color: #1B4332; line-height: 1; letter-spacing: -.03em;
+  }
+  .price-block .savings-row {
+    font-size: .75rem; font-weight: 700; color: #2D6A4F;
+    border-top: 1px solid #E2E8E0; margin-top: .625rem; padding-top: .625rem;
+  }
+
+  /* ── Category pills ──────────────────────────────────────────────────── */
+  .cat-pill {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .5rem 1rem; border-radius: 9999px;
+    font-size: .8125rem; font-weight: 600;
+    border: 1.5px solid transparent; cursor: pointer;
+    transition: all 160ms cubic-bezier(.4,0,.2,1);
+    white-space: nowrap;
+  }
+  .cat-pill.off { background: #F7FAF5; color: #3D4F44; border-color: #E2E8E0; }
+  .cat-pill.off:hover {
+    background: #D8F3DC; border-color: #B7E4C7; color: #1B4332;
+    transform: translateY(-1px); box-shadow: 0 2px 8px rgba(27,67,50,.1);
+  }
+  .cat-pill.on {
+    background: linear-gradient(135deg, #1B4332, #2D6A4F);
+    color: #fff; box-shadow: 0 2px 10px rgba(27,67,50,.2);
+  }
+
+  /* ── Benchmark table ─────────────────────────────────────────────────── */
+  .bench-card {
+    background: #fff; border: 1.5px solid #E2E8E0;
+    border-radius: 1rem; overflow: hidden;
+    box-shadow: 0 1px 6px rgba(27,67,50,.05);
+  }
+  .bench-card-header {
+    padding: .875rem 1.5rem;
+    background: linear-gradient(90deg, #F7FAF5 0%, #fff 100%);
+    border-bottom: 1.5px solid #E2E8E0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .bench-cat-name {
+    font-size: .9375rem; font-weight: 800; color: #1B4332;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .bench-item-badge {
+    font-size: .6875rem; font-weight: 700; padding: .15rem .5rem;
+    border-radius: 9999px; background: #D8F3DC; color: #1B4332;
+  }
+  .bench-table thead th {
+    font-size: .6875rem; font-weight: 800; letter-spacing: .07em;
+    text-transform: uppercase; color: #7A9A87;
+    padding: .75rem 1.25rem; background: #FAFCF9;
+    border-bottom: 1.5px solid #EEF3EC;
+  }
+  .bench-table tbody tr {
+    border-bottom: 1px solid #F0F4EF;
+    transition: background 150ms;
+  }
+  .bench-table tbody tr:last-child { border-bottom: none; }
+  .bench-table tbody tr:hover { background: #F7FAF5; }
+  .bench-table td { padding: .875rem 1.25rem; }
+  .crop-name-cell { font-weight: 700; color: #1B4332; font-size: .9375rem; }
+  .buy-price { color: #1A659E; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .9375rem; }
+  .sell-price { color: #1B4332; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: .9375rem; }
+  .location-cell { font-size: .8125rem; color: #9DB5A0; }
+
+  /* ── Margin pill ─────────────────────────────────────────────────────── */
+  .margin-pill {
+    display: inline-flex; align-items: center; gap: .375rem;
+    padding: .25rem .625rem; border-radius: 9999px; font-size: .75rem; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .margin-pill.low  { background: #DBEAFE; color: #1E40AF; }
+  .margin-pill.mid  { background: #D8F3DC; color: #1B4332; }
+  .margin-pill.high { background: #FEF3C7; color: #92400E; }
+  .margin-bar {
+    width: 48px; height: 5px; border-radius: 9999px;
+    background: #E2E8E0; overflow: hidden;
+  }
+  .margin-bar-fill { height: 100%; border-radius: 9999px; transition: width 500ms; }
+
+  /* ── Cheapest sellers accordion ──────────────────────────────────────── */
+  .seller-accordion {
+    background: #fff; border: 1.5px solid #E2E8E0;
+    border-radius: 1rem; overflow: hidden;
+    box-shadow: 0 1px 4px rgba(27,67,50,.04);
+    transition: box-shadow 200ms;
+  }
+  .seller-accordion:hover { box-shadow: 0 4px 16px rgba(27,67,50,.08); }
+  .seller-accordion summary {
+    padding: 1rem 1.375rem;
+    background: linear-gradient(90deg, #F7FAF5, #fff);
+    border-bottom: 1px solid #EEF3EC;
+    cursor: pointer; list-style: none;
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background 150ms;
+  }
+  .seller-accordion summary:hover { background: #F0FAF4; }
+  .seller-accordion[open] summary { background: #EAF7EE; }
+
+  /* ── Info card ───────────────────────────────────────────────────────── */
+  .info-card {
+    border-radius: .875rem; border: 1.5px solid #BBE0FA;
+    background: linear-gradient(135deg, #EBF4FB 0%, #F0FAF4 100%);
+    padding: 1rem 1.25rem;
+    display: flex; align-items: flex-start; gap: .875rem;
+  }
+  .info-icon {
+    width: 36px; height: 36px; border-radius: .5rem;
+    background: rgba(26,101,158,.15); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; color: #1A659E;
+  }
+
+  /* ── Search input ────────────────────────────────────────────────────── */
+  .prices-search {
+    border: 1.5px solid #E2E8E0; border-radius: .875rem;
+    background: #fff; padding: .625rem 1rem .625rem 2.75rem;
+    font-size: .9rem; color: #1F2A24; outline: none; width: 100%;
+    transition: border-color 200ms, box-shadow 200ms;
+  }
+  .prices-search:focus {
+    border-color: #2D6A4F;
+    box-shadow: 0 0 0 3px rgba(45,106,79,.12);
+  }
+
+  /* ── Page background ─────────────────────────────────────────────────── */
+  .prices-page { background: #F4F8F2; min-height: 100vh; }
+</style>
+{% endblock %}
