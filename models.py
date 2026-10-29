@@ -162,3 +162,16 @@ class MarketPrice(db.Model):
 
     def __repr__(self):
         return f'<MarketPrice {self.crop_name}>'
+
+
+class AdminAuditLog(db.Model):
+    __tablename__ = 'admin_audit_log'
+    id = db.Column(db.Integer, primary_key=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    action = db.Column(db.String(80), nullable=False)
+    target_type = db.Column(db.String(40), nullable=True)
+    target_id = db.Column(db.Integer, nullable=True)
+    details = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    admin = db.relationship('User', backref=db.backref('admin_actions', lazy=True))

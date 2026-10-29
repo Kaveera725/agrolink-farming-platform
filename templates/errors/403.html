@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Access denied{% endblock %}
+{% block content %}
+<main id="main-content" class="container-app py-20">
+  <div class="max-w-xl mx-auto text-center card p-10">
+    <p class="text-sm font-bold uppercase tracking-[0.18em] text-earth">403</p>
+    <h1 class="mt-3">This area is restricted</h1>
+    <p class="mt-4 text-muted">You do not have permission to access this page.</p>
+    <a class="btn-primary inline-flex mt-7" href="{{ url_for('main.home') }}">Return home</a>
+  </div>
+</main>
+{% endblock %}

@@ -109,6 +109,10 @@ def create_app(debug=None):
     def bad_request_error(e):
         return render_template('errors/400.html', error_description=getattr(e, 'description', None)), 400
 
+    @app.errorhandler(403)
+    def forbidden_error(e):
+        return render_template('errors/403.html'), 403
+
     @app.errorhandler(404)
     def not_found_error(e):
         return render_template('errors/404.html'), 404
@@ -134,6 +138,7 @@ def create_app(debug=None):
     from blueprints.prices.routes import prices_bp
     from blueprints.main.routes import main_bp
     from blueprints.profile.routes import profile_bp
+    from blueprints.admin.routes import admin_bp
 
     # Register Blueprints
     app.register_blueprint(auth_bp)
@@ -143,6 +148,7 @@ def create_app(debug=None):
     app.register_blueprint(prices_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(profile_bp)
+    app.register_blueprint(admin_bp)
 
     # Dev-only routes and blueprints (only available when app.debug is true)
     if app.debug:
@@ -161,19 +167,6 @@ def create_app(debug=None):
             )
 
     # CLI Commands
-    @app.cli.command('seed-prices')
-    def seed_prices_command():
-        """Seed market price reference records into the database."""
-        from models import MarketPrice
-        from blueprints.prices.routes import seed_market_prices
-        before_count = MarketPrice.query.count()
-        seed_market_prices()
-        after_count = MarketPrice.query.count()
-        if after_count > before_count:
-            click.echo(f"Successfully seeded {after_count - before_count} market prices.")
-        else:
-            click.echo("Market prices already seeded.")
-
     @app.cli.command('create-admin')
     def create_admin_command():
         """Create an administrator user interactively."""
