@@ -1,0 +1,312 @@
+{% extends "admin/_layout.html" %}
+{% from 'components/icons.html' import icon %}
+
+{% block title %}Report #{{ report.id }} — AgroLink Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-5">
+  <a href="{{ url_for('admin.listing_reports') }}" class="text-xs text-leaf font-semibold hover:underline inline-flex items-center gap-1">
+    ← Back to Listing Reports
+  </a>
+</div>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <div>
+    <div class="flex items-center gap-2 flex-wrap">
+      <h1 class="text-2xl font-display font-bold text-ink">Listing Report #{{ report.id }}</h1>
+      <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider
+        {% if report.status == 'open' %}bg-rose-500 text-white
+        {% elif report.status == 'reviewing' %}bg-amber-500 text-ink
+        {% elif report.status == 'resolved' %}bg-leaf text-white
+        {% else %}bg-canvas border border-bdr text-muted{% endif %}">
+        {{ report.status }}
+      </span>
+      {% if needs_review %}
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-ink">
+          ⚠️ Needs Review ({{ distinct_reporters_count }} distinct reporters)
+        </span>
+      {% endif %}
+    </div>
+    <p class="text-xs text-muted mt-1">
+      Submitted on {{ report.created_at.strftime('%d %B %Y at %H:%M') }} by <strong>{{ report.reporter.name }}</strong> ({{ report.reporter.email }})
+      {% if report.handled_at %}· Handled on {{ report.handled_at.strftime('%d %b %Y') }}{% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  {# Main 2 Columns: Listing Details & Report Investigation #}
+  <div class="lg:col-span-2 space-y-6">
+
+    {# Listing Summary Card #}
+    <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl">
+      <div class="flex items-start justify-between gap-4 pb-4 border-b border-bdr mb-4">
+        <div>
+          <span class="text-[11px] font-bold text-muted uppercase tracking-wider block">Flagged Produce Listing</span>
+          <h2 class="text-xl font-display font-bold text-ink mt-0.5">{{ product.name }}</h2>
+          <div class="flex items-center gap-2 mt-1 text-xs">
+            <span class="badge badge-sm">{{ product.category }}</span>
+            <span class="font-bold text-ink">LKR {{ "%.2f"|format(product.price_per_kg) }} / kg</span>
+            <span class="text-muted">· {{ product.quantity_kg }} kg in stock</span>
+          </div>
+        </div>
+        <div class="text-right">
+          {% if product.is_available and not product.hidden_reason %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-leaf-50 text-leaf-dark border border-leaf/20">
+              Active on Marketplace
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+              Hidden ({{ product.hidden_reason or 'inactive' }})
+            </span>
+          {% endif %}
+          <div class="mt-2">
+            <a href="{{ url_for('marketplace.product_detail', product_id=product.id) }}" target="_blank" class="text-xs text-leaf font-bold hover:underline">
+              View Public Page ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4 text-xs">
+        <div>
+          <span class="text-muted block text-[11px]">Listing Description</span>
+          <p class="text-inksoft mt-1 leading-relaxed bg-canvas p-3 rounded-xl border border-bdr/60">
+            {{ product.description or 'No description provided.' }}
+          </p>
+        </div>
+        <div>
+          <span class="text-muted block text-[11px]">Listing Image</span>
+          <div class="mt-1 w-full h-32 rounded-xl bg-canvas overflow-hidden border border-bdr flex items-center justify-center">
+            {% if product.image_url or product.thumbnail_url %}
+              <img src="{{ product.thumbnail_url or product.display_image_url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+            {% else %}
+              <span class="text-muted text-xs">No custom photo uploaded</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# Current Report Details #}
+    <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl">
+      <h3 class="text-base font-display font-bold text-ink mb-3">Report Details</h3>
+      <div class="space-y-3 text-xs">
+        <div>
+          <span class="text-muted block text-[11px]">Reason</span>
+          <span class="inline-block mt-1 px-2.5 py-1 rounded-md font-bold text-xs bg-rose-50 text-rose-700 border border-rose-200">
+            {{ report.reason|replace('_', ' ')|capitalize }}
+          </span>
+        </div>
+        <div>
+          <span class="text-muted block text-[11px]">Reporter Statement</span>
+          <div class="mt-1 p-3 bg-canvas rounded-xl text-ink leading-relaxed border border-bdr/60 font-medium">
+            {{ report.details or 'No additional details provided by reporter.' }}
+          </div>
+        </div>
+        {% if report.resolution_note %}
+          <div>
+            <span class="text-muted block text-[11px]">Admin Resolution Note</span>
+            <div class="mt-1 p-3 bg-leaf-50 text-leaf-dark rounded-xl border border-leaf/20">
+              {{ report.resolution_note }}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# All Reports on this Listing #}
+    <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-display font-bold text-ink">All Reports on this Listing ({{ all_listing_reports|length }})</h3>
+        {% if needs_review %}
+          <span class="text-[11px] font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full">
+            Flagged: 3+ distinct buyers
+          </span>
+        {% endif %}
+      </div>
+
+      <div class="space-y-3">
+        {% for r in all_listing_reports %}
+          <div class="p-3.5 rounded-xl border {% if r.id == report.id %}bg-canvas border-leaf/40{% else %}border-bdr{% endif %} text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-ink">#{{ r.id }}</span>
+                <span class="font-semibold text-rose-700">{{ r.reason|replace('_', ' ')|capitalize }}</span>
+                <span class="text-muted">· Reporter: {{ r.reporter.name }} (ID: {{ r.reporter_id }})</span>
+                <span class="px-1.5 py-0.2 rounded text-[10px] uppercase font-bold
+                  {% if r.status == 'open' %}bg-rose-500 text-white
+                  {% elif r.status == 'reviewing' %}bg-amber-500 text-ink
+                  {% else %}bg-leaf-50 text-leaf-dark{% endif %}">
+                  {{ r.status }}
+                </span>
+              </div>
+              {% if r.details %}
+                <p class="text-muted mt-1 italic">"{{ r.details }}"</p>
+              {% endif %}
+              <span class="text-[10px] text-muted block mt-1">{{ r.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+            </div>
+            {% if r.id != report.id %}
+              <a href="{{ url_for('admin.listing_report_detail', report_id=r.id) }}" class="btn-secondary text-[11px] py-1 px-2.5 shrink-0">
+                View Report #{{ r.id }}
+              </a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {# Earlier Reports on this Farmer's Other Listings #}
+    {% if farmer_history_reports %}
+      <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl">
+        <h3 class="text-base font-display font-bold text-ink mb-3">Other Moderation Reports for this Farmer ({{ farmer_history_reports|length }})</h3>
+        <div class="space-y-2">
+          {% for fr in farmer_history_reports %}
+            <div class="p-3 rounded-xl bg-canvas border border-bdr text-xs flex items-center justify-between gap-3">
+              <div>
+                <span class="font-semibold text-ink">{{ fr.product.name }}</span>
+                <span class="text-muted">· {{ fr.reason|replace('_', ' ')|capitalize }}</span>
+                <span class="text-[10px] text-muted block">{{ fr.created_at.strftime('%d %b %Y') }} · Status: {{ fr.status }}</span>
+              </div>
+              <a href="{{ url_for('admin.listing_report_detail', report_id=fr.id) }}" class="text-leaf font-bold hover:underline text-xs">
+                Inspect #{{ fr.id }} →
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+
+  {# Sidebar: Actions, Farmer Profile, and Internal Notes #}
+  <div class="space-y-6">
+
+    {# Moderator Actions Card #}
+    <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl space-y-4">
+      <h3 class="text-base font-display font-bold text-ink">Moderation Actions</h3>
+
+      {# Action 1: Hide Listing (Moderation) #}
+      {% if product.is_available and not product.hidden_reason %}
+        <form method="POST" action="{{ url_for('admin.hide_listing_from_report', report_id=report.id) }}" onsubmit="return confirm('Hide this listing immediately for moderation violation? Open reports on it will be resolved.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-danger w-full text-xs py-2.5 font-bold justify-center shadow-sm">
+            {{ icon('eye-off', size=14) }}
+            <span>Hide Listing (Moderation)</span>
+          </button>
+        </form>
+      {% else %}
+        <div class="p-3 bg-canvas rounded-xl text-xs text-muted border border-bdr">
+          Listing is currently hidden (reason: <strong>{{ product.hidden_reason or 'inactive' }}</strong>).
+        </div>
+      {% endif %}
+
+      {# Action 2: Resolve Report #}
+      {% if report.status in ('open', 'reviewing') %}
+        <button
+          type="button"
+          onclick="document.getElementById('resolve-modal').classList.remove('hidden'); document.getElementById('resolve-modal').classList.add('flex');"
+          class="btn-primary w-full text-xs py-2.5 font-bold justify-center"
+        >
+          Resolve Report with Note
+        </button>
+
+        {# Action 3: Dismiss Report #}
+        <form method="POST" action="{{ url_for('admin.dismiss_listing_report', report_id=report.id) }}" onsubmit="return confirm('Dismiss report #{{ report.id }} as unfounded or duplicate?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-secondary w-full text-xs py-2.5 justify-center">
+            Dismiss Report
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+    {# Farmer Profile Card #}
+    <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-display font-bold text-ink">Farmer Info</h3>
+        <a href="{{ url_for('admin.user_detail', user_id=farmer.id) }}" class="text-xs text-leaf font-bold hover:underline">
+          View Profile →
+        </a>
+      </div>
+
+      <div class="text-xs space-y-1.5 pt-1">
+        <div class="flex items-center gap-1.5">
+          <span class="font-bold text-ink text-sm">{{ farmer.name }}</span>
+          {% if farmer.is_verified %}
+            <span class="inline-flex items-center text-leaf" title="Verified farmer">
+              {{ icon('shield-check', size=14, cls='text-leaf') }}
+            </span>
+          {% endif %}
+        </div>
+        <p class="text-muted">{{ farmer.email }}</p>
+        <p class="text-muted">{{ farmer.phone or 'No phone' }} · WhatsApp: {{ farmer.whatsapp_number or 'None' }}</p>
+        <p class="text-muted">District: <strong>{{ farmer.district or farmer.location or 'N/A' }}</strong></p>
+        <p class="text-muted">Joined: {{ farmer.created_at.strftime('%d %b %Y') if farmer.created_at else 'N/A' }}</p>
+      </div>
+
+      {# Add Internal Note on Farmer Form #}
+      <div class="pt-3 border-t border-bdr">
+        <span class="text-[11px] font-bold text-muted uppercase tracking-wider block mb-2">Add Admin Note on Farmer</span>
+        <form method="POST" action="{{ url_for('admin.add_report_farmer_note', report_id=report.id) }}" class="space-y-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <textarea
+            name="note"
+            rows="2"
+            required
+            placeholder="Document moderation observation or call with farmer..."
+            class="input text-xs w-full resize-none"
+          ></textarea>
+          <button type="submit" class="btn-secondary text-xs py-1.5 px-3 w-full justify-center">
+            Save Note
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {# Farmer Notes Stream #}
+    {% if farmer_notes %}
+      <div class="card p-5 bg-white border border-bdr shadow-xs rounded-2xl">
+        <h4 class="text-xs font-bold text-muted uppercase tracking-wider mb-3">Internal Notes on Farmer ({{ farmer_notes|length }})</h4>
+        <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+          {% for n in farmer_notes %}
+            <div class="p-2.5 rounded-lg bg-canvas text-xs border border-bdr/60">
+              <p class="text-inksoft leading-relaxed">{{ n.note }}</p>
+              <span class="text-[10px] text-muted block mt-1">{{ n.admin.name }} · {{ n.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{# Resolve Modal #}
+<div id="resolve-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-bdr">
+    <h3 class="text-base font-display font-bold text-ink mb-1">Resolve Report #{{ report.id }}</h3>
+    <p class="text-xs text-muted mb-4">Enter a resolution note summarizing the outcome (e.g. farmer warned, price corrected, or resolved).</p>
+
+    <form method="POST" action="{{ url_for('admin.resolve_listing_report', report_id=report.id) }}" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div>
+        <label class="block text-xs font-semibold text-inksoft mb-1">Resolution Note</label>
+        <textarea
+          name="resolution_note"
+          rows="3"
+          required
+          placeholder="e.g. Contacted farmer, pricing typo corrected to LKR 180/kg..."
+          class="input text-xs w-full resize-none"
+        ></textarea>
+      </div>
+      <div class="flex items-center justify-end gap-3">
+        <button type="button" onclick="document.getElementById('resolve-modal').classList.add('hidden'); document.getElementById('resolve-modal').classList.remove('flex');" class="btn-secondary text-xs py-2 px-3">Cancel</button>
+        <button type="submit" class="btn-primary text-xs py-2 px-4 font-semibold">Mark Resolved</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+

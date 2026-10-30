@@ -1,0 +1,121 @@
+{% extends "admin/_layout.html" %}
+{% import "admin/_pagination.html" as pg %}
+{% block title %}Admin Users — AgroLink{% endblock %}
+
+{% block admin_content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
+  <div>
+    <p class="text-sm font-semibold text-leaf">People</p>
+    <h1 class="text-2xl font-bold text-gray-900">User Management</h1>
+  </div>
+  <span class="text-sm text-gray-500 font-medium">
+    {{ pagination.total }} registered users
+  </span>
+</div>
+
+{# Filter bar #}
+<form method="get" class="card p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_180px_180px_auto] gap-3 mb-5">
+  <input class="input" name="q" value="{{ search }}" placeholder="Search name or email">
+  <select class="input" name="role">
+    <option value="">All roles</option>
+    {% for item in ['farmer', 'buyer', 'admin'] %}
+      <option value="{{ item }}" {% if role == item %}selected{% endif %}>{{ item|capitalize }}</option>
+    {% endfor %}
+  </select>
+  <select class="input" name="active">
+    <option value="">Any status</option>
+    <option value="true" {% if active == 'true' %}selected{% endif %}>Active</option>
+    <option value="false" {% if active == 'false' %}selected{% endif %}>Inactive</option>
+  </select>
+  <div class="flex gap-2">
+    <button type="submit" class="btn-primary py-2 px-4 whitespace-nowrap">Filter</button>
+    {% if search or role or active %}
+      <a href="{{ url_for('admin.users') }}" class="btn-secondary py-2 px-3 text-sm flex items-center">Reset</a>
+    {% endif %}
+  </div>
+</form>
+
+{# Users Table Card #}
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-bdr text-left">
+        <tr>
+          {{ pg.sort_th('name', 'User', sort, direction) }}
+          {{ pg.sort_th('role', 'Role', sort, direction) }}
+          {{ pg.sort_th('is_active', 'Status', sort, direction) }}
+          {{ pg.sort_th('created_at', 'Joined', sort, direction) }}
+          <th class="p-4 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for user in users %}
+          <tr class="hover:bg-gray-50/50 transition-colors">
+            <td class="p-4">
+              <a class="font-bold text-leaf-dark hover:underline" href="{{ url_for('admin.user_detail', user_id=user.id) }}">
+                {{ user.name }}
+              </a>
+              <span class="block text-xs text-gray-500">{{ user.email }}</span>
+              {% if user.phone or user.whatsapp_number %}
+                <span class="block text-xs text-gray-400">📱 {{ user.whatsapp_number or user.phone }}</span>
+              {% endif %}
+            </td>
+            <td class="p-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                {% if user.role == 'admin' %}bg-purple-100 text-purple-800
+                {% elif user.role == 'farmer' %}bg-green-100 text-green-800
+                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                {{ user.role|capitalize }}
+              </span>
+            </td>
+            <td class="p-4">
+              {% if user.is_active %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-leaf-100 text-leaf-dark">
+                  <span class="w-1.5 h-1.5 rounded-full bg-leaf"></span>
+                  Active
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                  Inactive
+                </span>
+              {% endif %}
+            </td>
+            <td class="p-4 text-gray-500 whitespace-nowrap">
+              {{ user.created_at.strftime('%d %b %Y') if user.created_at else '—' }}
+            </td>
+            <td class="p-4 text-right whitespace-nowrap">
+              <div class="flex items-center justify-end gap-3">
+                <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="text-xs font-semibold text-gray-600 hover:text-leaf">
+                  Details
+                </a>
+                {% if user.id != current_user.id %}
+                  <form method="post" action="{{ url_for('admin.toggle_user', user_id=user.id) }}" class="inline"
+                        onsubmit="return confirm('Are you sure you want to {{ 'deactivate' if user.is_active else 'reactivate' }} {{ user.name }}?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="text-xs font-bold {% if user.is_active %}text-red-600 hover:text-red-800{% else %}text-leaf-dark hover:text-leaf{% endif %}">
+                      {{ 'Deactivate' if user.is_active else 'Reactivate' }}
+                    </button>
+                  </form>
+                {% else %}
+                  <span class="text-xs text-gray-400 italic">Current Admin</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td class="p-8 text-center text-gray-500" colspan="5">
+              <div class="max-w-sm mx-auto">
+                <p class="text-base font-semibold text-gray-700">No users found</p>
+                <p class="text-xs text-gray-400 mt-1">Try adjusting your search criteria or clearing filters.</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pg.render_pagination(pagination) }}
+</div>
+{% endblock %}

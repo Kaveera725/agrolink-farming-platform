@@ -1,0 +1,99 @@
+{% extends "admin/_layout.html" %}
+{% import "admin/_pagination.html" as pg %}
+{% block title %}Admin Listings — AgroLink{% endblock %}
+
+{% block admin_content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
+  <div>
+    <p class="text-sm font-semibold text-earth">Moderation</p>
+    <h1 class="text-2xl font-bold text-gray-900">Crop Listings</h1>
+  </div>
+  <form method="get" class="flex gap-2 w-full sm:w-auto">
+    <input class="input" name="q" value="{{ search }}" placeholder="Search listing or farmer">
+    <button type="submit" class="btn-primary py-2 px-4 whitespace-nowrap">Search</button>
+    {% if search %}
+    <a href="{{ url_for('admin.listings') }}" class="btn-secondary py-2 px-3 text-sm flex items-center">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-bdr text-left">
+        <tr>
+          {{ pg.sort_th('name', 'Listing', sort, direction) }}
+          <th class="p-4">Farmer</th>
+          {{ pg.sort_th('price', 'Price', sort, direction) }}
+          <th class="p-4">Visibility & Reason</th>
+          {{ pg.sort_th('created_at', 'Date Listed', sort, direction) }}
+          <th class="p-4 text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for item in listings %}
+        <tr class="hover:bg-gray-50/50 transition-colors">
+          <td class="p-4">
+            <strong class="text-gray-900 block">{{ item.name }}</strong>
+            <span class="text-xs text-gray-500">{{ item.category }} · {{ item.quantity_kg }} kg</span>
+          </td>
+          <td class="p-4">
+            <a class="text-leaf-dark font-semibold hover:underline"
+              href="{{ url_for('admin.user_detail', user_id=item.farmer_id) }}">
+              {{ item.farmer.name if item.farmer else 'Unknown' }}
+            </a>
+            {% if item.farmer and not item.farmer.is_active %}
+            <span class="block text-[11px] text-red-500 font-medium">(Inactive Account)</span>
+            {% endif %}
+          </td>
+          <td class="p-4 font-medium text-gray-900 whitespace-nowrap">
+            LKR {{ '%.2f'|format(item.price_per_kg) }}/kg
+          </td>
+          <td class="p-4">
+            {% if item.is_deleted %}
+            <span
+              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+              Hidden
+            </span>
+            {% if item.hidden_reason %}
+            <span class="block text-[11px] text-gray-500 mt-0.5">
+              Reason: <span class="font-mono text-gray-700">{{ item.hidden_reason }}</span>
+            </span>
+            {% endif %}
+            {% else %}
+            <span
+              class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-leaf-100 text-leaf-dark">
+              Visible
+            </span>
+            {% endif %}
+          </td>
+          <td class="p-4 text-gray-500 whitespace-nowrap">
+            {{ item.created_at.strftime('%d %b %Y') if item.created_at else '—' }}
+          </td>
+          <td class="p-4 text-right whitespace-nowrap">
+            <form method="post" action="{{ url_for('admin.toggle_listing', product_id=item.id) }}" class="inline"
+              onsubmit="return confirm('Are you sure you want to {{ 'restore' if item.is_deleted else 'hide for moderation' }} this listing?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                class="text-xs font-bold {% if item.is_deleted %}text-leaf-dark hover:text-leaf{% else %}text-red-600 hover:text-red-800{% endif %}">
+                {{ 'Unhide' if item.is_deleted else 'Hide (Moderate)' }}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td class="p-8 text-center text-gray-500" colspan="6">
+            <div class="max-w-sm mx-auto">
+              <p class="text-base font-semibold text-gray-700">No listings found</p>
+              <p class="text-xs text-gray-400 mt-1">Try adjusting your search criteria.</p>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pg.render_pagination(pagination) }}
+</div>
+{% endblock %}

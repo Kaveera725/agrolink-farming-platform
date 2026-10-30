@@ -97,6 +97,8 @@ You can log in immediately using these pre-configured demo credentials:
 | **Farmer** | Nimal Perera | `nimal@agrolink.lk` | `password123` |
 | **Farmer** | Sunil Fernando | `sunil@agrolink.lk` | `password123` |
 | **Buyer** | Kamani Silva | `kamani@agrolink.lk` | `password123` |
+| **Admin** | Administration | `admin@agrolink.lk` | `AgroLink#Admin2026!` |
+
 
 ---
 

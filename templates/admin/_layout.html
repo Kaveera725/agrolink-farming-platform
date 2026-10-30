@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-app py-6 lg:py-10">
+  <div class="flex flex-col lg:flex-row gap-8">
+    <aside class="lg:w-60 shrink-0">
+      <div class="bg-leaf-950 text-white rounded-2xl p-4 lg:sticky lg:top-28 shadow-lg">
+        <p class="text-xs uppercase tracking-[0.18em] text-leaf-200 px-3 mb-4">Operations</p>
+        <nav class="space-y-1" aria-label="Admin navigation">
+          {# Overview #}
+          <a href="{{ url_for('admin.dashboard') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.dashboard' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Overview</a>
+
+          {# Users #}
+          <a href="{{ url_for('admin.users') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.users', 'admin.user_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Users</a>
+
+          {# Farmer Verifications #}
+          <a href="{{ url_for('admin.verifications') }}" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.verifications' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+            <span>Verifications</span>
+            {% if admin_pending_verifications_count and admin_pending_verifications_count > 0 %}
+              <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none bg-amber-500 text-ink rounded-full">
+                {{ admin_pending_verifications_count }}
+              </span>
+            {% endif %}
+          </a>
+
+          {# Listings #}
+          <a href="{{ url_for('admin.listings') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.listings' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Listings</a>
+
+          {# Listing Reports #}
+          <a href="{{ url_for('admin.listing_reports') }}" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.listing_reports', 'admin.listing_report_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+            <span>Reports</span>
+            {% if admin_open_reports_count and admin_open_reports_count > 0 %}
+              <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none bg-rose-500 text-white rounded-full">
+                {{ admin_open_reports_count }}
+              </span>
+            {% endif %}
+          </a>
+
+          {# Orders #}
+          <a href="{{ url_for('admin.orders') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.orders', 'admin.order_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Orders</a>
+
+          {# Crops Overview (read-only) #}
+          <a href="{{ url_for('admin.crops') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.crops' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Crops</a>
+
+          {# Market prices #}
+          <a href="{{ url_for('admin.prices') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.prices' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Market prices</a>
+
+          {# Exports #}
+          <a href="{{ url_for('admin.exports') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.exports', 'admin.reports_csv') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Exports</a>
+
+          {# Activity log #}
+          <a href="{{ url_for('admin.activity') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.activity' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Activity log</a>
+        </nav>
+        <div class="border-t border-white/15 mt-5 pt-4 px-3">
+          <p class="text-xs text-leaf-200">Signed in as</p>
+          <p class="text-sm font-bold truncate">{{ current_user.name }}</p>
+        </div>
+      </div>
+    </aside>
+    <main id="main-content" class="min-w-0 flex-1">{% block admin_content %}{% endblock %}</main>
+  </div>
+</div>
+{% endblock %}

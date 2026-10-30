@@ -520,6 +520,20 @@
           {% endif %}
         </div>
 
+                  {% if current_user.is_authenticated and current_user.id != product.farmer_id %}
+            <div class="pt-2 text-right">
+              <button
+                type="button"
+                id="open-report-modal-btn"
+                class="inline-flex items-center gap-1.5 text-xs text-muted hover:text-danger font-medium transition-colors"
+                title="Report misleading, duplicate or inappropriate content"
+              >
+                {{ icon('flag', size=13, cls='shrink-0') }}
+                <span>Report this listing</span>
+              </button>
+            </div>
+          {% endif %}
+
         {# ── 6. VERIFIED FARMER CARD ──────────────────────────────────────── #}
         <div class="card p-5 sm:p-6 bg-gradient-to-br from-white via-white to-earth-pale/20 border border-bdr shadow-xs space-y-4">
           <div class="flex items-start justify-between gap-3">
@@ -538,10 +552,12 @@
                   <h3 class="font-display font-bold text-base sm:text-lg text-ink leading-snug">
                     {{ product.farmer.name }}
                   </h3>
+                  {% if product.farmer and product.farmer.is_verified %}
                   <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-leaf-pale text-leaf-dark border border-leaf/20">
                     {{ icon('shield-check', size=12, cls='text-leaf') }}
                     <span>Verified</span>
                   </span>
+                  {% endif %}
                 </div>
 
                 {% if product.farmer.farm_name %}
@@ -783,6 +799,67 @@
   </div>
 </div>
 
+
+{# ─── REPORT LISTING MODAL ──────────────────────────────────────────────── #}
+{% if current_user.is_authenticated and current_user.id != product.farmer_id %}
+<div
+  id="report-listing-modal"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="report-modal-title"
+  aria-hidden="true"
+>
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-bdr animate-in fade-in zoom-in duration-200">
+    <div class="flex items-center justify-between pb-3 border-b border-bdr mb-4">
+      <div class="flex items-center gap-2 text-ink font-bold">
+        {{ icon('flag', size=18, cls='text-danger') }}
+        <h3 id="report-modal-title" class="text-base font-display">Report Listing</h3>
+      </div>
+      <button type="button" id="close-report-modal-btn" class="text-muted hover:text-ink text-sm font-bold p-1">✕</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('marketplace.report_product', product_id=product.id) }}" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div>
+        <label for="report-reason" class="block text-xs font-semibold text-inksoft mb-1.5">Reason for reporting <span class="text-danger">*</span></label>
+        <select id="report-reason" name="reason" required class="input text-sm w-full">
+          <option value="">Select a reason...</option>
+          <option value="misleading_price">Misleading or inaccurate price</option>
+          <option value="wrong_or_fake_photo">Wrong or fake photo</option>
+          <option value="prohibited_item">Prohibited or illegal item</option>
+          <option value="spam">Spam or duplicate listing</option>
+          <option value="other">Other issue</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="report-details" class="block text-xs font-semibold text-inksoft mb-1.5">Details (optional, max 500 chars)</label>
+        <textarea
+          id="report-details"
+          name="details"
+          maxlength="500"
+          rows="3"
+          placeholder="Provide additional details to help our moderation team investigate..."
+          class="input text-sm w-full resize-none"
+        ></textarea>
+        <p class="text-[11px] text-muted text-right mt-1"><span id="report-char-count">0</span>/500 characters</p>
+      </div>
+
+      <div class="p-3 bg-canvas rounded-xl text-xs text-muted leading-relaxed">
+        Your report is anonymous. The seller will never see your name or contact details.
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" id="cancel-report-btn" class="btn-secondary text-xs py-2 px-4">Cancel</button>
+        <button type="submit" class="btn-danger text-xs py-2 px-4 font-semibold">Submit Report</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 {# ─── REMOVE LISTING CONFIRMATION MODAL (Farmer Owner Only) ─────────────── #}
 {% if current_user.is_authenticated and current_user.role == 'farmer' and current_user.id == product.farmer_id %}
   <div
@@ -889,6 +966,46 @@
     if (e.target === deleteModal) closeDeleteDialog();
   });
 
+  
+  // ─── REPORT LISTING MODAL ───────────────────────────────────────────────
+  const openReportBtn = document.getElementById('open-report-modal-btn');
+  const cancelReportBtn = document.getElementById('cancel-report-btn');
+  const closeReportModalBtn = document.getElementById('close-report-modal-btn');
+  const reportModal = document.getElementById('report-listing-modal');
+  const reportDetailsTextarea = document.getElementById('report-details');
+  const reportCharCount = document.getElementById('report-char-count');
+
+  function openReportDialog() {
+    if (!reportModal) return;
+    reportModal.classList.remove('hidden');
+    reportModal.classList.add('flex');
+    reportModal.setAttribute('aria-hidden', 'false');
+    document.getElementById('report-reason')?.focus();
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeReportDialog() {
+    if (!reportModal) return;
+    reportModal.classList.add('hidden');
+    reportModal.classList.remove('flex');
+    reportModal.setAttribute('aria-hidden', 'true');
+    openReportBtn?.focus();
+    document.body.style.overflow = '';
+  }
+
+  openReportBtn?.addEventListener('click', openReportDialog);
+  cancelReportBtn?.addEventListener('click', closeReportDialog);
+  closeReportModalBtn?.addEventListener('click', closeReportDialog);
+  reportModal?.addEventListener('click', function(e) {
+    if (e.target === reportModal) closeReportDialog();
+  });
+
+  reportDetailsTextarea?.addEventListener('input', function() {
+    if (reportCharCount) {
+      reportCharCount.textContent = this.value.length;
+    }
+  });
+
   // Global Escape key controller
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
@@ -897,6 +1014,9 @@
       }
       if (deleteModal && deleteModal.getAttribute('aria-hidden') === 'false') {
         closeDeleteDialog();
+      }
+      if (reportModal && reportModal.getAttribute('aria-hidden') === 'false') {
+        closeReportDialog();
       }
     }
   });

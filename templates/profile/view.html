@@ -1,5 +1,6 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% import "components/ui.html" as ui with context %}
+{% from "components/icons.html" import icon %}
 {% block title %}My Profile — AgroLink{% endblock %}
 
 {% block extra_head %}
@@ -45,6 +46,124 @@
     </div>
   </div>
   <div class="prof-banner-spacer"></div>
+
+  {# ── Farmer Verification Status Card ────────────────────────────────────── #}
+  {% if user.role == 'farmer' %}
+  <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-sm font-bold text-ink uppercase tracking-wide">Verification Status</span>
+          {% if user.is_verified %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-leaf-pale text-leaf-dark border border-leaf/30">
+              {{ icon('shield-check', size=13, cls='text-leaf') }}
+              Verified Partner
+            </span>
+          {% elif latest_verification_request and latest_verification_request.status == 'pending' %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+              {{ icon('clock', size=13) }}
+              Under Review
+            </span>
+          {% elif latest_verification_request and latest_verification_request.status == 'rejected' %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+              {{ icon('alert-triangle', size=13) }}
+              Needs Attention
+            </span>
+          {% else %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-canvas text-muted border border-bdr">
+              Unverified
+            </span>
+          {% endif %}
+        </div>
+
+        {% if user.is_verified %}
+          <p class="text-xs text-muted">
+            Your farm identity is officially verified. The verified partner badge appears on your profile and all marketplace listings.
+            {% if user.verified_at %}Verified on {{ user.verified_at.strftime('%d %B %Y') }}.{% endif %}
+          </p>
+        {% elif latest_verification_request and latest_verification_request.status == 'pending' %}
+          <p class="text-xs text-muted">
+            Your verification request was submitted on {{ latest_verification_request.created_at.strftime('%d %b %Y') }} and is currently under review by our administration team.
+            {% if latest_verification_request.farmer_note %}
+              <span class="block mt-1 italic text-inksoft">"{{ latest_verification_request.farmer_note }}"</span>
+            {% endif %}
+          </p>
+        {% elif latest_verification_request and latest_verification_request.status == 'rejected' %}
+          <div class="text-xs text-danger-700 bg-rose-50/70 p-3 rounded-xl border border-rose-200 mt-2">
+            <span class="font-bold block">Review Feedback:</span>
+            <span>{{ latest_verification_request.admin_note or 'Please complete your farm profile, profile image and location pin.' }}</span>
+          </div>
+          <p class="text-xs text-muted mt-2">
+            You may update your profile information and submit a new verification request below.
+          </p>
+        {% else %}
+          <p class="text-xs text-muted">
+            Gain customer trust and increase direct wholesale orders with an official AgroLink Verified Partner badge.
+          </p>
+        {% endif %}
+      </div>
+
+      {% if not user.is_verified and not (latest_verification_request and latest_verification_request.status == 'pending') %}
+        <div class="shrink-0">
+          <button
+            type="button"
+            id="open-verify-modal-btn"
+            class="btn-primary text-xs py-2 px-4 shadow-sm inline-flex items-center gap-1.5"
+          >
+            {{ icon('shield-check', size=14) }}
+            <span>Request Verification</span>
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Request Verification Modal #}
+  {% if not user.is_verified and not (latest_verification_request and latest_verification_request.status == 'pending') %}
+  <div
+    id="verify-request-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+  >
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-bdr animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-bdr mb-4">
+        <div class="flex items-center gap-2 text-ink font-bold">
+          {{ icon('shield-check', size=18, cls='text-leaf') }}
+          <h3 class="text-base font-display">Request Farmer Verification</h3>
+        </div>
+        <button type="button" id="close-verify-modal-btn" class="text-muted hover:text-ink text-sm font-bold p-1">✕</button>
+      </div>
+
+      <form method="POST" action="{{ url_for('profile.request_verification') }}" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <p class="text-xs text-muted leading-relaxed">
+          Before submitting, ensure your farm name, district, WhatsApp number, and GPS pin are configured on your profile. Our team will review your account facts.
+        </p>
+
+        <div>
+          <label for="farmer_note" class="block text-xs font-semibold text-inksoft mb-1.5">Note for administrator (optional)</label>
+          <textarea
+            id="farmer_note"
+            name="farmer_note"
+            rows="3"
+            placeholder="e.g. Registered organic farmer with 3 acres in Nuwara Eliya..."
+            class="input text-sm w-full resize-none"
+          ></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" id="cancel-verify-btn" class="btn-secondary text-xs py-2 px-4">Cancel</button>
+          <button type="submit" class="btn-primary text-xs py-2 px-4 font-semibold">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
 
   {# ── Completeness Card ─────────────────────────────────────────────────── #}
   {% set missing = [] %}
@@ -306,7 +425,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
         </svg>
       </div>
-      <h3 class="text-base font-bold text-gray-800 mb-1">No location pinned yet</h3>
+      <h3 class="text-base font-bold text-gray-800 mb-1">No Location Pinned Yet</h3>
       <p class="text-sm text-gray-500 mb-4 max-w-xs mx-auto">
         {% if user.role == 'farmer' %}
           Add your location so buyers can find you and estimate delivery distances.
@@ -361,4 +480,43 @@
 })();
 </script>
 {% endif %}
+
+<script>
+  (function() {
+    const openBtn = document.getElementById('open-verify-modal-btn');
+    const closeBtn = document.getElementById('close-verify-modal-btn');
+    const cancelBtn = document.getElementById('cancel-verify-btn');
+    const modal = document.getElementById('verify-request-modal');
+
+    function openModal() {
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    openBtn?.addEventListener('click', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtn?.addEventListener('click', closeModal);
+    modal?.addEventListener('click', function(e) {
+      if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal && modal.getAttribute('aria-hidden') === 'false') {
+        closeModal();
+      }
+    });
+  })();
+</script>
+
 {% endblock %}

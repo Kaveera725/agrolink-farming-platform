@@ -1,0 +1,116 @@
+{% extends "admin/_layout.html" %}
+{% import "admin/_pagination.html" as pg %}
+{% block title %}Admin Market Prices — AgroLink{% endblock %}
+
+{% block admin_content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
+  <div>
+    <p class="text-sm font-semibold text-gold-800">Reference Data</p>
+    <h1 class="text-2xl font-bold text-gray-900">Market Benchmark Prices</h1>
+    <p class="mt-1 text-xs text-gray-500">Maintain official market reference prices across agricultural commodities in Sri Lanka.</p>
+  </div>
+  <form method="get" class="flex gap-2 w-full sm:w-auto">
+    <input class="input" name="q" value="{{ search }}" placeholder="Search crop or category">
+    <button type="submit" class="btn-primary py-2 px-4 whitespace-nowrap">Search</button>
+    {% if search %}
+      <a href="{{ url_for('admin.prices') }}" class="btn-secondary py-2 px-3 text-sm flex items-center">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="grid xl:grid-cols-[360px_1fr] gap-6">
+  {# Form #}
+  <section class="card p-5 h-fit">
+    <h2 class="text-lg font-bold text-gray-900 mb-4">{{ 'Edit Benchmark Price' if editing else 'Add Benchmark Price' }}</h2>
+    <form method="post" action="{{ url_for('admin.prices', edit=editing.id if editing else None) }}" class="space-y-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% if editing %}
+        <input type="hidden" name="id" value="{{ editing.id }}">
+      {% endif %}
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 mb-1">Crop Name</label>
+        <input class="input" name="crop_name" required placeholder="e.g. Carrots, Red Onions" value="{{ editing.crop_name if editing else '' }}">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 mb-1">Category</label>
+        <input class="input" name="category" required placeholder="e.g. Vegetables, Grains" value="{{ editing.category if editing else '' }}">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Buying Price (LKR)</label>
+          <input class="input" name="buying_price" type="number" min="0.01" step="0.01" required placeholder="Buying" value="{{ editing.buying_price if editing else '' }}">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 mb-1">Selling Price (LKR)</label>
+          <input class="input" name="selling_price" type="number" min="0.01" step="0.01" required placeholder="Selling" value="{{ editing.selling_price if editing else '' }}">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 mb-1">Unit</label>
+        <input class="input" name="unit" placeholder="Unit" value="{{ editing.unit if editing else 'per kg' }}">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 mb-1">Market Location</label>
+        <input class="input" name="market_location" placeholder="Market Location" value="{{ editing.market_location if editing else 'Colombo' }}">
+      </div>
+      <button type="submit" class="btn-primary w-full py-2">
+        {{ 'Update Price' if editing else 'Save Price' }}
+      </button>
+      {% if editing %}
+        <a class="btn-secondary w-full justify-center text-center block text-xs py-2" href="{{ url_for('admin.prices') }}">
+          Cancel Editing
+        </a>
+      {% endif %}
+    </form>
+  </section>
+
+  {# Prices Table #}
+  <section class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-bdr text-left">
+          <tr>
+            {{ pg.sort_th('crop_name', 'Crop', sort, direction) }}
+            {{ pg.sort_th('category', 'Category', sort, direction) }}
+            {{ pg.sort_th('buying_price', 'Buying', sort, direction) }}
+            {{ pg.sort_th('selling_price', 'Selling', sort, direction) }}
+            {{ pg.sort_th('market_location', 'Location', sort, direction) }}
+            <th class="p-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for price in prices %}
+            <tr class="hover:bg-gray-50/50 transition-colors">
+              <td class="p-4 font-bold text-gray-900">{{ price.crop_name }}</td>
+              <td class="p-4 text-gray-600">{{ price.category }}</td>
+              <td class="p-4 font-medium text-gray-900 whitespace-nowrap">LKR {{ '%.2f'|format(price.buying_price) }}</td>
+              <td class="p-4 font-medium text-gray-900 whitespace-nowrap">LKR {{ '%.2f'|format(price.selling_price) }}</td>
+              <td class="p-4 text-gray-600">{{ price.market_location }}</td>
+              <td class="p-4 text-right whitespace-nowrap">
+                <a class="text-xs font-semibold text-leaf hover:underline mr-3" href="{{ url_for('admin.prices', edit=price.id) }}">
+                  Edit
+                </a>
+                <form class="inline" method="post" action="{{ url_for('admin.delete_price', price_id=price.id) }}"
+                      onsubmit="return confirm('Delete reference price for {{ price.crop_name }}?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="text-xs font-bold text-red-600 hover:text-red-800">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td class="p-8 text-center text-gray-500" colspan="6">
+                <p class="text-base font-semibold text-gray-700">No market prices found</p>
+                <p class="text-xs text-gray-400 mt-1">Add prices using the form on the left.</p>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ pg.render_pagination(pagination) }}
+  </section>
+</div>
+{% endblock %}

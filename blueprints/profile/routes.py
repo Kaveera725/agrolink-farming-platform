@@ -1,10 +1,12 @@
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import abort, Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_required, current_user
 from extensions import db
+from models import VerificationRequest
 from utils.phone import validate_sl_phone, normalize_phone_number
 from utils.uploads import save_uploaded_image, delete_uploaded_image
 from utils.geo import parse_coord, is_in_sri_lanka
+from utils.security import validate_admin_password
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
 
@@ -22,7 +24,12 @@ SRI_LANKAN_DISTRICTS = [
 @login_required
 def view():
     """View the current user's profile."""
-    return render_template('profile/view.html', user=current_user)
+    latest_verification_request = None
+    if current_user.role == 'farmer':
+        latest_verification_request = VerificationRequest.query.filter_by(
+            farmer_id=current_user.id
+        ).order_by(VerificationRequest.created_at.desc()).first()
+    return render_template('profile/view.html', user=current_user, latest_verification_request=latest_verification_request)
 
 
 @profile_bp.route('/edit', methods=['GET', 'POST'])
@@ -221,9 +228,15 @@ def password():
             flash('Current password is incorrect.', 'error')
             return render_template('profile/password.html')
 
-        if len(new_pwd) < 8:
-            flash('New password must be at least 8 characters long.', 'error')
-            return render_template('profile/password.html')
+        if current_user.role == 'admin':
+            is_valid, err_msg = validate_admin_password(new_pwd, email=current_user.email, name=current_user.name)
+            if not is_valid:
+                flash(err_msg, 'error')
+                return render_template('profile/password.html')
+        else:
+            if len(new_pwd) < 8:
+                flash('New password must be at least 8 characters long.', 'error')
+                return render_template('profile/password.html')
 
         if new_pwd != confirm_pwd:
             flash('New password and confirmation do not match.', 'error')
@@ -234,8 +247,44 @@ def password():
             return render_template('profile/password.html')
 
         current_user.set_password(new_pwd)
+        current_user.must_change_password = False
+        current_user.session_version = (current_user.session_version or 1) + 1
+        session['session_version'] = current_user.session_version
         db.session.commit()
         flash('Password changed successfully!', 'success')
         return redirect(url_for('profile.view'))
 
     return render_template('profile/password.html')
+
+
+@profile_bp.route('/request-verification', methods=['POST'])
+@login_required
+def request_verification():
+    if current_user.role != 'farmer':
+        abort(403)
+
+    if current_user.is_verified:
+        flash('Your farmer profile is already verified.', 'info')
+        return redirect(url_for('profile.view'))
+
+    # One open request per farmer
+    existing_pending = VerificationRequest.query.filter_by(
+        farmer_id=current_user.id,
+        status='pending'
+    ).first()
+
+    if existing_pending:
+        flash('You already have a pending verification request under review.', 'warning')
+        return redirect(url_for('profile.view'))
+
+    farmer_note = request.form.get('farmer_note', '').strip()
+    req = VerificationRequest(
+        farmer_id=current_user.id,
+        status='pending',
+        farmer_note=farmer_note if farmer_note else None
+    )
+    db.session.add(req)
+    db.session.commit()
+
+    flash('Verification request submitted successfully! An administrator will review your profile.', 'success')
+    return redirect(url_for('profile.view'))

@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import flash, redirect, url_for, request
+from flask import abort, flash, redirect, url_for, request
 from flask_login import current_user, logout_user
 
 
@@ -30,6 +30,26 @@ def roles_required(*roles):
                 return redirect(url_for('auth.login'))
 
             if current_user.role not in roles:
+                if 'admin' in roles:
+                    # Log denied access (403) to an admin route by a logged-in non-admin
+                    try:
+                        from extensions import db
+                        from models import AdminAuditLog
+                        audit = AdminAuditLog(
+                            admin_id=current_user.id,
+                            action='admin_access_denied',
+                            target_type='route',
+                            details=f"Denied access to {request.path} for role '{current_user.role}'",
+                            ip_address=request.remote_addr,
+                            user_agent=request.user_agent.string[:255] if request.user_agent else None,
+                            result='denied'
+                        )
+                        db.session.add(audit)
+                        db.session.commit()
+                    except Exception:
+                        from extensions import db
+                        db.session.rollback()
+                    abort(403)
                 if request.is_json or request.path.endswith('/quote'):
                     return {'error': 'Access denied. You do not have permission to access this resource.'}, 403
                 flash('Access denied. You do not have permission to access this page.', 'error')

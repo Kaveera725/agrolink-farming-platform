@@ -1,0 +1,165 @@
+{% extends "admin/_layout.html" %}
+{% import "admin/_pagination.html" as pg %}
+{% block title %}Admin Activity Log — AgroLink{% endblock %}
+
+{% block admin_content %}
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
+  <div>
+    <p class="text-sm font-semibold text-leaf">Accountability</p>
+    <h1 class="text-2xl font-bold text-gray-900">Administrative Audit Log</h1>
+    <p class="mt-1 text-xs text-gray-500">Append-only immutable record of administrative actions, authentication events, and authorization failures.</p>
+  </div>
+  <span class="text-sm text-gray-500 font-medium">
+    {{ pagination.total }} total entries
+  </span>
+</div>
+
+{# Filter bar #}
+<form method="get" class="card p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 mb-5">
+  <input class="input lg:col-span-2" name="q" value="{{ search }}" placeholder="Search details, target, or action">
+
+  <select class="input" name="admin_id">
+    <option value="">All Administrators</option>
+    {% for a in admins %}
+      <option value="{{ a.id }}" {% if admin_id == a.id %}selected{% endif %}>{{ a.name }}</option>
+    {% endfor %}
+  </select>
+
+  <select class="input" name="action">
+    <option value="">All Actions</option>
+    {% for act in actions %}
+      <option value="{{ act }}" {% if action == act %}selected{% endif %}>{{ act|replace('_', ' ')|capitalize }}</option>
+    {% endfor %}
+  </select>
+
+  <select class="input" name="result">
+    <option value="">Any Result</option>
+    <option value="success" {% if result == 'success' %}selected{% endif %}>Success</option>
+    <option value="denied" {% if result == 'denied' %}selected{% endif %}>Denied (403)</option>
+    <option value="failed" {% if result == 'failed' %}selected{% endif %}>Failed</option>
+  </select>
+
+  <div class="flex gap-2">
+    <button type="submit" class="btn-primary py-2 px-4 whitespace-nowrap w-full">Filter</button>
+    {% if search or action or result or admin_id or start or end %}
+      <a href="{{ url_for('admin.activity') }}" class="btn-secondary py-2 px-3 text-sm flex items-center">Reset</a>
+    {% endif %}
+  </div>
+
+  <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-gray-500 font-semibold whitespace-nowrap">From:</span>
+      <input class="input text-xs py-1.5" type="date" name="start" value="{{ start }}">
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-gray-500 font-semibold whitespace-nowrap">To:</span>
+      <input class="input text-xs py-1.5" type="date" name="end" value="{{ end }}">
+    </div>
+  </div>
+</form>
+
+{# Activity Log Table #}
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-bdr text-left">
+        <tr>
+          {{ pg.sort_th('created_at', 'Timestamp', sort, direction) }}
+          <th class="p-4">Actor</th>
+          {{ pg.sort_th('action', 'Action', sort, direction) }}
+          {{ pg.sort_th('result', 'Result', sort, direction) }}
+          <th class="p-4">Details & Target</th>
+          <th class="p-4 text-right">State Changes</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for log in logs %}
+          <tr class="hover:bg-gray-50/50 transition-colors">
+            <td class="p-4 text-gray-500 whitespace-nowrap text-xs">
+              {{ log.created_at.strftime('%d %b %Y, %H:%M:%S') }}
+            </td>
+            <td class="p-4 whitespace-nowrap">
+              <span class="font-bold text-gray-900 block text-xs">
+                {{ log.admin.name if log.admin else 'System / Unknown' }}
+              </span>
+              {% if log.ip_address %}
+                <span class="text-[11px] font-mono text-gray-400 block">{{ log.ip_address }}</span>
+              {% endif %}
+            </td>
+            <td class="p-4 whitespace-nowrap">
+              <span class="font-semibold text-gray-800 text-xs">
+                {{ log.action|replace('_', ' ')|capitalize }}
+              </span>
+              {% if log.target_type %}
+                <span class="block text-[11px] text-gray-400">{{ log.target_type }} {% if log.target_id %}#{{ log.target_id }}{% endif %}</span>
+              {% endif %}
+            </td>
+            <td class="p-4 whitespace-nowrap">
+              {% if log.result == 'success' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-green-100 text-green-800">
+                  SUCCESS
+                </span>
+              {% elif log.result == 'denied' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-900">
+                  DENIED (403)
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-800">
+                  FAILED
+                </span>
+              {% endif %}
+            </td>
+            <td class="p-4 text-gray-700 max-w-md">
+              <p class="text-xs">{{ log.details or '—' }}</p>
+              {% if log.user_agent %}
+                <p class="text-[10px] text-gray-400 truncate mt-0.5 font-mono" title="{{ log.user_agent }}">{{ log.user_agent }}</p>
+              {% endif %}
+            </td>
+            <td class="p-4 text-right whitespace-nowrap">
+              {% if log.before_data or log.after_data %}
+                <details class="text-left inline-block">
+                  <summary class="cursor-pointer text-xs font-bold text-leaf hover:underline select-none">
+                    View Diff
+                  </summary>
+                  <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onclick="this.parentElement.removeAttribute('open');">
+                    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4" onclick="event.stopPropagation();">
+                      <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                        <h3 class="font-bold text-gray-900 text-base">Audit State Change</h3>
+                        <button type="button" onclick="this.closest('details').removeAttribute('open');" class="text-gray-400 hover:text-gray-600 text-sm font-bold">✕</button>
+                      </div>
+                      <div class="space-y-3 max-h-96 overflow-y-auto text-xs font-mono">
+                        {% if log.before_data %}
+                          <div>
+                            <span class="font-bold text-red-700 block mb-1">Before:</span>
+                            <pre class="bg-red-50 text-red-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">{{ log.before_data|tojson(indent=2) }}</pre>
+                          </div>
+                        {% endif %}
+                        {% if log.after_data %}
+                          <div>
+                            <span class="font-bold text-green-700 block mb-1">After:</span>
+                            <pre class="bg-green-50 text-green-900 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">{{ log.after_data|tojson(indent=2) }}</pre>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              {% else %}
+                <span class="text-xs text-gray-300">—</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td class="p-8 text-center text-gray-500" colspan="6">
+              <p class="text-base font-semibold text-gray-700">No activity logs found</p>
+              <p class="text-xs text-gray-400 mt-1">Adjust filters or search parameters.</p>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pg.render_pagination(pagination) }}
+</div>
+{% endblock %}

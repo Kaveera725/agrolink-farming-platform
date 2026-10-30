@@ -1,0 +1,68 @@
+{% macro sort_th(field, label, current_sort, current_dir) %}
+  {% set next_dir = 'asc' if (current_sort == field and current_dir == 'desc') else 'desc' %}
+  <th class="p-4">
+    <a href="{{ url_for(request.endpoint, **dict(request.args, sort=field, direction=next_dir, page=1)) }}" class="inline-flex items-center gap-1 group font-semibold text-gray-700 hover:text-leaf">
+      <span>{{ label }}</span>
+      <span class="text-xs text-gray-400 group-hover:text-leaf">
+        {% if current_sort == field %}
+          {% if current_dir == 'asc' %}▲{% else %}▼{% endif %}
+        {% else %}
+          ⇅
+        {% endif %}
+      </span>
+    </a>
+  </th>
+{% endmacro %}
+
+{% macro render_pagination(pagination) %}
+  {% if pagination %}
+    <div class="p-4 bg-white border-t border-bdr flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+      <div>
+        {% if pagination.total > 0 %}
+          Showing <span class="font-semibold text-gray-900">{{ (pagination.page - 1) * pagination.per_page + 1 }}</span>
+          to <span class="font-semibold text-gray-900">{{ [(pagination.page * pagination.per_page), pagination.total]|min }}</span>
+          of <span class="font-semibold text-gray-900">{{ pagination.total }}</span> results
+        {% else %}
+          <span class="text-gray-500">0 results</span>
+        {% endif %}
+      </div>
+
+      {% if pagination.pages > 1 %}
+        <nav class="flex items-center gap-1" aria-label="Pagination">
+          {% if pagination.has_prev %}
+            <a href="{{ url_for(request.endpoint, **dict(request.args, page=pagination.prev_num)) }}" class="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium text-xs flex items-center gap-1">
+              ← Prev
+            </a>
+          {% else %}
+            <span class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-300 text-xs cursor-not-allowed">
+              ← Prev
+            </span>
+          {% endif %}
+
+          {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+              {% if p == pagination.page %}
+                <span class="w-8 h-8 rounded-lg bg-leaf text-white font-bold text-xs flex items-center justify-center">{{ p }}</span>
+              {% else %}
+                <a href="{{ url_for(request.endpoint, **dict(request.args, page=p)) }}" class="w-8 h-8 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium text-xs flex items-center justify-center">{{ p }}</a>
+              {% endif %}
+            {% else %}
+              <span class="px-1 text-gray-400">…</span>
+            {% endif %}
+          {% endfor %}
+
+          {% if pagination.has_next %}
+            <a href="{{ url_for(request.endpoint, **dict(request.args, page=pagination.next_num)) }}" class="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium text-xs flex items-center gap-1">
+              Next →
+            </a>
+          {% else %}
+            <span class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-300 text-xs cursor-not-allowed">
+              Next →
+            </span>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endmacro %}
+

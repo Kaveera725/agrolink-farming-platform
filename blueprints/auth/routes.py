@@ -1,10 +1,10 @@
 from datetime import datetime
 from email_validator import validate_email, EmailNotValidError
 from urllib.parse import urlsplit
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from extensions import db, limiter
-from models import User
+from models import User, AdminAuditLog
 from utils.phone import validate_sl_phone, normalize_phone_number
 from utils.geo import parse_coord, is_in_sri_lanka
 
@@ -177,11 +177,49 @@ def login():
                 flash('Your account has been deactivated. Please contact support.', 'error')
                 return render_template('auth/login.html')
             login_user(user, remember=remember)
+            session['session_version'] = getattr(user, 'session_version', 1)
+            user.last_login_at = datetime.utcnow()
+            if user.role == 'admin':
+                audit = AdminAuditLog(
+                    admin_id=user.id,
+                    action='admin_login_success',
+                    details=f"Admin {user.email} logged in successfully",
+                    ip_address=request.remote_addr,
+                    user_agent=request.user_agent.string[:255] if request.user_agent else None,
+                    result='success'
+                )
+                db.session.add(audit)
+            db.session.commit()
             next_page = request.args.get('next')
             if not is_safe_url(next_page):
-                next_page = url_for('dashboard.index')
+                next_page = url_for('admin.dashboard') if user.role == 'admin' else url_for('dashboard.index')
             flash(f'Welcome back, {user.name}!', 'success')
             return redirect(next_page)
+
+        # Login failure logging for admin accounts
+        if user and user.role == 'admin':
+            audit = AdminAuditLog(
+                admin_id=user.id,
+                action='admin_login_failed',
+                details=f"Failed login attempt for admin email {email}",
+                ip_address=request.remote_addr,
+                user_agent=request.user_agent.string[:255] if request.user_agent else None,
+                result='failed'
+            )
+            db.session.add(audit)
+            db.session.commit()
+        elif email and ('admin' in email):
+            audit = AdminAuditLog(
+                admin_id=None,
+                action='admin_login_failed',
+                details=f"Failed login attempt for unknown admin-like email {email}",
+                ip_address=request.remote_addr,
+                user_agent=request.user_agent.string[:255] if request.user_agent else None,
+                result='failed'
+            )
+            db.session.add(audit)
+            db.session.commit()
+
         flash('Invalid email or password.', 'error')
     return render_template('auth/login.html')
 
@@ -189,6 +227,21 @@ def login():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    if current_user.role == 'admin':
+        try:
+            audit = AdminAuditLog(
+                admin_id=current_user.id,
+                action='admin_logout',
+                details=f"Admin {current_user.email} logged out",
+                ip_address=request.remote_addr,
+                user_agent=request.user_agent.string[:255] if request.user_agent else None,
+                result='success'
+            )
+            db.session.add(audit)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+    session.pop('admin_last_activity', None)
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))

@@ -6,43 +6,6 @@ from models import MarketPrice, Product
 prices_bp = Blueprint('prices', __name__, url_prefix='/prices')
 
 
-def seed_market_prices():
-    if MarketPrice.query.count() > 0:
-        return
-    seed_data = [
-        ('Tomato', 'Vegetables', 85, 120),
-        ('Carrot', 'Vegetables', 60, 95),
-        ('Cabbage', 'Vegetables', 45, 75),
-        ('Beans', 'Vegetables', 110, 160),
-        ('Brinjal', 'Vegetables', 70, 105),
-        ('Leeks', 'Vegetables', 130, 180),
-        ('Pumpkin', 'Vegetables', 40, 65),
-        ('Cucumber', 'Vegetables', 55, 85),
-        ('Banana', 'Fruits', 65, 100),
-        ('Mango', 'Fruits', 120, 180),
-        ('Pineapple', 'Fruits', 80, 130),
-        ('Papaya', 'Fruits', 55, 90),
-        ('Avocado', 'Fruits', 150, 220),
-        ('Rice (Samba)', 'Grains & Rice', 95, 135),
-        ('Rice (Nadu)', 'Grains & Rice', 85, 120),
-        ('Maize', 'Grains & Rice', 55, 80),
-        ('Red Chilli', 'Spices', 700, 950),
-        ('Turmeric', 'Spices', 450, 650),
-        ('Ginger', 'Spices', 300, 480),
-        ('Garlic', 'Spices', 350, 520),
-        ('Lentils', 'Pulses', 170, 240),
-        ('Chickpeas', 'Pulses', 190, 270),
-        ('Sweet Potato', 'Roots & Tubers', 70, 110),
-        ('Cassava', 'Roots & Tubers', 40, 65),
-        ('Potato', 'Roots & Tubers', 80, 120),
-    ]
-    for name, category, buy, sell in seed_data:
-        mp = MarketPrice(crop_name=name, category=category,
-                         buying_price=buy, selling_price=sell)
-        db.session.add(mp)
-    db.session.commit()
-
-
 def find_market_price(product_name, market_dict):
     if not product_name:
         return None
@@ -227,4 +190,4 @@ def bids():
         search=search,
         selected_sort=sort,
         total_listings=len(products)
-    )
+    )

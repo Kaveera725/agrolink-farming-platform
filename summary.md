@@ -397,9 +397,9 @@ Open your browser at `http://127.0.0.1:5000/`.
 - Application successfully booted on local port `5000`.
 - Database connectivity confirmed with 5 populated tables.
 - Demo accounts verified:
-  - Farmer: `nimal@agrolink.lk` / `password123`
-  - Farmer: `sunil@agrolink.lk` / `password123`
-  - Buyer: `kamani@agrolink.lk` / `password123`
+  - Farmer: `nimal@agrolink.lk`
+  - Farmer: `sunil@agrolink.lk`
+  - Buyer: `kamani@agrolink.lk`
 
 ---
 

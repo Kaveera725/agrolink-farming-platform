@@ -23,7 +23,9 @@ def index():
 
     today_date = now_lk.date()
 
-    if current_user.role == 'farmer':
+    if current_user.role == 'admin':
+        return redirect(url_for('admin.dashboard'))
+    elif current_user.role == 'farmer':
         crops = Crop.query.filter_by(farmer_id=current_user.id).order_by(Crop.created_at.desc()).all()
         # Annotate crops with harvest countdown and overdue status
         for c in crops:
