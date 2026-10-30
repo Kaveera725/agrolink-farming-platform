@@ -85,7 +85,14 @@
     <div>
       {# Farmer and District with pin icon & distance indicator #}
       <div class="flex items-center flex-wrap gap-x-1.5 gap-y-1 text-xs text-muted mb-2">
-        <span class="font-medium text-ink truncate max-w-[130px]">{{ farmer_name }}</span>
+        <div class="inline-flex items-center gap-1 min-w-0">
+          <span class="font-medium text-ink truncate max-w-[130px]">{{ farmer_name }}</span>
+          {% if product.farmer and product.farmer.is_verified %}
+            <span class="inline-flex items-center text-leaf shrink-0" title="Verified farmer partner">
+              {{ icon('shield-check', size=13, cls='text-leaf') }}
+            </span>
+          {% endif %}
+        </div>
         <span class="text-muted/60" aria-hidden="true">•</span>
         <div class="flex items-center gap-1 truncate text-muted min-w-0">
           {{ icon('map-pin', size=12, cls='shrink-0 text-leaf') }}
@@ -279,9 +286,11 @@
   {% endif %}
 
   {# Verified badge #}
+  {% if farmer.is_verified %}
   <div class="flex items-center gap-1.5 text-[11px] text-leaf-dark/80 bg-leaf-50 px-2.5 py-1.5 rounded-lg">
     {{ icon('shield-check', size=14, cls='text-leaf shrink-0') }}
     <span>Verified AgroLink Farmer Partner</span>
   </div>
+  {% endif %}
 </div>
 {% endmacro %}

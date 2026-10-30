@@ -1,7 +1,8 @@
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import abort, Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_required, current_user
 from extensions import db
+from models import VerificationRequest
 from utils.phone import validate_sl_phone, normalize_phone_number
 from utils.uploads import save_uploaded_image, delete_uploaded_image
 from utils.geo import parse_coord, is_in_sri_lanka
@@ -23,7 +24,12 @@ SRI_LANKAN_DISTRICTS = [
 @login_required
 def view():
     """View the current user's profile."""
-    return render_template('profile/view.html', user=current_user)
+    latest_verification_request = None
+    if current_user.role == 'farmer':
+        latest_verification_request = VerificationRequest.query.filter_by(
+            farmer_id=current_user.id
+        ).order_by(VerificationRequest.created_at.desc()).first()
+    return render_template('profile/view.html', user=current_user, latest_verification_request=latest_verification_request)
 
 
 @profile_bp.route('/edit', methods=['GET', 'POST'])
@@ -249,3 +255,36 @@ def password():
         return redirect(url_for('profile.view'))
 
     return render_template('profile/password.html')
+
+
+@profile_bp.route('/request-verification', methods=['POST'])
+@login_required
+def request_verification():
+    if current_user.role != 'farmer':
+        abort(403)
+
+    if current_user.is_verified:
+        flash('Your farmer profile is already verified.', 'info')
+        return redirect(url_for('profile.view'))
+
+    # One open request per farmer
+    existing_pending = VerificationRequest.query.filter_by(
+        farmer_id=current_user.id,
+        status='pending'
+    ).first()
+
+    if existing_pending:
+        flash('You already have a pending verification request under review.', 'warning')
+        return redirect(url_for('profile.view'))
+
+    farmer_note = request.form.get('farmer_note', '').strip()
+    req = VerificationRequest(
+        farmer_id=current_user.id,
+        status='pending',
+        farmer_note=farmer_note if farmer_note else None
+    )
+    db.session.add(req)
+    db.session.commit()
+
+    flash('Verification request submitted successfully! An administrator will review your profile.', 'success')
+    return redirect(url_for('profile.view'))

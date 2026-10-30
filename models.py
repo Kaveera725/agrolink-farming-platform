@@ -35,6 +35,9 @@ class User(UserMixin, db.Model):
     address_text = db.Column(db.String(255), nullable=True)
     location_updated_at = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_verified = db.Column(db.Boolean, default=False, nullable=False)
+    verified_at = db.Column(db.DateTime, nullable=True)
+    verified_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     must_change_password = db.Column(db.Boolean, default=False, nullable=False)
     session_version = db.Column(db.Integer, default=1, nullable=False)
     last_login_at = db.Column(db.DateTime, nullable=True)
@@ -43,6 +46,9 @@ class User(UserMixin, db.Model):
     crops = db.relationship('Crop', backref='farmer', lazy=True)
     products = db.relationship('Product', backref='farmer', lazy=True, foreign_keys='Product.farmer_id')
     orders_placed = db.relationship('Order', backref='buyer', lazy=True, foreign_keys='Order.buyer_id')
+    verification_requests = db.relationship('VerificationRequest', backref='farmer', lazy=True, foreign_keys='VerificationRequest.farmer_id', cascade='all, delete-orphan')
+    listing_reports = db.relationship('ListingReport', backref='reporter', lazy=True, foreign_keys='ListingReport.reporter_id', cascade='all, delete-orphan')
+    verified_by_user = db.relationship('User', foreign_keys=[verified_by], remote_side=[id], lazy=True)
 
     @property
     def active_products_count(self):
@@ -100,6 +106,7 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     orders = db.relationship('Order', backref='product', lazy=True)
+    reports = db.relationship('ListingReport', backref='product', lazy=True, foreign_keys='ListingReport.product_id', cascade='all, delete-orphan')
     hidden_by_user = db.relationship('User', foreign_keys=[hidden_by], lazy=True)
 
     @property
@@ -196,13 +203,52 @@ class AdminAuditLog(db.Model):
 class AdminNote(db.Model):
     __tablename__ = 'admin_notes'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True)
     admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     note = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('notes_written', lazy=True))
     user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('admin_notes', lazy=True, order_by='AdminNote.created_at.desc()'))
+    order = db.relationship('Order', foreign_keys=[order_id], backref=db.backref('admin_notes', lazy=True, order_by='AdminNote.created_at.desc()'))
 
     def __repr__(self):
-        return f'<AdminNote {self.id} for User {self.user_id}>'
+        return f'<AdminNote {self.id} for User {self.user_id} Order {self.order_id}>'
+
+
+class VerificationRequest(db.Model):
+    __tablename__ = 'verification_requests'
+    id = db.Column(db.Integer, primary_key=True)
+    farmer_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    status = db.Column(db.String(20), default='pending', nullable=False)  # pending, approved, rejected
+    farmer_note = db.Column(db.Text, nullable=True)
+    admin_note = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    decided_at = db.Column(db.DateTime, nullable=True)
+    decided_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
+    decided_by_user = db.relationship('User', foreign_keys=[decided_by], lazy=True)
+
+    def __repr__(self):
+        return f'<VerificationRequest {self.id} farmer={self.farmer_id} status={self.status}>'
+
+
+class ListingReport(db.Model):
+    __tablename__ = 'listing_reports'
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id', ondelete='CASCADE'), nullable=False)
+    reporter_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    reason = db.Column(db.String(50), nullable=False)  # misleading_price, wrong_or_fake_photo, prohibited_item, spam, other
+    details = db.Column(db.String(500), nullable=True)
+    status = db.Column(db.String(20), default='open', nullable=False)  # open, reviewing, resolved, dismissed
+    resolution_note = db.Column(db.Text, nullable=True)
+    handled_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    handled_at = db.Column(db.DateTime, nullable=True)
+
+    handled_by_user = db.relationship('User', foreign_keys=[handled_by], lazy=True)
+
+    def __repr__(self):
+        return f'<ListingReport {self.id} product={self.product_id} reporter={self.reporter_id} status={self.status}>'
+

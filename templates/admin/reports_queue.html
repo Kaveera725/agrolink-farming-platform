@@ -1,0 +1,188 @@
+{% extends "admin/_layout.html" %}
+{% from 'admin/_pagination.html' import render_pagination %}
+{% from 'components/icons.html' import icon %}
+
+{% block title %}Listing Moderation Reports — AgroLink Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-display font-bold text-ink">Listing Reports</h1>
+    <p class="text-sm text-muted mt-1">Review flagged marketplace offerings, investigate violations, and moderate seller content.</p>
+  </div>
+  <a href="{{ url_for('admin.exports') }}" class="btn-secondary text-xs py-2 px-3 self-start sm:self-auto">
+    <span>View CSV Exports →</span>
+  </a>
+</div>
+
+{# Filter Tabs & Search Bar #}
+<div class="card p-4 sm:p-5 mb-6 bg-white border border-bdr">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    {# Status Pills #}
+    <div class="flex flex-wrap gap-2">
+      <a href="{{ url_for('admin.listing_reports', status='open', reason=reason, search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'open' %}bg-rose-500 text-white shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>Open</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ counts.open }}</span>
+      </a>
+      <a href="{{ url_for('admin.listing_reports', status='reviewing', reason=reason, search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'reviewing' %}bg-amber-500 text-ink shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>In Review</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/30">{{ counts.reviewing }}</span>
+      </a>
+      <a href="{{ url_for('admin.listing_reports', status='resolved', reason=reason, search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'resolved' %}bg-leaf text-white shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>Resolved</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ counts.resolved }}</span>
+      </a>
+      <a href="{{ url_for('admin.listing_reports', status='dismissed', reason=reason, search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'dismissed' %}bg-canvas border border-bdr text-inksoft shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>Dismissed</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-earth-200 text-ink">{{ counts.dismissed }}</span>
+      </a>
+      <a href="{{ url_for('admin.listing_reports', status='all', reason=reason, search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'all' %}bg-ink text-white shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>All</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ counts.total }}</span>
+      </a>
+    </div>
+
+    {# Reason & Search Filter #}
+    <form method="GET" action="{{ url_for('admin.listing_reports') }}" class="flex flex-wrap items-center gap-2">
+      <input type="hidden" name="status" value="{{ status }}">
+      <select name="reason" class="input text-xs py-2">
+        <option value="">All reasons</option>
+        <option value="misleading_price" {% if reason == 'misleading_price' %}selected{% endif %}>Misleading Price</option>
+        <option value="wrong_or_fake_photo" {% if reason == 'wrong_or_fake_photo' %}selected{% endif %}>Fake Photo</option>
+        <option value="prohibited_item" {% if reason == 'prohibited_item' %}selected{% endif %}>Prohibited Item</option>
+        <option value="spam" {% if reason == 'spam' %}selected{% endif %}>Spam / Duplicate</option>
+        <option value="other" {% if reason == 'other' %}selected{% endif %}>Other</option>
+      </select>
+
+      <div class="relative min-w-[200px]">
+        <input
+          type="search"
+          name="search"
+          value="{{ search }}"
+          placeholder="Search crop or farmer..."
+          class="input text-xs w-full pr-8 py-2"
+        />
+        {% if search %}
+          <a href="{{ url_for('admin.listing_reports', status=status, reason=reason) }}" class="absolute right-2.5 top-2.5 text-muted hover:text-ink text-xs font-bold">✕</a>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn-secondary text-xs py-2 px-3">Filter</button>
+    </form>
+  </div>
+</div>
+
+{# Queue Table #}
+{% if reports %}
+  <div class="card overflow-hidden bg-white border border-bdr shadow-xs rounded-2xl">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-canvas border-b border-bdr text-muted font-bold uppercase tracking-wider text-[11px]">
+          <tr>
+            <th class="py-3 px-4">Report ID</th>
+            <th class="py-3 px-4">Listing / Crop</th>
+            <th class="py-3 px-4">Farmer</th>
+            <th class="py-3 px-4">Report Reason</th>
+            <th class="py-3 px-4">Reporter</th>
+            <th class="py-3 px-4">Status</th>
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-bdr">
+          {% for r in reports %}
+            {% set prod = r.product %}
+            {% set is_flagged = prod.id in needs_review_product_ids %}
+            <tr class="hover:bg-canvas/50 transition-colors {% if is_flagged %}bg-amber-50/40{% endif %}">
+              <td class="py-3.5 px-4 font-mono font-semibold text-ink">#{{ r.id }}</td>
+              <td class="py-3.5 px-4 min-w-[180px]">
+                <div class="font-bold text-ink">
+                  {{ prod.name }}
+                </div>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span class="text-[10px] text-muted">{{ prod.category }} · LKR {{ "%.2f"|format(prod.price_per_kg) }}/kg</span>
+                  {% if is_flagged %}
+                    <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-500 text-ink" title="3 or more distinct buyers reported this listing">
+                      ⚠️ Needs Review
+                    </span>
+                  {% endif %}
+                  {% if not prod.is_available or prod.hidden_reason %}
+                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">
+                      Hidden ({{ prod.hidden_reason or 'inactive' }})
+                    </span>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="py-3.5 px-4">
+                <div class="font-semibold text-ink">{{ prod.farmer.name }}</div>
+                <span class="text-[10px] text-muted">{{ prod.farmer.district or prod.farmer.location or 'Sri Lanka' }}</span>
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="inline-block px-2 py-0.5 rounded-md font-semibold text-[11px]
+                  {% if r.reason == 'misleading_price' %}bg-amber-100 text-amber-800
+                  {% elif r.reason == 'wrong_or_fake_photo' %}bg-sky-100 text-sky-800
+                  {% elif r.reason == 'prohibited_item' %}bg-rose-100 text-rose-800
+                  {% elif r.reason == 'spam' %}bg-purple-100 text-purple-800
+                  {% else %}bg-canvas border border-bdr text-inksoft{% endif %}">
+                  {{ r.reason|replace('_', ' ')|capitalize }}
+                </span>
+                {% if r.details %}
+                  <p class="text-[11px] text-muted truncate max-w-[200px] mt-0.5" title="{{ r.details }}">
+                    "{{ r.details }}"
+                  </p>
+                {% endif %}
+              </td>
+              <td class="py-3.5 px-4 text-inksoft">
+                <span class="font-medium text-ink">{{ r.reporter.name }}</span>
+                <span class="block text-[10px] text-muted">ID: {{ r.reporter_id }}</span>
+              </td>
+              <td class="py-3.5 px-4">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider
+                  {% if r.status == 'open' %}bg-rose-500 text-white
+                  {% elif r.status == 'reviewing' %}bg-amber-500 text-ink
+                  {% elif r.status == 'resolved' %}bg-leaf text-white
+                  {% else %}bg-canvas border border-bdr text-muted{% endif %}">
+                  {{ r.status }}
+                </span>
+              </td>
+              <td class="py-3.5 px-4 text-muted text-[11px]">
+                {{ r.created_at.strftime('%d %b %Y, %H:%M') }}
+              </td>
+              <td class="py-3.5 px-4 text-right">
+                <a href="{{ url_for('admin.listing_report_detail', report_id=r.id) }}" class="btn-secondary text-[11px] py-1.5 px-3">
+                  Investigate →
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    {{ render_pagination(pagination) }}
+  </div>
+
+{% else %}
+  <div class="card p-12 text-center bg-white border border-bdr">
+    <div class="w-12 h-12 rounded-full bg-canvas text-muted flex items-center justify-center mx-auto mb-3">
+      {{ icon('flag', size=24) }}
+    </div>
+    <h3 class="font-display font-bold text-ink text-base">No listing reports found</h3>
+    <p class="text-xs text-muted mt-1 max-w-sm mx-auto">
+      {% if search or reason %}No reports matched your filters. Try clearing filters.{% else %}All marketplace listings are currently clear of reports.{% endif %}
+    </p>
+  </div>
+{% endif %}
+
+{% endblock %}

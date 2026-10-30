@@ -192,7 +192,7 @@ def login():
             db.session.commit()
             next_page = request.args.get('next')
             if not is_safe_url(next_page):
-                next_page = url_for('dashboard.index')
+                next_page = url_for('admin.dashboard') if user.role == 'admin' else url_for('dashboard.index')
             flash(f'Welcome back, {user.name}!', 'success')
             return redirect(next_page)
 

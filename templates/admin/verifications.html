@@ -1,0 +1,314 @@
+{% extends "admin/_layout.html" %}
+{% from 'admin/_pagination.html' import render_pagination %}
+{% from 'components/icons.html' import icon %}
+
+{% block title %}Farmer Verifications — AgroLink Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-display font-bold text-ink">Farmer Verifications</h1>
+    <p class="text-sm text-muted mt-1">Review identity and farm completeness facts to grant the verified partner badge.</p>
+  </div>
+</div>
+
+{# Filter Tabs & Search Bar #}
+<div class="card p-4 sm:p-5 mb-6 bg-white border border-bdr">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    {# Status Pills #}
+    <div class="flex flex-wrap gap-2">
+      <a href="{{ url_for('admin.verifications', status='pending', search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'pending' %}bg-amber-500 text-ink shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>Pending</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/40">{{ counts.pending }}</span>
+      </a>
+      <a href="{{ url_for('admin.verifications', status='approved', search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'approved' %}bg-leaf text-white shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>Approved</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ counts.approved }}</span>
+      </a>
+      <a href="{{ url_for('admin.verifications', status='rejected', search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'rejected' %}bg-rose-500 text-white shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>Rejected</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ counts.rejected }}</span>
+      </a>
+      <a href="{{ url_for('admin.verifications', status='all', search=search) }}"
+         class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all inline-flex items-center gap-1.5
+                {% if status == 'all' %}bg-ink text-white shadow-sm{% else %}bg-canvas text-muted hover:text-ink hover:bg-earth-100{% endif %}">
+        <span>All</span>
+        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">{{ counts.total }}</span>
+      </a>
+    </div>
+
+    {# Search Form #}
+    <form method="GET" action="{{ url_for('admin.verifications') }}" class="flex items-center gap-2">
+      <input type="hidden" name="status" value="{{ status }}">
+      <div class="relative min-w-[240px]">
+        <input
+          type="search"
+          name="search"
+          value="{{ search }}"
+          placeholder="Search farmer name or email..."
+          class="input text-xs w-full pr-8 py-2"
+        />
+        {% if search %}
+          <a href="{{ url_for('admin.verifications', status=status) }}" class="absolute right-2.5 top-2.5 text-muted hover:text-ink text-xs font-bold">✕</a>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn-secondary text-xs py-2 px-3">Search</button>
+    </form>
+  </div>
+</div>
+
+{# Queue List #}
+{% if requests %}
+  <div class="space-y-4">
+    {% for req in requests %}
+      {% set farmer = req.farmer %}
+      <div class="card p-5 sm:p-6 bg-white border border-bdr shadow-xs rounded-2xl hover:border-leaf/30 transition-all">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
+          
+          {# Farmer Identity Details #}
+          <div class="space-y-3 flex-1 min-w-0">
+            <div class="flex items-start gap-3.5">
+              <div class="w-12 h-12 rounded-full bg-earth-100 overflow-hidden flex items-center justify-center shrink-0 border border-bdr">
+                {% if farmer.profile_image_url %}
+                  <img src="{{ farmer.profile_image_url }}" alt="{{ farmer.name }}" class="w-full h-full object-cover">
+                {% else %}
+                  <span class="font-bold text-earth text-lg">{{ farmer.name[0].upper() }}</span>
+                {% endif %}
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <a href="{{ url_for('admin.user_detail', user_id=farmer.id) }}" class="font-display font-bold text-base text-ink hover:text-leaf transition-colors">
+                    {{ farmer.name }}
+                  </a>
+                  {% if farmer.is_verified %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-leaf-pale text-leaf-dark border border-leaf/20">
+                      {{ icon('shield-check', size=12, cls='text-leaf') }}
+                      Verified
+                    </span>
+                  {% endif %}
+                  <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wider
+                    {% if req.status == 'pending' %}bg-amber-100 text-amber-800
+                    {% elif req.status == 'approved' %}bg-leaf-50 text-leaf-dark
+                    {% else %}bg-rose-100 text-rose-800{% endif %}">
+                    Request #{{ req.id }} · {{ req.status }}
+                  </span>
+                </div>
+                <p class="text-xs text-muted mt-0.5">
+                  {{ farmer.email }} · {{ farmer.phone or 'No phone' }} · <strong>{{ farmer.district or farmer.location or 'No district' }}</strong>
+                </p>
+                <p class="text-[11px] text-muted mt-0.5">
+                  Requested on {{ req.created_at.strftime('%d %b %Y, %H:%M') }}
+                  {% if req.decided_at %}· Decided on {{ req.decided_at.strftime('%d %b %Y') }}{% endif %}
+                </p>
+              </div>
+            </div>
+
+            {% if req.farmer_note %}
+              <div class="p-3 bg-canvas rounded-xl text-xs text-inksoft border border-bdr/60">
+                <span class="font-bold text-muted block text-[10px] uppercase tracking-wider mb-0.5">Farmer Note:</span>
+                "{{ req.farmer_note }}"
+              </div>
+            {% endif %}
+
+            {% if req.admin_note and req.status == 'rejected' %}
+              <div class="p-3 bg-rose-50 text-danger-700 rounded-xl text-xs border border-rose-200">
+                <span class="font-bold block text-[10px] uppercase tracking-wider mb-0.5">Rejection Feedback Given to Farmer:</span>
+                "{{ req.admin_note }}"
+              </div>
+            {% endif %}
+
+            {# Checklist Facts Panel (Read-Only) #}
+            <div class="pt-2">
+              <span class="text-[11px] font-bold text-muted uppercase tracking-wider block mb-2">Verification Checklist Facts</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                {# Fact 1: GPS Pin #}
+                <div class="p-2.5 rounded-lg border {% if req.has_map_pin %}bg-leaf-50/50 border-leaf/30 text-leaf-dark{% else %}bg-canvas border-bdr text-muted{% endif %} flex items-center gap-2">
+                  <span>{% if req.has_map_pin %}✅{% else %}❌{% endif %}</span>
+                  <div>
+                    <span class="font-semibold block">Map Pin</span>
+                    <span class="text-[10px]">{% if req.has_map_pin %}{{ "%.3f"|format(farmer.latitude) }}, {{ "%.3f"|format(farmer.longitude) }}{% else %}Not set{% endif %}</span>
+                  </div>
+                </div>
+
+                {# Fact 2: WhatsApp #}
+                <div class="p-2.5 rounded-lg border {% if req.has_whatsapp %}bg-leaf-50/50 border-leaf/30 text-leaf-dark{% else %}bg-canvas border-bdr text-muted{% endif %} flex items-center gap-2">
+                  <span>{% if req.has_whatsapp %}✅{% else %}❌{% endif %}</span>
+                  <div>
+                    <span class="font-semibold block">WhatsApp</span>
+                    <span class="text-[10px] truncate max-w-[90px] block">{% if req.has_whatsapp %}{{ farmer.whatsapp_number }}{% else %}Not set{% endif %}</span>
+                  </div>
+                </div>
+
+                {# Fact 3: Farm Name #}
+                <div class="p-2.5 rounded-lg border {% if req.has_farm_name %}bg-leaf-50/50 border-leaf/30 text-leaf-dark{% else %}bg-canvas border-bdr text-muted{% endif %} flex items-center gap-2">
+                  <span>{% if req.has_farm_name %}✅{% else %}❌{% endif %}</span>
+                  <div>
+                    <span class="font-semibold block">Farm Name</span>
+                    <span class="text-[10px] truncate max-w-[90px] block">{% if req.has_farm_name %}{{ farmer.farm_name }}{% else %}Not set{% endif %}</span>
+                  </div>
+                </div>
+
+                {# Fact 4: Farm Bio #}
+                <div class="p-2.5 rounded-lg border {% if req.has_bio %}bg-leaf-50/50 border-leaf/30 text-leaf-dark{% else %}bg-canvas border-bdr text-muted{% endif %} flex items-center gap-2">
+                  <span>{% if req.has_bio %}✅{% else %}❌{% endif %}</span>
+                  <div>
+                    <span class="font-semibold block">Bio</span>
+                    <span class="text-[10px]">{% if req.has_bio %}{{ farmer.bio|length }} chars{% else %}Empty{% endif %}</span>
+                  </div>
+                </div>
+
+                {# Fact 5: Photo #}
+                <div class="p-2.5 rounded-lg border {% if req.has_photo %}bg-leaf-50/50 border-leaf/30 text-leaf-dark{% else %}bg-canvas border-bdr text-muted{% endif %} flex items-center gap-2">
+                  <span>{% if req.has_photo %}✅{% else %}❌{% endif %}</span>
+                  <div>
+                    <span class="font-semibold block">Photo</span>
+                    <span class="text-[10px]">{% if req.has_photo %}Uploaded{% else %}Default initial{% endif %}</span>
+                  </div>
+                </div>
+
+                {# Fact 6: Active Listings #}
+                <div class="p-2.5 rounded-lg border {% if req.active_listings_count > 0 %}bg-leaf-50/50 border-leaf/30 text-leaf-dark{% else %}bg-canvas border-bdr text-muted{% endif %} flex items-center gap-2">
+                  <span>{% if req.active_listings_count > 0 %}✅{% else %}⚠️{% endif %}</span>
+                  <div>
+                    <span class="font-semibold block">Listings</span>
+                    <span class="text-[10px]">{{ req.active_listings_count }} active crop{{ 's' if req.active_listings_count != 1 else '' }}</span>
+                  </div>
+                </div>
+
+                {# Fact 7: Account Age #}
+                <div class="p-2.5 rounded-lg border bg-canvas border-bdr text-inksoft flex items-center gap-2 col-span-2">
+                  <span>📅</span>
+                  <div>
+                    <span class="font-semibold block">Account Age</span>
+                    <span class="text-[10px]">{{ req.account_age_days }} days (joined {{ farmer.created_at.strftime('%d %b %Y') if farmer.created_at else 'N/A' }})</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {# Action Controls #}
+          <div class="lg:w-48 shrink-0 flex flex-col gap-2 pt-2 border-t lg:border-t-0 lg:border-l lg:pl-5 border-bdr">
+            {% if req.status == 'pending' %}
+              {# Approve Form #}
+              <form method="POST" action="{{ url_for('admin.approve_verification', request_id=req.id) }}" onsubmit="return confirm('Approve verification for {{ farmer.name }}? This will grant the verified partner badge across AgroLink.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-primary w-full text-xs py-2.5 font-bold shadow-sm justify-center">
+                  {{ icon('shield-check', size=14) }}
+                  <span>Approve</span>
+                </button>
+              </form>
+
+              {# Reject Trigger #}
+              <button
+                type="button"
+                onclick="document.getElementById('reject-modal-{{ req.id }}').classList.remove('hidden'); document.getElementById('reject-modal-{{ req.id }}').classList.add('flex');"
+                class="btn-danger-outline w-full text-xs py-2 justify-center"
+              >
+                Reject Request
+              </button>
+            {% elif req.status == 'approved' and farmer.is_verified %}
+              {# Revoke Verification Trigger #}
+              <button
+                type="button"
+                onclick="document.getElementById('revoke-modal-{{ farmer.id }}').classList.remove('hidden'); document.getElementById('revoke-modal-{{ farmer.id }}').classList.add('flex');"
+                class="btn-danger-outline w-full text-xs py-2 justify-center"
+              >
+                Revoke Verification
+              </button>
+            {% else %}
+              <div class="text-xs text-muted text-center py-2">
+                Decided · {{ req.status|capitalize }}
+              </div>
+            {% endif %}
+
+            <a href="{{ url_for('admin.user_detail', user_id=farmer.id) }}" class="btn-secondary text-xs py-2 text-center">
+              View Full Profile →
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      {# Reject Modal for Request #}
+      {% if req.status == 'pending' %}
+      <div id="reject-modal-{{ req.id }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-bdr">
+          <h3 class="text-base font-display font-bold text-ink mb-1">Reject Verification Request #{{ req.id }}</h3>
+          <p class="text-xs text-muted mb-4">Provide a constructive rejection reason. This reason will be displayed to <strong>{{ farmer.name }}</strong> so they can fix their profile.</p>
+
+          <form method="POST" action="{{ url_for('admin.reject_verification', request_id=req.id) }}" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+              <label class="block text-xs font-semibold text-inksoft mb-1">Rejection Reason <span class="text-danger">*</span></label>
+              <textarea
+                name="admin_note"
+                required
+                rows="3"
+                placeholder="e.g. Please set your farm location GPS pin and add a farm profile bio before re-applying..."
+                class="input text-xs w-full resize-none"
+              ></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-3">
+              <button type="button" onclick="document.getElementById('reject-modal-{{ req.id }}').classList.add('hidden'); document.getElementById('reject-modal-{{ req.id }}').classList.remove('flex');" class="btn-secondary text-xs py-2 px-3">Cancel</button>
+              <button type="submit" class="btn-danger text-xs py-2 px-4 font-semibold">Confirm Rejection</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {# Revoke Modal for Farmer #}
+      {% if farmer.is_verified %}
+      <div id="revoke-modal-{{ farmer.id }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-bdr">
+          <h3 class="text-base font-display font-bold text-ink mb-1">Revoke Verification: {{ farmer.name }}</h3>
+          <p class="text-xs text-muted mb-4">This will strip the verified partner badge from this farmer and all their produce listings.</p>
+
+          <form method="POST" action="{{ url_for('admin.revoke_verification', user_id=farmer.id) }}" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div>
+              <label class="block text-xs font-semibold text-inksoft mb-1">Revocation Reason <span class="text-danger">*</span></label>
+              <textarea
+                name="reason"
+                required
+                rows="3"
+                placeholder="e.g. Repeated customer reports regarding inaccurate listing descriptions..."
+                class="input text-xs w-full resize-none"
+              ></textarea>
+            </div>
+            <div class="flex items-center justify-end gap-3">
+              <button type="button" onclick="document.getElementById('revoke-modal-{{ farmer.id }}').classList.add('hidden'); document.getElementById('revoke-modal-{{ farmer.id }}').classList.remove('flex');" class="btn-secondary text-xs py-2 px-3">Cancel</button>
+              <button type="submit" class="btn-danger text-xs py-2 px-4 font-semibold">Revoke Badge</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+    {% endfor %}
+  </div>
+
+  <div class="mt-6">
+    {{ render_pagination(pagination) }}
+  </div>
+
+{% else %}
+  <div class="card p-12 text-center bg-white border border-bdr">
+    <div class="w-12 h-12 rounded-full bg-canvas text-muted flex items-center justify-center mx-auto mb-3">
+      {{ icon('shield-check', size=24) }}
+    </div>
+    <h3 class="font-display font-bold text-ink text-base">No verification requests found</h3>
+    <p class="text-xs text-muted mt-1 max-w-sm mx-auto">
+      {% if search %}No requests matched "{{ search }}". Try clearing your search.{% else %}There are no farmer verification requests in this filter.{% endif %}
+    </p>
+  </div>
+{% endif %}
+
+{% endblock %}

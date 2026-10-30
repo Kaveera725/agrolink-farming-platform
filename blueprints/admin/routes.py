@@ -12,12 +12,30 @@ from flask_login import current_user, logout_user
 from sqlalchemy import func
 
 from extensions import db
-from models import AdminAuditLog, AdminNote, MarketPrice, Order, Product, User
+from models import AdminAuditLog, AdminNote, Crop, ListingReport, MarketPrice, Order, Product, User, VerificationRequest
+from services.notifications import notify_order_cancelled_by_admin
 from utils.decorators import roles_required
 from utils.phone import normalize_phone_number, validate_sl_phone
 from utils.security import generate_temp_password, sanitize_csv_cell
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
+
+@admin_bp.context_processor
+def admin_nav_counts():
+    """Supply real-time pending counters to admin sidebar."""
+    try:
+        pending_verifications = VerificationRequest.query.filter_by(status='pending').count()
+    except Exception:
+        pending_verifications = 0
+    try:
+        open_reports = ListingReport.query.filter(ListingReport.status.in_(['open', 'reviewing'])).count()
+    except Exception:
+        open_reports = 0
+    return {
+        'admin_pending_verifications_count': pending_verifications,
+        'admin_open_reports_count': open_reports,
+    }
+
 
 
 def _audit(action, target_type=None, target_id=None, details=None, before_data=None, after_data=None, result='success'):
@@ -81,6 +99,8 @@ def set_admin_headers(response):
 
 
 @admin_bp.route('/')
+@admin_bp.route('')
+@admin_bp.route('/dashboard')
 def dashboard():
     since = datetime.utcnow() - timedelta(days=29)
     orders = Order.query.order_by(Order.created_at.desc()).all()
@@ -514,7 +534,98 @@ def orders():
 
 @admin_bp.route('/orders/<int:order_id>')
 def order_detail(order_id):
-    return render_template('admin/order_detail.html', order=Order.query.get_or_404(order_id))
+    order = Order.query.get_or_404(order_id)
+    notes = AdminNote.query.filter_by(order_id=order.id).order_by(AdminNote.created_at.desc()).all()
+    can_cancel = order.status in ('pending', 'confirmed')
+    return render_template('admin/order_detail.html', order=order, notes=notes, can_cancel=can_cancel)
+
+
+@admin_bp.route('/orders/<int:order_id>/notes', methods=['POST'])
+def add_order_note(order_id):
+    order = Order.query.get_or_404(order_id)
+    note_text = request.form.get('note', '').strip()
+    if not note_text:
+        flash('Note cannot be empty.', 'error')
+        return redirect(url_for('admin.order_detail', order_id=order_id))
+
+    note = AdminNote(
+        order_id=order.id,
+        user_id=order.buyer_id,
+        admin_id=current_user.id,
+        note=note_text
+    )
+    db.session.add(note)
+    _audit('admin_note_added_order', 'order', order.id, f"Added internal note to order #{order.id}")
+    db.session.commit()
+    flash('Internal note saved.', 'success')
+    return redirect(url_for('admin.order_detail', order_id=order_id))
+
+
+@admin_bp.route('/orders/<int:order_id>/cancel', methods=['POST'])
+def cancel_order(order_id):
+    order = Order.query.get_or_404(order_id)
+
+    # Server-side transition validation
+    if order.status in ('delivered', 'cancelled', 'rejected'):
+        flash(f'Cannot cancel order #{order.id} because it is already {order.status}.', 'error')
+        return redirect(url_for('admin.order_detail', order_id=order_id))
+
+    reason = request.form.get('reason', '').strip()
+    if not reason or len(reason) < 5:
+        flash('A cancellation reason of at least 5 characters is mandatory.', 'error')
+        return redirect(url_for('admin.order_detail', order_id=order_id))
+
+    try:
+        # Row-level locking identical to normal order cancel flow
+        order_locked = Order.query.filter_by(id=order_id).with_for_update().populate_existing().first()
+        if not order_locked or order_locked.status in ('delivered', 'cancelled', 'rejected'):
+            flash('Order state has changed and can no longer be cancelled.', 'error')
+            return redirect(url_for('admin.order_detail', order_id=order_id))
+
+        product = Product.query.filter_by(id=order_locked.product_id).with_for_update().populate_existing().first()
+        if not product:
+            flash('Associated product record not found.', 'error')
+            return redirect(url_for('admin.order_detail', order_id=order_id))
+
+        old_status = order_locked.status
+        order_locked.status = 'cancelled'
+        order_locked.rejection_reason = f"Cancelled by admin: {reason}"
+
+        # Restore product stock under same rules
+        product.quantity_kg += order_locked.quantity_kg
+        if not product.is_deleted:
+            product.is_available = True
+
+        # Internal note documenting intervention
+        note = AdminNote(
+            order_id=order_locked.id,
+            user_id=order_locked.buyer_id,
+            admin_id=current_user.id,
+            note=f"Order cancelled by admin ({current_user.name}). Reason: {reason}"
+        )
+        db.session.add(note)
+
+        _audit(
+            'order_cancelled_by_admin', 'order', order_locked.id,
+            f"Admin cancelled order #{order_locked.id}. Reason: {reason}",
+            before_data={'status': old_status},
+            after_data={'status': 'cancelled', 'reason': reason}
+        )
+
+        db.session.commit()
+
+        # Notification hook for buyer and farmer
+        try:
+            notify_order_cancelled_by_admin(order_locked, reason, current_user)
+        except Exception:
+            pass
+
+        flash(f'Order #{order_locked.id} has been cancelled by administrator. Stock ({order_locked.quantity_kg} kg) restored.', 'success')
+        return redirect(url_for('admin.order_detail', order_id=order_id))
+    except Exception as e:
+        db.session.rollback()
+        flash('Could not cancel order due to a database lock conflict. Please retry.', 'error')
+        return redirect(url_for('admin.order_detail', order_id=order_id))
 
 
 @admin_bp.route('/prices', methods=['GET', 'POST'])
@@ -629,9 +740,193 @@ def delete_price(price_id):
     return redirect(url_for('admin.prices'))
 
 
-@admin_bp.route('/reports')
-def reports():
+@admin_bp.route('/exports')
+def exports():
     return render_template('admin/reports.html', start=request.args.get('start', ''), end=request.args.get('end', ''))
+
+
+# ─── 2. LISTING REPORTS ROUTES ──────────────────────────────────────────────
+@admin_bp.route('/reports', endpoint='reports')
+@admin_bp.route('/listing-reports', endpoint='listing_reports')
+def listing_reports():
+    status = request.args.get('status', 'open').strip().lower()
+    reason = request.args.get('reason', '').strip()
+    search = request.args.get('search', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    query = ListingReport.query.join(Product, ListingReport.product_id == Product.id).join(User, Product.farmer_id == User.id)
+
+    if status and status != 'all':
+        query = query.filter(ListingReport.status == status)
+
+    if reason:
+        query = query.filter(ListingReport.reason == reason)
+
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (Product.name.ilike(search_pattern)) |
+            (User.name.ilike(search_pattern)) |
+            (User.email.ilike(search_pattern))
+        )
+
+    query = query.order_by(ListingReport.created_at.desc())
+    pagination = query.paginate(page=page, per_page=20, error_out=False)
+
+    # Compute distinct reporters per product to flag "Needs review" (3+ distinct reporters)
+    needs_review_product_ids = set()
+    open_subq = db.session.query(
+        ListingReport.product_id,
+        func.count(func.distinct(ListingReport.reporter_id)).label('reporter_count')
+    ).filter(ListingReport.status.in_(['open', 'reviewing'])).group_by(ListingReport.product_id).all()
+
+    for pid, count in open_subq:
+        if count >= 3:
+            needs_review_product_ids.add(pid)
+
+    counts = {
+        'open': ListingReport.query.filter_by(status='open').count(),
+        'reviewing': ListingReport.query.filter_by(status='reviewing').count(),
+        'resolved': ListingReport.query.filter_by(status='resolved').count(),
+        'dismissed': ListingReport.query.filter_by(status='dismissed').count(),
+        'total': ListingReport.query.count(),
+    }
+
+    return render_template(
+        'admin/reports_queue.html',
+        reports=pagination.items,
+        pagination=pagination,
+        counts=counts,
+        status=status,
+        reason=reason,
+        search=search,
+        needs_review_product_ids=needs_review_product_ids
+    )
+
+
+@admin_bp.route('/reports/<int:report_id>')
+@admin_bp.route('/listing-reports/<int:report_id>')
+def listing_report_detail(report_id):
+    report = ListingReport.query.get_or_404(report_id)
+
+    # Automatically move from open to reviewing when opened by admin
+    if report.status == 'open':
+        report.status = 'reviewing'
+        db.session.commit()
+
+    product = report.product
+    farmer = product.farmer
+
+    # All reports on this listing
+    all_listing_reports = ListingReport.query.filter_by(product_id=product.id).order_by(ListingReport.created_at.desc()).all()
+    distinct_reporters_count = len(set(r.reporter_id for r in all_listing_reports if r.status in ('open', 'reviewing')))
+    needs_review = distinct_reporters_count >= 3
+
+    # History of earlier reports on this farmer's other listings
+    farmer_history_reports = ListingReport.query.join(Product).filter(
+        Product.farmer_id == farmer.id,
+        ListingReport.product_id != product.id
+    ).order_by(ListingReport.created_at.desc()).limit(15).all()
+
+    # Admin notes on this farmer
+    farmer_notes = AdminNote.query.filter_by(user_id=farmer.id).order_by(AdminNote.created_at.desc()).all()
+
+    return render_template(
+        'admin/report_detail.html',
+        report=report,
+        product=product,
+        farmer=farmer,
+        all_listing_reports=all_listing_reports,
+        distinct_reporters_count=distinct_reporters_count,
+        needs_review=needs_review,
+        farmer_history_reports=farmer_history_reports,
+        farmer_notes=farmer_notes
+    )
+
+
+@admin_bp.route('/reports/<int:report_id>/hide-listing', methods=['POST'])
+def hide_listing_from_report(report_id):
+    report = ListingReport.query.get_or_404(report_id)
+    product = report.product
+
+    before_data = {'is_available': product.is_available, 'hidden_reason': product.hidden_reason}
+    product.is_available = False
+    product.hidden_reason = 'moderation'
+    product.hidden_by = current_user.id
+
+    # Resolve all open/reviewing reports on this product
+    active_reports = ListingReport.query.filter(
+        ListingReport.product_id == product.id,
+        ListingReport.status.in_(['open', 'reviewing'])
+    ).all()
+
+    for r in active_reports:
+        r.status = 'resolved'
+        r.resolution_note = 'Listing hidden by administrator due to moderation'
+        r.handled_by = current_user.id
+        r.handled_at = datetime.utcnow()
+
+    _audit(
+        'listing_hidden_moderation', 'product', product.id,
+        f"Admin hid listing '{product.name}' (moderation from report #{report.id})",
+        before_data=before_data,
+        after_data={'is_available': False, 'hidden_reason': 'moderation'}
+    )
+    db.session.commit()
+    flash(f"Listing '{product.name}' hidden from marketplace. Open reports resolved.", 'success')
+    return redirect(url_for('admin.listing_report_detail', report_id=report.id))
+
+
+@admin_bp.route('/reports/<int:report_id>/dismiss', methods=['POST'])
+def dismiss_listing_report(report_id):
+    report = ListingReport.query.get_or_404(report_id)
+    report.status = 'dismissed'
+    report.handled_by = current_user.id
+    report.handled_at = datetime.utcnow()
+
+    _audit('listing_report_dismissed', 'listing_report', report.id, f"Dismissed report #{report.id} on '{report.product.name}'")
+    db.session.commit()
+    flash(f"Report #{report.id} dismissed.", 'info')
+    return redirect(url_for('admin.listing_report_detail', report_id=report.id))
+
+
+@admin_bp.route('/reports/<int:report_id>/resolve', methods=['POST'])
+def resolve_listing_report(report_id):
+    report = ListingReport.query.get_or_404(report_id)
+    note = request.form.get('resolution_note', '').strip()
+    if not note:
+        note = 'Resolved by administrator'
+
+    report.status = 'resolved'
+    report.resolution_note = note
+    report.handled_by = current_user.id
+    report.handled_at = datetime.utcnow()
+
+    _audit('listing_report_resolved', 'listing_report', report.id, f"Resolved report #{report.id}: {note}")
+    db.session.commit()
+    flash(f"Report #{report.id} marked as resolved.", 'success')
+    return redirect(url_for('admin.listing_report_detail', report_id=report.id))
+
+
+@admin_bp.route('/reports/<int:report_id>/note', methods=['POST'])
+def add_report_farmer_note(report_id):
+    report = ListingReport.query.get_or_404(report_id)
+    farmer_id = report.product.farmer_id
+    note_text = request.form.get('note', '').strip()
+    if not note_text:
+        flash('Note cannot be empty.', 'error')
+        return redirect(url_for('admin.listing_report_detail', report_id=report.id))
+
+    note = AdminNote(
+        user_id=farmer_id,
+        admin_id=current_user.id,
+        note=f"[Regarding Report #{report.id} on '{report.product.name}'] {note_text}"
+    )
+    db.session.add(note)
+    _audit('admin_note_added', 'user', farmer_id, f"Added internal admin note from report #{report.id}")
+    db.session.commit()
+    flash('Internal note added for farmer.', 'success')
+    return redirect(url_for('admin.listing_report_detail', report_id=report.id))
 
 
 @admin_bp.route('/reports/<report_type>.csv')
@@ -792,4 +1087,222 @@ def activity():
         end=request.args.get('end', ''),
         sort=sort,
         direction=direction
+    )
+
+
+# ─── 1. FARMER VERIFICATION ROUTES ──────────────────────────────────────────
+@admin_bp.route('/verifications')
+def verifications():
+    status = request.args.get('status', 'pending').strip().lower()
+    search = request.args.get('search', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    query = VerificationRequest.query.join(User, VerificationRequest.farmer_id == User.id)
+
+    if status and status != 'all':
+        query = query.filter(VerificationRequest.status == status)
+
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (User.name.ilike(search_pattern)) |
+            (User.email.ilike(search_pattern)) |
+            (User.farm_name.ilike(search_pattern))
+        )
+
+    query = query.order_by(VerificationRequest.created_at.desc())
+    pagination = query.paginate(page=page, per_page=20, error_out=False)
+
+    counts = {
+        'pending': VerificationRequest.query.filter_by(status='pending').count(),
+        'approved': VerificationRequest.query.filter_by(status='approved').count(),
+        'rejected': VerificationRequest.query.filter_by(status='rejected').count(),
+        'total': VerificationRequest.query.count(),
+    }
+
+    # Attach checklist facts to each request
+    for req in pagination.items:
+        farmer = req.farmer
+        req.has_map_pin = bool(farmer.latitude is not None and farmer.longitude is not None)
+        req.has_whatsapp = bool(farmer.whatsapp_number)
+        req.has_farm_name = bool(farmer.farm_name)
+        req.has_bio = bool(farmer.bio)
+        req.has_photo = bool(farmer.profile_image_url)
+        req.active_listings_count = farmer.active_products_count
+        req.account_age_days = (datetime.utcnow() - farmer.created_at).days if farmer.created_at else 0
+
+    return render_template(
+        'admin/verifications.html',
+        requests=pagination.items,
+        pagination=pagination,
+        counts=counts,
+        status=status,
+        search=search
+    )
+
+
+@admin_bp.route('/verifications/<int:request_id>/approve', methods=['POST'])
+def approve_verification(request_id):
+    req = VerificationRequest.query.get_or_404(request_id)
+    farmer = req.farmer
+
+    before_data = {'is_verified': farmer.is_verified, 'request_status': req.status}
+    req.status = 'approved'
+    req.decided_at = datetime.utcnow()
+    req.decided_by = current_user.id
+
+    farmer.is_verified = True
+    farmer.verified_at = datetime.utcnow()
+    farmer.verified_by = current_user.id
+
+    _audit(
+        'farmer_verification_approved', 'user', farmer.id,
+        f"Approved verification request #{req.id} for farmer {farmer.name} ({farmer.email})",
+        before_data=before_data,
+        after_data={'is_verified': True, 'request_status': 'approved'}
+    )
+    db.session.commit()
+    flash(f"Farmer '{farmer.name}' is now verified! Verified badge will be shown on listings.", 'success')
+    return redirect(url_for('admin.verifications'))
+
+
+@admin_bp.route('/verifications/<int:request_id>/reject', methods=['POST'])
+def reject_verification(request_id):
+    req = VerificationRequest.query.get_or_404(request_id)
+    farmer = req.farmer
+
+    reason = request.form.get('admin_note', '').strip()
+    if not reason:
+        flash('A rejection reason is mandatory and will be shown to the farmer.', 'error')
+        return redirect(url_for('admin.verifications'))
+
+    before_data = {'request_status': req.status}
+    req.status = 'rejected'
+    req.admin_note = reason
+    req.decided_at = datetime.utcnow()
+    req.decided_by = current_user.id
+
+    _audit(
+        'farmer_verification_rejected', 'user', farmer.id,
+        f"Rejected verification request #{req.id} for farmer {farmer.name}. Reason: {reason}",
+        before_data=before_data,
+        after_data={'request_status': 'rejected', 'reason': reason}
+    )
+    db.session.commit()
+    flash(f"Verification request #{req.id} rejected.", 'info')
+    return redirect(url_for('admin.verifications'))
+
+
+@admin_bp.route('/users/<int:user_id>/revoke-verification', methods=['POST'])
+def revoke_verification(user_id):
+    user = User.query.get_or_404(user_id)
+    if not user.is_verified:
+        flash(f"User '{user.name}' is not currently verified.", 'error')
+        return redirect(request.referrer or url_for('admin.verifications'))
+
+    reason = request.form.get('reason', '').strip()
+    if not reason:
+        flash('A reason for revoking verification is mandatory.', 'error')
+        return redirect(request.referrer or url_for('admin.verifications'))
+
+    before_data = {'is_verified': True}
+    user.is_verified = False
+    user.verified_at = None
+    user.verified_by = None
+
+    note = AdminNote(
+        user_id=user.id,
+        admin_id=current_user.id,
+        note=f"Farmer verification revoked by administrator ({current_user.name}). Reason: {reason}"
+    )
+    db.session.add(note)
+
+    _audit(
+        'farmer_verification_revoked', 'user', user.id,
+        f"Revoked verification for farmer {user.name}. Reason: {reason}",
+        before_data=before_data,
+        after_data={'is_verified': False, 'reason': reason}
+    )
+    db.session.commit()
+    flash(f"Verification revoked for '{user.name}'.", 'warning')
+    return redirect(request.referrer or url_for('admin.verifications'))
+
+
+# ─── 4. CROPS OVERVIEW ROUTE (READ-ONLY) ────────────────────────────────────
+@admin_bp.route('/crops')
+def crops():
+    status = request.args.get('status', 'all').strip().lower()
+    district = request.args.get('district', '').strip()
+    category = request.args.get('category', '').strip()
+    harvest_due = request.args.get('harvest_due', '').strip()
+    search = request.args.get('search', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    query = Crop.query.join(User, Crop.farmer_id == User.id)
+
+    today = datetime.utcnow().date()
+    in_14_days = today + timedelta(days=14)
+
+    if status and status != 'all':
+        query = query.filter(Crop.status == status)
+
+    if district:
+        query = query.filter(
+            (User.location.ilike(f"%{district}%")) |
+            (Crop.field_location.ilike(f"%{district}%"))
+        )
+
+    if category:
+        query = query.filter(Crop.crop_type.ilike(f"%{category}%"))
+
+    if harvest_due == '1':
+        query = query.filter(Crop.expected_harvest_date >= today, Crop.expected_harvest_date <= in_14_days)
+
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (Crop.crop_name.ilike(search_pattern)) |
+            (User.name.ilike(search_pattern))
+        )
+
+    # Sort by expected harvest date ascending
+    query = query.order_by(Crop.expected_harvest_date.asc())
+    pagination = query.paginate(page=page, per_page=20, error_out=False)
+
+    # Summary cards calculations across entire crops table
+    total_qty_scalar = db.session.query(func.coalesce(func.sum(Crop.quantity_kg), 0)).scalar()
+    growing_qty_scalar = db.session.query(func.coalesce(func.sum(Crop.quantity_kg), 0)).filter(Crop.status == 'growing').scalar()
+    ready_qty_scalar = db.session.query(func.coalesce(func.sum(Crop.quantity_kg), 0)).filter(Crop.status == 'ready').scalar()
+    due_14_qty_scalar = db.session.query(func.coalesce(func.sum(Crop.quantity_kg), 0)).filter(
+        Crop.expected_harvest_date >= today,
+        Crop.expected_harvest_date <= in_14_days
+    ).scalar()
+
+    # Total expected quantity by crop (top 5 crops by quantity)
+    crop_breakdown = db.session.query(
+        Crop.crop_name,
+        func.sum(Crop.quantity_kg).label('total_kg')
+    ).group_by(Crop.crop_name).order_by(func.sum(Crop.quantity_kg).desc()).limit(5).all()
+
+    # Get available crop categories and districts for filter dropdowns
+    categories = [r[0] for r in db.session.query(Crop.crop_type).distinct().order_by(Crop.crop_type).all() if r[0]]
+    districts = [r[0] for r in db.session.query(User.location).filter(User.role == 'farmer').distinct().order_by(User.location).all() if r[0]]
+
+    return render_template(
+        'admin/crops.html',
+        crops=pagination.items,
+        pagination=pagination,
+        status=status,
+        district=district,
+        category=category,
+        harvest_due=harvest_due,
+        search=search,
+        total_qty=total_qty_scalar,
+        growing_qty=growing_qty_scalar,
+        ready_qty=ready_qty_scalar,
+        due_14_qty=due_14_qty_scalar,
+        crop_breakdown=crop_breakdown,
+        categories=categories,
+        districts=districts,
+        today=today
     )

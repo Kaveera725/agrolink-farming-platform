@@ -738,8 +738,8 @@
           <a href="{{ url_for('prices.index') }}"
              class="nav-link {% if request.blueprint == 'prices' %}nav-link-active{% endif %}">Market Prices</a>
           {% if current_user.is_authenticated %}
-          <a href="{{ url_for('dashboard.index') }}"
-             class="nav-link {% if request.blueprint == 'dashboard' %}nav-link-active{% endif %}">Dashboard</a>
+          <a href="{{ url_for('admin.dashboard') if current_user.role == 'admin' else url_for('dashboard.index') }}"
+             class="nav-link {% if request.blueprint in ('dashboard', 'admin') %}nav-link-active{% endif %}">Dashboard</a>
           <a href="{{ url_for('orders.index') }}"
              class="nav-link {% if request.blueprint == 'orders' %}nav-link-active{% endif %}">Orders</a>
           {% endif %}

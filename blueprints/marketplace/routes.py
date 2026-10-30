@@ -2,7 +2,8 @@ import math
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db
-from models import Product, User, MarketPrice
+from datetime import datetime, timedelta
+from models import Product, User, MarketPrice, ListingReport
 from utils.decorators import roles_required
 from utils.uploads import save_uploaded_image, delete_uploaded_image
 from blueprints.profile.routes import SRI_LANKAN_DISTRICTS
@@ -172,6 +173,7 @@ def index():
 
 
 @marketplace_bp.route('/product/<int:product_id>')
+@marketplace_bp.route('/<int:product_id>')
 def product_detail(product_id):
     # BUG-008: Hide deleted products from product detail view
     product = Product.query.filter_by(id=product_id, is_deleted=False).first_or_404()
@@ -222,6 +224,62 @@ def product_detail(product_id):
                 pass
 
     return render_template('marketplace/product_detail.html', product=product, related=related)
+
+@marketplace_bp.route('/product/<int:product_id>/report', methods=['POST'])
+@marketplace_bp.route('/<int:product_id>/report', methods=['POST'])
+@login_required
+def report_product(product_id):
+    product = Product.query.filter_by(id=product_id, is_deleted=False).first_or_404()
+
+    # Rule 1: Cannot report own listing
+    if product.farmer_id == current_user.id:
+        flash('You cannot report your own listing.', 'error')
+        return redirect(url_for('marketplace.product_detail', product_id=product_id))
+
+    # Rule 2: One open report per user per listing
+    existing_report = ListingReport.query.filter_by(
+        product_id=product.id,
+        reporter_id=current_user.id
+    ).filter(ListingReport.status.in_(['open', 'reviewing'])).first()
+
+    if existing_report:
+        flash('You already have an open report pending review for this listing.', 'warning')
+        return redirect(url_for('marketplace.product_detail', product_id=product_id))
+
+    # Rule 3: Rate limited (~5 per hour per user)
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    recent_reports_count = ListingReport.query.filter(
+        ListingReport.reporter_id == current_user.id,
+        ListingReport.created_at >= one_hour_ago
+    ).count()
+
+    if recent_reports_count >= 5:
+        flash('You have reached the maximum number of reports allowed per hour (5). Please try again later.', 'error')
+        return redirect(url_for('marketplace.product_detail', product_id=product_id))
+
+    reason = request.form.get('reason', '').strip()
+    valid_reasons = ['misleading_price', 'wrong_or_fake_photo', 'prohibited_item', 'spam', 'other']
+    if reason not in valid_reasons:
+        flash('Please select a valid reason for reporting.', 'error')
+        return redirect(url_for('marketplace.product_detail', product_id=product_id))
+
+    details = request.form.get('details', '').strip()
+    if len(details) > 500:
+        details = details[:500]
+
+    report = ListingReport(
+        product_id=product.id,
+        reporter_id=current_user.id,
+        reason=reason,
+        details=details if details else None,
+        status='open'
+    )
+    db.session.add(report)
+    db.session.commit()
+
+    flash('Thank you for reporting this listing. Our moderation team has been notified.', 'success')
+    return redirect(url_for('marketplace.product_detail', product_id=product_id))
+
 
 
 def _render_product_form(product=None):
