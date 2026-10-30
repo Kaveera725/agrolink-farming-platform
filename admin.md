@@ -5,7 +5,7 @@
 The current administrator signs in with:
 
 - **Email:** `admin@agrolink.lk`
-- **Password:** `admin123`
+- **Password:** Configured securely during provisioning (never documented in plaintext)
 - **Role:** `admin`
 - **Status:** Active
 

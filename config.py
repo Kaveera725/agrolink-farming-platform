@@ -39,10 +39,12 @@ class Config:
     MAX_DELIVERY_KM = MAX_DELIVERY_KM
     ROUTE_FALLBACK_FACTOR = ROUTE_FALLBACK_FACTOR
     ROUTES_API_TIMEOUT_SECONDS = ROUTES_API_TIMEOUT_SECONDS
+    ADMIN_SESSION_TIMEOUT_MINUTES = int(os.getenv('ADMIN_SESSION_TIMEOUT_MINUTES', '30'))
 
     @classmethod
     def init_app(cls, app):
         """Read and refresh environment values dynamically at app creation time."""
+        app.config['ADMIN_SESSION_TIMEOUT_MINUTES'] = int(os.getenv('ADMIN_SESSION_TIMEOUT_MINUTES', '30'))
         app.config['GOOGLE_MAPS_BROWSER_KEY'] = os.getenv('GOOGLE_MAPS_BROWSER_KEY', '').strip()
         app.config['GOOGLE_MAPS_MAP_ID'] = os.getenv('GOOGLE_MAPS_MAP_ID', '').strip()
         app.config['DELIVERY_BASE_FEE'] = Decimal(os.getenv("DELIVERY_BASE_FEE", "5000"))

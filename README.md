@@ -73,7 +73,7 @@ The `agrolink_database_backup_file.sql` script is pre-configured with statements
    ```
    Then execute:
    ```sql
-   CREATE USER agrolink_db_user WITH PASSWORD 'agrolink_db_user_password';
+   CREATE USER agrolink_db_user WITH PASSWORD '<DB_PASSWORD>';
    GRANT ALL PRIVILEGES ON DATABASE agrolink_db TO agrolink_db_user;
    GRANT ALL ON ALL TABLES IN SCHEMA public TO agrolink_db_user;
    GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO agrolink_db_user;
@@ -120,7 +120,7 @@ Ensure `.env` matches your local database credentials:
 FLASK_APP=app.py
 FLASK_ENV=development
 SECRET_KEY=agrolink-super-secret-key-2024
-DATABASE_URL=postgresql://agrolink_db_user:agrolink_db_user_password@localhost:5432/agrolink_db
+DATABASE_URL=postgresql://agrolink_db_user:<DB_PASSWORD>@localhost:5432/agrolink_db
 ```
 
 ### If connecting directly with your `postgres` superuser:
@@ -358,11 +358,11 @@ AgroLink features three primary user roles:
 - **Admin**: System management and administrative access.
 
 ### Demo / Default Accounts:
-| Role | Name | Email | Password |
+| Role | Name | Email | Password Status |
 | :--- | :--- | :--- | :--- |
-| **Farmer** | Nimal Perera | `nimal@agrolink.lk` | `password123` |
-| **Farmer** | Sunil Fernando | `sunil@agrolink.lk` | `password123` |
-| **Buyer** | Kamani Silva | `kamani@agrolink.lk` | `password123` |
+| **Farmer** | Nimal Perera | `nimal@agrolink.lk` | Configured securely in seed / reset via admin |
+| **Farmer** | Sunil Fernando | `sunil@agrolink.lk` | Configured securely in seed / reset via admin |
+| **Buyer** | Kamani Silva | `kamani@agrolink.lk` | Configured securely in seed / reset via admin |
 
 ### Key Routes:
 - `/` - Landing home page

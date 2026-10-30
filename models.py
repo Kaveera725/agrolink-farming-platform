@@ -2,12 +2,17 @@ from extensions import db, login_manager
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from sqlalchemy.dialects import postgresql
 
 
 @login_manager.user_loader
 def load_user(user_id):
     user = User.query.get(int(user_id))
     if user and not getattr(user, 'is_active', True):
+        return None
+    from flask import session
+    session_v = session.get('session_version')
+    if user and session_v is not None and session_v != getattr(user, 'session_version', 1):
         return None
     return user
 
@@ -30,6 +35,9 @@ class User(UserMixin, db.Model):
     address_text = db.Column(db.String(255), nullable=True)
     location_updated_at = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    must_change_password = db.Column(db.Boolean, default=False, nullable=False)
+    session_version = db.Column(db.Integer, default=1, nullable=False)
+    last_login_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     crops = db.relationship('Crop', backref='farmer', lazy=True)
@@ -86,10 +94,13 @@ class Product(db.Model):
     image_url = db.Column(db.String(255))
     is_available = db.Column(db.Boolean, default=True)
     is_deleted = db.Column(db.Boolean, default=False, nullable=False)
+    hidden_reason = db.Column(db.String(30), nullable=True)
+    hidden_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     offers_delivery = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     orders = db.relationship('Order', backref='product', lazy=True)
+    hidden_by_user = db.relationship('User', foreign_keys=[hidden_by], lazy=True)
 
     @property
     def display_image_url(self):
@@ -167,11 +178,31 @@ class MarketPrice(db.Model):
 class AdminAuditLog(db.Model):
     __tablename__ = 'admin_audit_log'
     id = db.Column(db.Integer, primary_key=True)
-    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     action = db.Column(db.String(80), nullable=False)
     target_type = db.Column(db.String(40), nullable=True)
     target_id = db.Column(db.Integer, nullable=True)
     details = db.Column(db.Text, nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    user_agent = db.Column(db.String(255), nullable=True)
+    before_data = db.Column(db.JSON().with_variant(postgresql.JSONB, 'postgresql'), nullable=True)
+    after_data = db.Column(db.JSON().with_variant(postgresql.JSONB, 'postgresql'), nullable=True)
+    result = db.Column(db.String(20), default='success', nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    admin = db.relationship('User', backref=db.backref('admin_actions', lazy=True))
+    admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('admin_actions', lazy=True))
+
+
+class AdminNote(db.Model):
+    __tablename__ = 'admin_notes'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    admin_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    note = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('notes_written', lazy=True))
+    user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('admin_notes', lazy=True, order_by='AdminNote.created_at.desc()'))
+
+    def __repr__(self):
+        return f'<AdminNote {self.id} for User {self.user_id}>'

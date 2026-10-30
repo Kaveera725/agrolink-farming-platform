@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, flash
 from pathlib import Path
 from dotenv import load_dotenv
 import os
@@ -130,6 +130,19 @@ def create_app(debug=None):
         db.session.rollback()
         return render_template('errors/500.html'), 500
 
+    # Must change password enforcement before every request
+    @app.before_request
+    def enforce_must_change_password():
+        from flask_login import current_user
+        if current_user.is_authenticated and getattr(current_user, 'must_change_password', False):
+            endpoint = request.endpoint or ''
+            allowed_endpoints = {'profile.password', 'auth.logout', 'static'}
+            if endpoint not in allowed_endpoints and not endpoint.startswith('static') and not request.path.startswith('/static/'):
+                if request.is_json or request.path.endswith('/quote'):
+                    return {'error': 'Password change required.'}, 403
+                flash('You must change your password before continuing.', 'warning')
+                return redirect(url_for('profile.password'))
+
     # Import Blueprints
     from blueprints.auth.routes import auth_bp
     from blueprints.dashboard.routes import dashboard_bp
@@ -173,6 +186,7 @@ def create_app(debug=None):
         from models import User
         from email_validator import validate_email, EmailNotValidError
         from utils.phone import normalize_phone_number
+        from utils.security import validate_admin_password
 
         email = click.prompt("Admin Email", type=str).strip().lower()
         try:
@@ -193,9 +207,10 @@ def create_app(debug=None):
         if phone_input:
             whatsapp = normalize_phone_number(phone_input) or phone_input
 
-        password = click.prompt("Password (min 8 chars)", hide_input=True, confirmation_prompt=True)
-        if len(password) < 8:
-            click.echo("Error: Password must be at least 8 characters long.", err=True)
+        password = click.prompt("Admin Password (min 10 chars)", hide_input=True, confirmation_prompt=True)
+        is_valid, err_msg = validate_admin_password(password, email=email, name=name)
+        if not is_valid:
+            click.echo(f"Error: {err_msg}", err=True)
             return
 
         admin = User(
@@ -204,7 +219,9 @@ def create_app(debug=None):
             role='admin',
             phone=phone_input or None,
             whatsapp_number=whatsapp,
-            is_active=True
+            is_active=True,
+            must_change_password=False,
+            session_version=1
         )
         admin.set_password(password)
         db.session.add(admin)
