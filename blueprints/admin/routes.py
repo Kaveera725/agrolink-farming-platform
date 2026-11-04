@@ -12,7 +12,11 @@ from flask_login import current_user, logout_user
 from sqlalchemy import func
 
 from extensions import db
-from models import AdminAuditLog, AdminNote, Crop, ListingReport, MarketPrice, Order, Product, User, VerificationRequest
+from models import AdminAuditLog, AdminNote, Crop, ListingReport, MarketPrice, MarketPriceHistory, Order, PlatformSetting, Product, User, VerificationRequest
+from services.settings import (
+    SETTINGS_SCHEMA, get_setting, set_setting, clear_settings_cache,
+    reset_settings_to_defaults, validate_setting
+)
 from services.notifications import notify_order_cancelled_by_admin
 from utils.decorators import roles_required
 from utils.phone import normalize_phone_number, validate_sl_phone
@@ -123,6 +127,10 @@ def dashboard():
     }
     status_counts = Counter(order.status for order in orders)
     registrations = User.query.order_by(User.created_at.desc()).limit(8).all()
+    stale_days = get_setting('stale_price_days', default=7)
+    stale_cutoff = datetime.utcnow() - timedelta(days=stale_days)
+    stale_prices = MarketPrice.query.filter(MarketPrice.updated_at < stale_cutoff).order_by(MarketPrice.updated_at.asc()).all()
+
     return render_template(
         'admin/dashboard.html',
         totals=totals,
@@ -130,7 +138,9 @@ def dashboard():
         recent_orders=orders[:8],
         registrations=registrations,
         chart_labels=chart_labels,
-        chart_values=chart_values
+        chart_values=chart_values,
+        stale_prices=stale_prices,
+        stale_days=stale_days
     )
 
 
@@ -628,12 +638,29 @@ def cancel_order(order_id):
         return redirect(url_for('admin.order_detail', order_id=order_id))
 
 
+def _sanitize_csv_cell_import(val):
+    if not val:
+        return ''
+    s = str(val).strip()
+    if s.startswith(('=', '+', '-', '@', '\t', '\r')):
+        try:
+            float(s)
+        except ValueError:
+            s = s.lstrip('=+@- \t\r\n')
+    return s
+
+
 @admin_bp.route('/prices', methods=['GET', 'POST'])
 def prices():
     editing = None
     edit_id = request.args.get('edit', type=int)
+    require_confirm = request.args.get('require_confirm') == '1'
     if edit_id:
         editing = MarketPrice.query.get_or_404(edit_id)
+
+    stale_days = get_setting('stale_price_days', default=7)
+    stale_cutoff = datetime.utcnow() - timedelta(days=stale_days)
+    stale_prices = MarketPrice.query.filter(MarketPrice.updated_at < stale_cutoff).order_by(MarketPrice.updated_at.asc()).all()
 
     if request.method == 'POST':
         try:
@@ -647,6 +674,36 @@ def prices():
 
         price = MarketPrice.query.get(request.form.get('id', type=int)) if request.form.get('id') else MarketPrice()
         is_new = price.id is None
+        old_buying = price.buying_price if not is_new else None
+        old_selling = price.selling_price if not is_new else None
+
+        # Typo guard: if updating existing price and change exceeds 30%, require confirmation
+        if not is_new and old_buying and old_selling:
+            buying_diff = abs(buying - old_buying) / old_buying
+            selling_diff = abs(selling - old_selling) / old_selling
+            confirmed = request.form.get('confirm_large_change') in ('yes', '1', 'true', 'on')
+            if (buying_diff > 0.30 or selling_diff > 0.30) and not confirmed:
+                flash(
+                    f'Warning: Price change exceeds 30% (buying changed {buying_diff*100:.1f}%, selling changed {selling_diff*100:.1f}%). Please confirm to apply this change.',
+                    'warning'
+                )
+                query = MarketPrice.query.order_by(MarketPrice.crop_name.asc())
+                pagination = query.paginate(page=1, per_page=20, error_out=False)
+                return render_template(
+                    'admin/prices.html',
+                    pagination=pagination,
+                    prices=pagination.items,
+                    editing=price,
+                    stale_prices=stale_prices,
+                    stale_days=stale_days,
+                    require_confirm=True,
+                    pending_buying=buying,
+                    pending_selling=selling,
+                    search='',
+                    sort='crop_name',
+                    direction='asc'
+                )
+
         before_data = {
             'crop_name': price.crop_name,
             'category': price.category,
@@ -662,6 +719,7 @@ def prices():
         price.selling_price = selling
         price.unit = request.form.get('unit', 'per kg').strip() or 'per kg'
         price.market_location = request.form.get('market_location', 'Colombo').strip() or 'Colombo'
+        price.updated_at = datetime.utcnow()
 
         if not price.crop_name or not price.category:
             flash('Crop name and category are required.', 'error')
@@ -669,6 +727,19 @@ def prices():
 
         db.session.add(price)
         db.session.flush()
+
+        # Write history row inside the same transaction
+        history_entry = MarketPriceHistory(
+            market_price_id=price.id,
+            old_buying=old_buying,
+            old_selling=old_selling,
+            new_buying=price.buying_price,
+            new_selling=price.selling_price,
+            changed_by=current_user.id if current_user.is_authenticated else None,
+            changed_at=datetime.utcnow(),
+            source='manual'
+        )
+        db.session.add(history_entry)
 
         after_data = {
             'crop_name': price.crop_name,
@@ -719,10 +790,295 @@ def prices():
         pagination=pagination,
         prices=pagination.items,
         editing=editing,
+        stale_prices=stale_prices,
+        stale_days=stale_days,
+        require_confirm=require_confirm,
         search=search,
         sort=sort,
         direction=direction
     )
+
+
+@admin_bp.route('/prices/<int:price_id>', endpoint='price_detail')
+def price_detail(price_id):
+    price = MarketPrice.query.get_or_404(price_id)
+    history = MarketPriceHistory.query.filter_by(market_price_id=price.id).order_by(MarketPriceHistory.changed_at.desc()).all()
+
+    cutoff_90 = datetime.utcnow() - timedelta(days=90)
+    chart_points = [h for h in reversed(history) if h.changed_at >= cutoff_90]
+    if len(chart_points) < 2 and history:
+        chart_points = list(reversed(history))
+
+    if not chart_points:
+        pt_date = price.updated_at or datetime.utcnow()
+        chart_labels = [pt_date.strftime('%b %d %H:%M')]
+        chart_buying = [round(price.buying_price, 2)]
+        chart_selling = [round(price.selling_price, 2)]
+    else:
+        chart_labels = [h.changed_at.strftime('%b %d %H:%M') for h in chart_points]
+        chart_buying = [round(h.new_buying, 2) for h in chart_points]
+        chart_selling = [round(h.new_selling, 2) for h in chart_points]
+
+    return render_template(
+        'admin/price_detail.html',
+        price=price,
+        history=history,
+        chart_labels=chart_labels,
+        chart_buying=chart_buying,
+        chart_selling=chart_selling
+    )
+
+
+@admin_bp.route('/prices/import/template', endpoint='import_prices_template')
+def import_prices_template():
+    csv_content = (
+        "crop_name,category,buying_price,selling_price,unit,market_location\n"
+        "Tomato,Vegetables,85.00,120.00,per kg,Colombo\n"
+        "Carrot,Vegetables,60.00,95.00,per kg,Colombo\n"
+        "Red Onion,Vegetables,220.00,280.00,per kg,Dambulla\n"
+    )
+    return Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=market_prices_template.csv"}
+    )
+
+
+@admin_bp.route('/prices/import', endpoint='import_prices', methods=['GET', 'POST'])
+def import_prices():
+    if request.method == 'GET':
+        return render_template('admin/prices_import.html', preview=None)
+
+    file = request.files.get('file')
+    if not file or not file.filename:
+        flash('Please select a CSV file to upload.', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    if not file.filename.lower().endswith('.csv'):
+        flash('Only CSV files (.csv) are supported.', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    content_bytes = file.read()
+    if len(content_bytes) > 1 * 1024 * 1024:
+        flash('File size exceeds 1 MB limit.', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    try:
+        text_content = content_bytes.decode('utf-8')
+    except UnicodeDecodeError:
+        flash('File encoding must be UTF-8.', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    reader = csv.DictReader(io.StringIO(text_content))
+    fieldnames = [f.strip().lower() for f in (reader.fieldnames or [])]
+    required_cols = {'crop_name', 'category', 'buying_price', 'selling_price'}
+    if not required_cols.issubset(set(fieldnames)):
+        missing = required_cols - set(fieldnames)
+        flash(f'Missing required CSV columns: {", ".join(missing)}', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    rows = list(reader)
+    if len(rows) > 500:
+        flash('CSV contains more than 500 rows (maximum allowed is 500).', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    all_prices = MarketPrice.query.all()
+    price_map = {p.crop_name.strip().lower(): p for p in all_prices}
+
+    preview_rows = []
+    counts = {'new': 0, 'update': 0, 'unchanged': 0, 'invalid': 0}
+
+    for idx, row in enumerate(rows, start=1):
+        crop_name = _sanitize_csv_cell_import(row.get('crop_name', ''))
+        category = _sanitize_csv_cell_import(row.get('category', ''))
+        unit = _sanitize_csv_cell_import(row.get('unit', '')) or 'per kg'
+        location = _sanitize_csv_cell_import(row.get('market_location', '')) or 'Colombo'
+        raw_buying = row.get('buying_price', '')
+        raw_selling = row.get('selling_price', '')
+
+        row_info = {
+            'line': idx,
+            'crop_name': crop_name,
+            'category': category,
+            'unit': unit,
+            'market_location': location,
+            'raw_buying': raw_buying,
+            'raw_selling': raw_selling,
+            'buying_price': None,
+            'selling_price': None,
+            'status': 'invalid',
+            'reason': None,
+            'warning_30': False,
+            'existing_buying': None,
+            'existing_selling': None
+        }
+
+        if not crop_name or not category:
+            row_info['reason'] = 'Missing crop name or category'
+            counts['invalid'] += 1
+            preview_rows.append(row_info)
+            continue
+
+        try:
+            b_val = float(raw_buying)
+            s_val = float(raw_selling)
+            if b_val <= 0:
+                row_info['reason'] = 'Buying price must be positive (> 0)'
+                counts['invalid'] += 1
+                preview_rows.append(row_info)
+                continue
+            if s_val < b_val:
+                row_info['reason'] = 'Selling price must be >= buying price'
+                counts['invalid'] += 1
+                preview_rows.append(row_info)
+                continue
+            row_info['buying_price'] = b_val
+            row_info['selling_price'] = s_val
+        except (ValueError, TypeError):
+            row_info['reason'] = 'Prices must be valid numbers'
+            counts['invalid'] += 1
+            preview_rows.append(row_info)
+            continue
+
+        existing = price_map.get(crop_name.lower())
+        if not existing:
+            row_info['status'] = 'new'
+            counts['new'] += 1
+        else:
+            row_info['existing_buying'] = existing.buying_price
+            row_info['existing_selling'] = existing.selling_price
+            if (round(existing.buying_price, 2) == round(b_val, 2) and
+                round(existing.selling_price, 2) == round(s_val, 2) and
+                existing.category == category and
+                existing.market_location == location):
+                row_info['status'] = 'unchanged'
+                counts['unchanged'] += 1
+            else:
+                row_info['status'] = 'update'
+                counts['update'] += 1
+                b_diff = abs(b_val - existing.buying_price) / existing.buying_price if existing.buying_price else 0
+                s_diff = abs(s_val - existing.selling_price) / existing.selling_price if existing.selling_price else 0
+                if b_diff > 0.30 or s_diff > 0.30:
+                    row_info['warning_30'] = True
+                    row_info['reason'] = f'Price change > 30% (buying changed {b_diff*100:.0f}%, selling changed {s_diff*100:.0f}%)'
+
+        preview_rows.append(row_info)
+
+    import json
+    return render_template(
+        'admin/prices_import.html',
+        preview=preview_rows,
+        counts=counts,
+        filename=file.filename,
+        payload_json=json.dumps(preview_rows)
+    )
+
+
+@admin_bp.route('/prices/import/confirm', endpoint='confirm_import_prices', methods=['POST'])
+def confirm_import_prices():
+    import json
+    payload_raw = request.form.get('import_payload', '')
+    filename = request.form.get('filename', 'uploaded.csv')
+    if not payload_raw:
+        flash('No import data provided.', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    try:
+        rows = json.loads(payload_raw)
+    except Exception:
+        flash('Invalid import payload.', 'error')
+        return redirect(url_for('admin.import_prices'))
+
+    applied_new = 0
+    applied_update = 0
+    unchanged_count = 0
+    skipped_invalid = 0
+
+    try:
+        with db.session.begin_nested():
+            for row in rows:
+                status = row.get('status')
+                if status == 'invalid':
+                    skipped_invalid += 1
+                    continue
+                elif status == 'unchanged':
+                    unchanged_count += 1
+                    continue
+
+                crop_name = _sanitize_csv_cell_import(row.get('crop_name', ''))
+                category = _sanitize_csv_cell_import(row.get('category', ''))
+                unit = _sanitize_csv_cell_import(row.get('unit', '')) or 'per kg'
+                location = _sanitize_csv_cell_import(row.get('market_location', '')) or 'Colombo'
+                buying = float(row['buying_price'])
+                selling = float(row['selling_price'])
+
+                price = MarketPrice.query.filter(func.lower(MarketPrice.crop_name) == crop_name.lower()).first()
+                if not price:
+                    price = MarketPrice(
+                        crop_name=crop_name,
+                        category=category,
+                        buying_price=buying,
+                        selling_price=selling,
+                        unit=unit,
+                        market_location=location,
+                        updated_at=datetime.utcnow()
+                    )
+                    db.session.add(price)
+                    db.session.flush()
+
+                    history = MarketPriceHistory(
+                        market_price_id=price.id,
+                        old_buying=None,
+                        old_selling=None,
+                        new_buying=buying,
+                        new_selling=selling,
+                        changed_by=current_user.id if current_user.is_authenticated else None,
+                        changed_at=datetime.utcnow(),
+                        source='import'
+                    )
+                    db.session.add(history)
+                    applied_new += 1
+                else:
+                    old_b = price.buying_price
+                    old_s = price.selling_price
+                    price.crop_name = crop_name
+                    price.category = category
+                    price.buying_price = buying
+                    price.selling_price = selling
+                    price.unit = unit
+                    price.market_location = location
+                    price.updated_at = datetime.utcnow()
+
+                    history = MarketPriceHistory(
+                        market_price_id=price.id,
+                        old_buying=old_b,
+                        old_selling=old_s,
+                        new_buying=buying,
+                        new_selling=selling,
+                        changed_by=current_user.id if current_user.is_authenticated else None,
+                        changed_at=datetime.utcnow(),
+                        source='import'
+                    )
+                    db.session.add(history)
+                    applied_update += 1
+
+            _audit(
+                action='market_prices_imported',
+                target_type='market_prices',
+                details=f"Imported {applied_new + applied_update} prices ({applied_new} new, {applied_update} updated, {unchanged_count} unchanged, {skipped_invalid} invalid skipped) from {filename}",
+                after_data={'new': applied_new, 'updated': applied_update, 'unchanged': unchanged_count, 'skipped': skipped_invalid, 'filename': filename}
+            )
+
+        db.session.commit()
+        flash(
+            f"Successfully applied bulk import: {applied_new} new, {applied_update} updated. {skipped_invalid} invalid rows skipped.",
+            'success'
+        )
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Import failed and was rolled back: {exc}', 'error')
+
+    return redirect(url_for('admin.prices'))
 
 
 @admin_bp.route('/prices/<int:price_id>/delete', methods=['POST'])
@@ -738,6 +1094,89 @@ def delete_price(price_id):
     db.session.commit()
     flash('Market price deleted.', 'success')
     return redirect(url_for('admin.prices'))
+
+
+@admin_bp.route('/settings', endpoint='settings', methods=['GET', 'POST'])
+@admin_bp.route('/settings/platform', endpoint='platform_settings', methods=['GET', 'POST'])
+def platform_settings():
+    if request.method == 'POST':
+        before_data = {}
+        after_data = {}
+        errors = []
+
+        for key, schema in SETTINGS_SCHEMA.items():
+            curr_val = get_setting(key)
+            before_data[key] = str(curr_val) if curr_val is not None else ''
+
+            if schema.get('type') == 'bool':
+                new_val = 'true' if request.form.get(key) in ('1', 'true', 'on', 'yes') else 'false'
+            else:
+                new_val = request.form.get(key, '').strip()
+
+            try:
+                val_str, val_type = validate_setting(key, new_val)
+                after_data[key] = val_str
+            except ValueError as e:
+                errors.append(str(e))
+
+        if errors:
+            for err in errors:
+                flash(err, 'error')
+            return redirect(url_for('admin.settings'))
+
+        changed_keys = []
+        for key in SETTINGS_SCHEMA.keys():
+            if before_data.get(key) != after_data.get(key):
+                set_setting(key, after_data[key], user_id=current_user.id)
+                changed_keys.append(key)
+
+        if changed_keys:
+            _audit(
+                action='settings_updated',
+                target_type='platform_settings',
+                details=f"Updated platform settings: {', '.join(changed_keys)}",
+                before_data={k: before_data[k] for k in changed_keys},
+                after_data={k: after_data[k] for k in changed_keys}
+            )
+            db.session.commit()
+            clear_settings_cache()
+            flash('Platform settings updated successfully.', 'success')
+        else:
+            flash('No settings changes were made.', 'info')
+
+        return redirect(url_for('admin.settings'))
+
+    grouped_settings = {}
+    for key, schema in SETTINGS_SCHEMA.items():
+        cat = schema.get('category', 'General')
+        if cat not in grouped_settings:
+            grouped_settings[cat] = []
+        curr_val = get_setting(key)
+        def_val = schema.get('default')
+        grouped_settings[cat].append({
+            'key': key,
+            'schema': schema,
+            'current_value': curr_val,
+            'default_value': def_val,
+        })
+
+    return render_template('admin/settings.html', grouped_settings=grouped_settings)
+
+
+@admin_bp.route('/settings/reset', endpoint='settings_reset', methods=['POST'])
+def reset_platform_settings():
+    before_data = {row.key: row.value for row in PlatformSetting.query.all()}
+    PlatformSetting.query.delete()
+    _audit(
+        action='settings_reset',
+        target_type='platform_settings',
+        details='Reset all platform settings to system defaults',
+        before_data=before_data
+    )
+    db.session.commit()
+    clear_settings_cache()
+    flash('Platform settings have been reset to defaults.', 'success')
+    return redirect(url_for('admin.settings'))
 
 
 @admin_bp.route('/exports')

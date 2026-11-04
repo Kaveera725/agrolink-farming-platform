@@ -175,9 +175,14 @@
                 {% endif %}
               </p>
               {% if delivery_available %}
-                <span class="inline-block text-[11px] font-semibold text-leaf-dark bg-leaf-pale px-2 py-0.5 rounded">
-                  Live quote by distance
-                </span>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="inline-block text-[11px] font-semibold text-leaf-dark bg-leaf-pale px-2 py-0.5 rounded">
+                    Live quote by distance
+                  </span>
+                  <span class="text-[11px] text-muted">
+                    (Base: Rs. {{ "{:,.0f}".format(get_setting('delivery_base_fee', config['DELIVERY_BASE_FEE'])) }} up to {{ "{:,.0f}".format(get_setting('delivery_base_km', config['DELIVERY_BASE_KM'])) }} km + Rs. {{ "{:,.0f}".format(get_setting('delivery_extra_per_km', config['DELIVERY_EXTRA_PER_KM'])) }}/extra km)
+                  </span>
+                </div>
               {% else %}
                 <span class="inline-block text-[11px] font-semibold text-muted bg-gray-200 px-2 py-0.5 rounded">
                   Delivery unavailable
