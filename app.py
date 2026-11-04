@@ -53,7 +53,9 @@ def create_app(debug=None):
     from utils.geo import time_ago
     app.jinja_env.filters['time_ago'] = time_ago
 
-    # Expose only safe Google Maps credentials and status to templates
+    from services.settings import get_setting, get_active_announcement
+
+    # Expose safe Google Maps credentials, platform settings and announcement banner
     @app.context_processor
     def inject_maps_config():
         browser_key = app.config.get('GOOGLE_MAPS_BROWSER_KEY', '').strip()
@@ -64,6 +66,8 @@ def create_app(debug=None):
             'maps_browser_key': browser_key if maps_enabled else '',
             'maps_map_id': map_id if maps_enabled else '',
             'time_ago': time_ago,
+            'get_setting': get_setting,
+            'announcement_banner': get_active_announcement(),
         }
 
     # Startup diagnostic: Google Maps configuration presence (names only, never values)

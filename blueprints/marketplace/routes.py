@@ -43,12 +43,14 @@ def annotate_product_deals(products):
                 return mp
         return None
 
+    from services.settings import get_setting
+    low_stock_limit = get_setting('low_stock_kg', default=50.0)
     for p in products:
         mp = get_market_price_for(p.name)
         p.market_benchmark = mp
         p.below_market_pct = None
         p.is_deal = False
-        p.is_low_stock = bool(p.quantity_kg is not None and p.quantity_kg <= 50)
+        p.is_low_stock = bool(p.quantity_kg is not None and p.quantity_kg <= low_stock_limit)
 
         if mp and mp.selling_price and mp.selling_price > 0:
             if p.price_per_kg and p.price_per_kg < mp.selling_price:

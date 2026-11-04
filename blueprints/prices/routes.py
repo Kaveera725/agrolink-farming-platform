@@ -27,6 +27,41 @@ def index():
     last_price = MarketPrice.query.order_by(MarketPrice.updated_at.desc()).first()
     last_updated = last_price.updated_at if (last_price and last_price.updated_at) else datetime.utcnow()
 
+    # Annotate price trends and last updated dates
+    for p in prices:
+        hist = p.history
+        if hist and len(hist) > 0:
+            latest = hist[0]
+            p.last_updated_date = (latest.changed_at or p.updated_at or datetime.utcnow()).strftime('%b %d, %Y')
+            if latest.old_selling is not None:
+                if latest.new_selling > latest.old_selling:
+                    p.trend_direction = 'up'
+                    p.trend_pct = round(((latest.new_selling - latest.old_selling) / latest.old_selling) * 100, 1)
+                elif latest.new_selling < latest.old_selling:
+                    p.trend_direction = 'down'
+                    p.trend_pct = round(((latest.old_selling - latest.new_selling) / latest.old_selling) * 100, 1)
+                else:
+                    p.trend_direction = 'neutral'
+                    p.trend_pct = 0.0
+            elif len(hist) > 1:
+                prev = hist[1]
+                if latest.new_selling > prev.new_selling:
+                    p.trend_direction = 'up'
+                    p.trend_pct = round(((latest.new_selling - prev.new_selling) / prev.new_selling) * 100, 1)
+                elif latest.new_selling < prev.new_selling:
+                    p.trend_direction = 'down'
+                    p.trend_pct = round(((prev.new_selling - latest.new_selling) / prev.new_selling) * 100, 1)
+                else:
+                    p.trend_direction = 'neutral'
+                    p.trend_pct = 0.0
+            else:
+                p.trend_direction = 'neutral'
+                p.trend_pct = 0.0
+        else:
+            p.last_updated_date = p.updated_at.strftime('%b %d, %Y') if p.updated_at else 'Recent'
+            p.trend_direction = 'neutral'
+            p.trend_pct = 0.0
+
     # Group market prices
     categories = sorted(set(p.category for p in prices))
     grouped = {cat: [p for p in prices if p.category == cat] for cat in categories}

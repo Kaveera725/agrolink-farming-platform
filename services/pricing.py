@@ -12,14 +12,13 @@ from config import (
 
 
 def _get_pricing_constants():
-    """Retrieve delivery pricing configuration from app config or defaults."""
-    if has_app_context():
-        base_fee = Decimal(str(current_app.config.get('DELIVERY_BASE_FEE', DELIVERY_BASE_FEE)))
-        base_km = Decimal(str(current_app.config.get('DELIVERY_BASE_KM', DELIVERY_BASE_KM)))
-        extra_per_km = Decimal(str(current_app.config.get('DELIVERY_EXTRA_PER_KM', DELIVERY_EXTRA_PER_KM)))
-        max_km = Decimal(str(current_app.config.get('MAX_DELIVERY_KM', MAX_DELIVERY_KM)))
-        return base_fee, base_km, extra_per_km, max_km
-    return DELIVERY_BASE_FEE, DELIVERY_BASE_KM, DELIVERY_EXTRA_PER_KM, MAX_DELIVERY_KM
+    """Retrieve delivery pricing configuration from dynamic settings, app config, or defaults."""
+    from services.settings import get_setting
+    base_fee = Decimal(str(get_setting('delivery_base_fee', current_app.config.get('DELIVERY_BASE_FEE', DELIVERY_BASE_FEE) if has_app_context() else DELIVERY_BASE_FEE)))
+    base_km = Decimal(str(get_setting('delivery_base_km', current_app.config.get('DELIVERY_BASE_KM', DELIVERY_BASE_KM) if has_app_context() else DELIVERY_BASE_KM)))
+    extra_per_km = Decimal(str(get_setting('delivery_extra_per_km', current_app.config.get('DELIVERY_EXTRA_PER_KM', DELIVERY_EXTRA_PER_KM) if has_app_context() else DELIVERY_EXTRA_PER_KM)))
+    max_km = Decimal(str(get_setting('max_delivery_km', current_app.config.get('MAX_DELIVERY_KM', MAX_DELIVERY_KM) if has_app_context() else MAX_DELIVERY_KM)))
+    return base_fee, base_km, extra_per_km, max_km
 
 
 def calculate_delivery_fee(distance_km: Union[Decimal, float, int, str, None]) -> Decimal:

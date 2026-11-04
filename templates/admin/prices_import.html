@@ -1,0 +1,231 @@
+{% extends "admin/_layout.html" %}
+
+{% block title %}Import Market Prices — AgroLink{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6">
+  <div class="flex items-center gap-2 text-xs font-semibold text-leaf mb-2">
+    <a href="{{ url_for('admin.prices') }}" class="hover:underline flex items-center gap-1">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+      <span>Back to Market Prices</span>
+    </a>
+  </div>
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Bulk Import Benchmark Prices</h1>
+      <p class="text-xs text-gray-500 mt-1">Upload CSV data to atomically update or create commodity benchmark prices.</p>
+    </div>
+    <a href="{{ url_for('admin.import_prices_template') }}" class="btn-secondary py-2 px-3 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+      <svg class="w-4 h-4 text-leaf" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      <span>Download CSV Template</span>
+    </a>
+  </div>
+</div>
+
+{% if not preview %}
+{# Upload Card #}
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 card p-6">
+    <h2 class="text-base font-bold text-gray-900 mb-2">Upload Prices CSV</h2>
+    <p class="text-xs text-gray-500 mb-6">
+      Upload a UTF-8 encoded CSV file (maximum 1 MB, up to 500 rows). Changes are previewed in a dry-run first before any records are written to the database.
+    </p>
+
+    <form method="post" action="{{ url_for('admin.import_prices') }}" enctype="multipart/form-data" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="border-2 border-dashed border-gray-200 hover:border-leaf rounded-2xl p-8 text-center transition-colors">
+        <svg class="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+        <label for="csv_file_input" class="cursor-pointer block">
+          <span class="btn-primary py-2 px-4 text-xs font-bold inline-block mb-1">Select CSV File</span>
+          <input id="csv_file_input" type="file" name="file" accept=".csv" required class="hidden" onchange="document.getElementById('file-chosen-name').textContent = this.files[0]?.name || 'No file selected';">
+        </label>
+        <p id="file-chosen-name" class="text-xs font-medium text-gray-600 mt-2">No file selected</p>
+        <p class="text-[11px] text-gray-400 mt-1">UTF-8 .csv files only, max 1 MB</p>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="submit" class="btn-primary py-2 px-6 text-sm font-bold flex items-center gap-2">
+          <span>Dry-Run Preview</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {# Instructions Card #}
+  <div class="card p-6 bg-gray-50/60 h-fit space-y-4">
+    <h3 class="text-sm font-bold text-gray-900">CSV Format Rules</h3>
+    <ul class="text-xs text-gray-600 space-y-2.5">
+      <li class="flex items-start gap-2">
+        <span class="w-4 h-4 rounded-full bg-leaf-pale text-leaf flex items-center justify-center shrink-0 font-bold">1</span>
+        <span><strong>Required columns:</strong> <code class="bg-gray-200 px-1 py-0.5 rounded text-[11px]">crop_name</code>, <code class="bg-gray-200 px-1 py-0.5 rounded text-[11px]">category</code>, <code class="bg-gray-200 px-1 py-0.5 rounded text-[11px]">buying_price</code>, <code class="bg-gray-200 px-1 py-0.5 rounded text-[11px]">selling_price</code>.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="w-4 h-4 rounded-full bg-leaf-pale text-leaf flex items-center justify-center shrink-0 font-bold">2</span>
+        <span><strong>Optional columns:</strong> <code class="bg-gray-200 px-1 py-0.5 rounded text-[11px]">unit</code> (default: per kg), <code class="bg-gray-200 px-1 py-0.5 rounded text-[11px]">market_location</code> (default: Colombo).</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="w-4 h-4 rounded-full bg-leaf-pale text-leaf flex items-center justify-center shrink-0 font-bold">3</span>
+        <span><strong>Pricing rules:</strong> Buying price must be &gt; 0, and selling price must be &ge; buying price.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="w-4 h-4 rounded-full bg-leaf-pale text-leaf flex items-center justify-center shrink-0 font-bold">4</span>
+        <span><strong>Typo guard:</strong> Updates with &gt; 30% price change will be highlighted for review.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="w-4 h-4 rounded-full bg-leaf-pale text-leaf flex items-center justify-center shrink-0 font-bold">5</span>
+        <span><strong>Security:</strong> All cells are sanitized against CSV formula injection attacks.</span>
+      </li>
+    </ul>
+  </div>
+</div>
+
+{% else %}
+{# Dry-run Preview State #}
+<div class="space-y-6">
+  {# Summary Metrics #}
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+    <div class="card p-4">
+      <span class="text-[11px] font-bold uppercase text-gray-500">Total Rows</span>
+      <p class="text-xl font-bold font-mono text-gray-900 mt-1">{{ preview|length }}</p>
+    </div>
+    <div class="card p-4 border-l-4 border-l-emerald-500">
+      <span class="text-[11px] font-bold uppercase text-emerald-700">New Items</span>
+      <p class="text-xl font-bold font-mono text-emerald-800 mt-1">{{ counts['new'] }}</p>
+    </div>
+    <div class="card p-4 border-l-4 border-l-blue-500">
+      <span class="text-[11px] font-bold uppercase text-blue-700">Updates</span>
+      <p class="text-xl font-bold font-mono text-blue-800 mt-1">{{ counts['update'] }}</p>
+    </div>
+    <div class="card p-4 border-l-4 border-l-gray-300">
+      <span class="text-[11px] font-bold uppercase text-gray-600">Unchanged</span>
+      <p class="text-xl font-bold font-mono text-gray-700 mt-1">{{ counts['unchanged'] }}</p>
+    </div>
+    <div class="card p-4 border-l-4 border-l-rose-500">
+      <span class="text-[11px] font-bold uppercase text-rose-700">Invalid (Skipped)</span>
+      <p class="text-xl font-bold font-mono text-rose-800 mt-1">{{ counts['invalid'] }}</p>
+    </div>
+  </div>
+
+  {# Actions Bar #}
+  <div class="card p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-amber-50/50 border-amber-200">
+    <div>
+      <span class="font-bold text-sm text-gray-900 block">Dry-Run Preview (Nothing saved yet)</span>
+      <p class="text-xs text-gray-600 mt-0.5">
+        Source file: <span class="font-semibold">{{ filename }}</span>.
+        {% if counts['invalid'] > 0 %}
+          <span class="text-rose-700 font-medium">{{ counts['invalid'] }} invalid row(s) will be skipped.</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="{{ url_for('admin.import_prices') }}" class="btn-secondary py-2 px-4 text-xs font-semibold">
+        Cancel / Upload Another
+      </a>
+      <form method="post" action="{{ url_for('admin.confirm_import_prices') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="import_payload" value="{{ payload_json }}">
+        <input type="hidden" name="filename" value="{{ filename }}">
+        <button type="submit"
+                {% if (counts['new'] + counts['update']) == 0 %}disabled{% endif %}
+                class="btn-primary py-2 px-5 text-xs font-bold shadow-sm {% if (counts['new'] + counts['update']) == 0 %}opacity-50 cursor-not-allowed{% endif %}"
+                onclick="return confirm('Confirm bulk import of {{ counts['new'] + counts['update'] }} price records?');">
+          Confirm &amp; Apply Import ({{ counts['new'] + counts['update'] }} Valid)
+        </button>
+      </form>
+    </div>
+  </div>
+
+  {# Preview Table #}
+  <div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-bdr text-left text-xs font-bold text-gray-600">
+          <tr>
+            <th class="p-3 w-12 text-center">#</th>
+            <th class="p-3">Status</th>
+            <th class="p-3">Crop Name</th>
+            <th class="p-3">Category</th>
+            <th class="p-3">Buying Price</th>
+            <th class="p-3">Selling Price</th>
+            <th class="p-3">Location</th>
+            <th class="p-3">Notes / Validation</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          {% for r in preview %}
+          <tr class="hover:bg-gray-50/50 transition {% if r.status == 'invalid' %}bg-rose-50/30{% elif r.warning_30 %}bg-amber-50/30{% endif %}">
+            <td class="p-3 text-center text-xs text-gray-400 font-mono">{{ r.line }}</td>
+            <td class="p-3 whitespace-nowrap">
+              {% if r.status == 'new' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  New
+                </span>
+              {% elif r.status == 'update' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800">
+                  Update
+                </span>
+                {% if r.warning_30 %}
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 ml-1">
+                    &gt; 30%
+                  </span>
+                {% endif %}
+              {% elif r.status == 'unchanged' %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-gray-100 text-gray-600">
+                  Unchanged
+                </span>
+              {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800">
+                  Invalid
+                </span>
+              {% endif %}
+            </td>
+            <td class="p-3 font-bold text-gray-900">{{ r.crop_name or '—' }}</td>
+            <td class="p-3 text-gray-600">{{ r.category or '—' }}</td>
+            <td class="p-3 font-mono text-xs whitespace-nowrap">
+              {% if r.buying_price is not none %}
+                LKR {{ '%.2f'|format(r.buying_price) }}
+                {% if r.existing_buying is not none and r.status == 'update' %}
+                  <span class="text-[10px] text-gray-400 block">(was {{ '%.2f'|format(r.existing_buying) }})</span>
+                {% endif %}
+              {% else %}
+                <span class="text-rose-600 font-bold">{{ r.raw_buying or 'Empty' }}</span>
+              {% endif %}
+            </td>
+            <td class="p-3 font-mono text-xs whitespace-nowrap">
+              {% if r.selling_price is not none %}
+                LKR {{ '%.2f'|format(r.selling_price) }}
+                {% if r.existing_selling is not none and r.status == 'update' %}
+                  <span class="text-[10px] text-gray-400 block">(was {{ '%.2f'|format(r.existing_selling) }})</span>
+                {% endif %}
+              {% else %}
+                <span class="text-rose-600 font-bold">{{ r.raw_selling or 'Empty' }}</span>
+              {% endif %}
+            </td>
+            <td class="p-3 text-gray-600 text-xs">{{ r.market_location }}</td>
+            <td class="p-3 text-xs">
+              {% if r.status == 'invalid' %}
+                <span class="text-rose-700 font-semibold">{{ r.reason }}</span>
+              {% elif r.warning_30 %}
+                <span class="text-amber-700 font-medium">{{ r.reason }}</span>
+              {% elif r.status == 'new' %}
+                <span class="text-emerald-700">Will be created</span>
+              {% elif r.status == 'update' %}
+                <span class="text-blue-700">Will be updated</span>
+              {% else %}
+                <span class="text-gray-400">Values identical to current</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1148,6 +1148,34 @@
     {% endwith %}
   </div>
 
+  {# ── PUBLIC ANNOUNCEMENT BANNER ───────────────────────────────────────── #}
+  {% if announcement_banner and announcement_banner.text %}
+  <div id="announcement-banner-wrapper" class="w-full bg-canvas/60 border-b border-bdr">
+    <div class="container-app py-2.5">
+      <div class="alert {% if announcement_banner.level == 'warning' %}alert-warning{% else %}alert-info{% endif %} flex items-center justify-between gap-3 shadow-2xs" role="alert">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <svg class="w-5 h-5 shrink-0 {% if announcement_banner.level == 'warning' %}text-gold-text{% else %}text-sky{% endif %}" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            {% if announcement_banner.level == 'warning' %}
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            {% else %}
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            {% endif %}
+          </svg>
+          <span class="text-sm font-semibold">{{ announcement_banner.text }}</span>
+        </div>
+        <button type="button"
+                onclick="document.getElementById('announcement-banner-wrapper').remove()"
+                class="shrink-0 p-1 text-muted hover:text-ink rounded-lg transition-colors cursor-pointer"
+                aria-label="Dismiss banner">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   {# ── MAIN CONTENT ─────────────────────────────────────────────────────── #}
   <main id="main-content" class="flex-1 w-full max-w-full">
     {% block content %}{% endblock %}

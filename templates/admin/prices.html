@@ -9,14 +9,43 @@
     <h1 class="text-2xl font-bold text-gray-900">Market Benchmark Prices</h1>
     <p class="mt-1 text-xs text-gray-500">Maintain official market reference prices across agricultural commodities in Sri Lanka.</p>
   </div>
-  <form method="get" class="flex gap-2 w-full sm:w-auto">
-    <input class="input" name="q" value="{{ search }}" placeholder="Search crop or category">
-    <button type="submit" class="btn-primary py-2 px-4 whitespace-nowrap">Search</button>
-    {% if search %}
-      <a href="{{ url_for('admin.prices') }}" class="btn-secondary py-2 px-3 text-sm flex items-center">Clear</a>
-    {% endif %}
-  </form>
+  <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+    <a href="{{ url_for('admin.import_prices') }}" class="btn-secondary py-2 px-3 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+      <svg class="w-4 h-4 text-leaf" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      <span>Import CSV</span>
+    </a>
+    <form method="get" class="flex gap-2">
+      <input class="input" name="q" value="{{ search }}" placeholder="Search crop or category">
+      <button type="submit" class="btn-primary py-2 px-4 whitespace-nowrap text-xs font-semibold">Search</button>
+      {% if search %}
+        <a href="{{ url_for('admin.prices') }}" class="btn-secondary py-2 px-3 text-xs flex items-center">Clear</a>
+      {% endif %}
+    </form>
+  </div>
 </div>
+
+{# Stale Price Alert #}
+{% if stale_prices and stale_prices|length > 0 %}
+<div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <div class="flex items-center gap-2">
+      <svg class="w-5 h-5 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      <span class="font-bold text-sm">Prices not updated in {{ stale_days }} days ({{ stale_prices|length }} items)</span>
+    </div>
+    <span class="text-xs text-amber-700">Audit recommended to ensure reference rates reflect current market trends.</span>
+  </div>
+  <div class="mt-2.5 flex flex-wrap gap-1.5">
+    {% for sp in stale_prices %}
+      <a href="{{ url_for('admin.prices', edit=sp.id) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-amber-100/80 hover:bg-amber-200 text-amber-900 font-medium transition border border-amber-200">
+        <span>{{ sp.crop_name }}</span>
+        <span class="text-[10px] text-amber-700">({{ sp.updated_at.strftime('%b %d') if sp.updated_at else 'N/A' }})</span>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <div class="grid xl:grid-cols-[360px_1fr] gap-6">
   {# Form #}
@@ -27,6 +56,23 @@
       {% if editing %}
         <input type="hidden" name="id" value="{{ editing.id }}">
       {% endif %}
+
+      {% if require_confirm %}
+      <div class="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs space-y-2">
+        <div class="flex items-center gap-1.5 font-bold">
+          <svg class="w-4 h-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+          <span>Typo Guard Confirmation</span>
+        </div>
+        <p class="text-[11px] text-amber-800">
+          This price update shifts the benchmark by more than 30%. Check the box below to authorize.
+        </p>
+        <label class="flex items-center gap-2 cursor-pointer font-bold pt-1">
+          <input type="checkbox" name="confirm_large_change" value="yes" required class="rounded text-leaf focus:ring-leaf">
+          <span>I confirm this change</span>
+        </label>
+      </div>
+      {% endif %}
+
       <div>
         <label class="block text-xs font-semibold text-gray-700 mb-1">Crop Name</label>
         <input class="input" name="crop_name" required placeholder="e.g. Carrots, Red Onions" value="{{ editing.crop_name if editing else '' }}">
@@ -38,11 +84,11 @@
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-semibold text-gray-700 mb-1">Buying Price (LKR)</label>
-          <input class="input" name="buying_price" type="number" min="0.01" step="0.01" required placeholder="Buying" value="{{ editing.buying_price if editing else '' }}">
+          <input class="input" name="buying_price" type="number" min="0.01" step="0.01" required placeholder="Buying" value="{{ pending_buying if pending_buying is defined else (editing.buying_price if editing else '') }}">
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-700 mb-1">Selling Price (LKR)</label>
-          <input class="input" name="selling_price" type="number" min="0.01" step="0.01" required placeholder="Selling" value="{{ editing.selling_price if editing else '' }}">
+          <input class="input" name="selling_price" type="number" min="0.01" step="0.01" required placeholder="Selling" value="{{ pending_selling if pending_selling is defined else (editing.selling_price if editing else '') }}">
         </div>
       </div>
       <div>
@@ -81,12 +127,19 @@
         <tbody class="divide-y divide-gray-100">
           {% for price in prices %}
             <tr class="hover:bg-gray-50/50 transition-colors">
-              <td class="p-4 font-bold text-gray-900">{{ price.crop_name }}</td>
+              <td class="p-4 font-bold text-gray-900">
+                <a href="{{ url_for('admin.price_detail', price_id=price.id) }}" class="hover:underline text-leaf-dark">
+                  {{ price.crop_name }}
+                </a>
+              </td>
               <td class="p-4 text-gray-600">{{ price.category }}</td>
               <td class="p-4 font-medium text-gray-900 whitespace-nowrap">LKR {{ '%.2f'|format(price.buying_price) }}</td>
               <td class="p-4 font-medium text-gray-900 whitespace-nowrap">LKR {{ '%.2f'|format(price.selling_price) }}</td>
               <td class="p-4 text-gray-600">{{ price.market_location }}</td>
               <td class="p-4 text-right whitespace-nowrap">
+                <a class="text-xs font-semibold text-sky hover:underline mr-3" href="{{ url_for('admin.price_detail', price_id=price.id) }}">
+                  History
+                </a>
                 <a class="text-xs font-semibold text-leaf hover:underline mr-3" href="{{ url_for('admin.prices', edit=price.id) }}">
                   Edit
                 </a>
@@ -103,7 +156,7 @@
             <tr>
               <td class="p-8 text-center text-gray-500" colspan="6">
                 <p class="text-base font-semibold text-gray-700">No market prices found</p>
-                <p class="text-xs text-gray-400 mt-1">Add prices using the form on the left.</p>
+                <p class="text-xs text-gray-400 mt-1">Add prices using the form on the left or import via CSV.</p>
               </td>
             </tr>
           {% endfor %}

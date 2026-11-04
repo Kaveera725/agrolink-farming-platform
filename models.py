@@ -175,6 +175,8 @@ class MarketPrice(db.Model):
     market_location = db.Column(db.String(100), default='Colombo')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    history = db.relationship('MarketPriceHistory', backref='market_price', lazy=True, cascade='all, delete-orphan', order_by='MarketPriceHistory.changed_at.desc()')
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -251,4 +253,37 @@ class ListingReport(db.Model):
 
     def __repr__(self):
         return f'<ListingReport {self.id} product={self.product_id} reporter={self.reporter_id} status={self.status}>'
+
+
+class MarketPriceHistory(db.Model):
+    __tablename__ = 'market_price_history'
+    id = db.Column(db.Integer, primary_key=True)
+    market_price_id = db.Column(db.Integer, db.ForeignKey('market_prices.id', ondelete='CASCADE'), nullable=False, index=True)
+    old_buying = db.Column(db.Float, nullable=True)
+    old_selling = db.Column(db.Float, nullable=True)
+    new_buying = db.Column(db.Float, nullable=False)
+    new_selling = db.Column(db.Float, nullable=False)
+    changed_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    changed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    source = db.Column(db.String(20), default='manual', nullable=False)  # manual, import
+
+    user = db.relationship('User', foreign_keys=[changed_by], lazy=True)
+
+    def __repr__(self):
+        return f'<MarketPriceHistory {self.id} price={self.market_price_id} {self.old_selling}->{self.new_selling}>'
+
+
+class PlatformSetting(db.Model):
+    __tablename__ = 'platform_settings'
+    key = db.Column(db.String(100), primary_key=True)
+    value = db.Column(db.Text, nullable=True)
+    value_type = db.Column(db.String(20), default='str', nullable=False)  # int, float, decimal, bool, str
+    updated_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    updater = db.relationship('User', foreign_keys=[updated_by], lazy=True)
+
+    def __repr__(self):
+        return f'<PlatformSetting {self.key}={self.value}>'
+
 

@@ -49,6 +49,9 @@
 
           {# Activity log #}
           <a href="{{ url_for('admin.activity') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.activity' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Activity log</a>
+
+          {# Settings #}
+          <a href="{{ url_for('admin.settings') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.settings', 'admin.platform_settings') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Settings</a>
         </nav>
         <div class="border-t border-white/15 mt-5 pt-4 px-3">
           <p class="text-xs text-leaf-200">Signed in as</p>
