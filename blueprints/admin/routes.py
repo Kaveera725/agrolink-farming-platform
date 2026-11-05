@@ -1455,7 +1455,7 @@ def farmers_map():
         User.is_active == True
     ).count()
 
-    districts_raw = db.session.query(distinct(User.location)).filter(
+    districts_raw = db.session.query(User.location).distinct().filter(
         User.role == 'farmer', User.location.isnot(None)
     ).order_by(User.location).all()
     districts = [d[0] for d in districts_raw if d[0]]

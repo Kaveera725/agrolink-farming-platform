@@ -180,13 +180,11 @@
 
 {# ─── GOOGLE MAPS LOADER & PLOTTING SCRIPT ─── #}
 {% if maps_enabled %}
-<script id="farmerMarkersDataJson" type="application/json">{{ farmer_markers|tojson|safe }}</script>
-<script id="buyerMarkersDataJson" type="application/json">{{ (buyer_markers or [])|tojson|safe }}</script>
 <script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const farmerMarkersData = JSON.parse(document.getElementById('farmerMarkersDataJson')?.textContent || '[]');
-  const buyerMarkersData = JSON.parse(document.getElementById('buyerMarkersDataJson')?.textContent || '[]');
+  const farmerMarkersData = {{ farmer_markers|tojson }};
+  const buyerMarkersData = {{ buyerMarkersData|default(buyer_markers)|tojson }};
   const mapElement = document.getElementById('farmersMap');
   const spinner = document.getElementById('mapLoadingSpinner');
   const noticeContainer = document.getElementById('mapNoticeContainer');
