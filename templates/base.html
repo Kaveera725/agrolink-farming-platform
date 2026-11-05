@@ -1209,6 +1209,7 @@
             <li><a href="{{ url_for('main.home') }}" class="hover:text-white transition py-0.5 inline-block">Home</a></li>
             <li><a href="{{ url_for('marketplace.index') }}" class="hover:text-white transition py-0.5 inline-block">Marketplace</a></li>
             <li><a href="{{ url_for('prices.index') }}" class="hover:text-white transition py-0.5 inline-block">Market Prices</a></li>
+            <li><a href="{{ url_for('main.privacy') }}" class="hover:text-white transition py-0.5 inline-block">Privacy Notice</a></li>
             {% if current_user.is_authenticated %}
             <li><a href="{{ url_for('dashboard.index') }}" class="hover:text-white transition py-0.5 inline-block">Dashboard</a></li>
             <li><a href="{{ url_for('orders.index') }}" class="hover:text-white transition py-0.5 inline-block">Orders</a></li>
@@ -1237,7 +1238,7 @@
 
       {# Sub-bar #}
       <div class="border-t border-leaf-700 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between text-xs text-leaf-300 gap-2">
-        <p>© 2024 AgroLink Marketplace — All rights reserved.</p>
+        <p>© 2024 AgroLink Marketplace — All rights reserved. · <a href="{{ url_for('main.privacy') }}" class="underline hover:text-white transition">Privacy Policy (PDPA)</a></p>
         <p class="text-leaf-200">Built for Sri Lankan farmers &amp; buyers</p>
       </div>
     </div>

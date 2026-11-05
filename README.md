@@ -355,7 +355,13 @@ http://127.0.0.1:5000/
 AgroLink features three primary user roles:
 - **Farmer**: Manage crops, list products for sale, view market prices and incoming orders.
 - **Buyer**: Browse marketplace listings, place crop orders, view order status and price trends.
-- **Admin**: System management and administrative access.
+- **Admin**: Complete platform governance, farmer verification, listing moderation, bulk benchmark pricing, Sri Lanka PDPA 2022 privacy tools, and real-time infrastructure telemetry.
+
+### Admin Provisioning:
+Create an administrator interactively via the CLI (no credentials stored in plaintext):
+```powershell
+flask create-admin
+```
 
 ### Demo / Default Accounts:
 | Role | Name | Email | Password Status |
@@ -376,6 +382,14 @@ AgroLink features three primary user roles:
 - `/prices/` - Live market benchmark prices and best deals
 - `/prices/bids` - Best price comparison
 - `/orders/` - Order history & tracking
+- `/privacy` - Sri Lanka PDPA (No. 9 of 2022) Privacy Notice
+- `/admin/` - Administrative Control Center (Admins only)
+- `/admin/map` - Farmers geographic intelligence map
+- `/admin/verifications` - Farmer accreditation and verification queue
+- `/admin/listing-reports` - Content moderation and listing reports queue
+- `/admin/data-requests` - Personal data export & anonymization queue (PDPA 2022)
+- `/admin/system` - System health, migration verification, and Google Routes API live probes
+- `/admin/activity` - Non-tamperable append-only audit trail
 
 ---
 

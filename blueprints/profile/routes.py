@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import abort, Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_required, current_user
 from extensions import db
-from models import VerificationRequest
+from models import VerificationRequest, DataRequest
 from utils.phone import validate_sl_phone, normalize_phone_number
 from utils.uploads import save_uploaded_image, delete_uploaded_image
 from utils.geo import parse_coord, is_in_sri_lanka
@@ -29,7 +29,15 @@ def view():
         latest_verification_request = VerificationRequest.query.filter_by(
             farmer_id=current_user.id
         ).order_by(VerificationRequest.created_at.desc()).first()
-    return render_template('profile/view.html', user=current_user, latest_verification_request=latest_verification_request)
+    data_requests = DataRequest.query.filter_by(
+        user_id=current_user.id
+    ).order_by(DataRequest.created_at.desc()).all()
+    return render_template(
+        'profile/view.html',
+        user=current_user,
+        latest_verification_request=latest_verification_request,
+        data_requests=data_requests
+    )
 
 
 @profile_bp.route('/edit', methods=['GET', 'POST'])
@@ -288,3 +296,39 @@ def request_verification():
 
     flash('Verification request submitted successfully! An administrator will review your profile.', 'success')
     return redirect(url_for('profile.view'))
+
+
+@profile_bp.route('/data-request', methods=['POST'])
+@login_required
+def create_data_request():
+    req_type = request.form.get('type', '').strip().lower()
+    if req_type not in ('export', 'deletion'):
+        flash('Invalid data request type.', 'error')
+        return redirect(url_for('profile.view'))
+
+    # One open request per type
+    existing_open = DataRequest.query.filter_by(
+        user_id=current_user.id,
+        type=req_type,
+        status='open'
+    ).first()
+
+    if existing_open:
+        flash(f'You already have an open {req_type} request under review.', 'warning')
+        return redirect(url_for('profile.view'))
+
+    req = DataRequest(
+        user_id=current_user.id,
+        type=req_type,
+        status='open'
+    )
+    db.session.add(req)
+    db.session.commit()
+
+    if req_type == 'export':
+        flash('Personal data export requested (Sri Lanka PDPA 2022). An administrator will generate your portable JSON archive.', 'success')
+    else:
+        flash('Account deletion requested. An administrator will verify that all active orders are settled before anonymizing your data.', 'success')
+
+    return redirect(url_for('profile.view'))
+

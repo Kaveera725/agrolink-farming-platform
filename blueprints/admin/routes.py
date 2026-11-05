@@ -1,5 +1,9 @@
 import csv
 import io
+import json
+import os
+import subprocess
+import time
 from collections import Counter
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -13,15 +17,20 @@ from sqlalchemy import func, case, desc, asc, distinct, text
 from sqlalchemy.orm import joinedload
 
 from extensions import db
-from models import AdminAuditLog, AdminNote, Crop, ListingReport, MarketPrice, MarketPriceHistory, Order, PlatformSetting, Product, User, VerificationRequest
+from models import (
+    AdminAuditLog, AdminNote, Crop, DataRequest, ListingReport,
+    MarketPrice, MarketPriceHistory, Order, PlatformSetting, Product, User, VerificationRequest
+)
 from services.settings import (
     SETTINGS_SCHEMA, get_setting, set_setting, clear_settings_cache,
     reset_settings_to_defaults, validate_setting
 )
+from services.distance import get_driving_distance_km
 from services.notifications import notify_order_cancelled_by_admin
 from utils.decorators import roles_required
 from utils.phone import normalize_phone_number, validate_sl_phone
 from utils.security import generate_temp_password, sanitize_csv_cell
+from utils.uploads import delete_uploaded_image
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -45,9 +54,18 @@ def admin_nav_counts():
         except Exception:
             open_reports = 0
 
+    open_data_requests = getattr(g, 'admin_open_data_requests_count', None)
+    if open_data_requests is None:
+        try:
+            open_data_requests = DataRequest.query.filter_by(status='open').count()
+            g.admin_open_data_requests_count = open_data_requests
+        except Exception:
+            open_data_requests = 0
+
     return {
         'admin_pending_verifications_count': pending_verifications,
         'admin_open_reports_count': open_reports,
+        'admin_open_data_requests_count': open_data_requests,
     }
 
 
@@ -2286,3 +2304,425 @@ def crops():
         districts=districts,
         today=today
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PERSONAL DATA TOOLS (SRI LANKA PDPA 2022 / GDPR COMPLIANCE)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/data-requests')
+@roles_required('admin')
+def data_requests():
+    """Admin queue for Sri Lanka PDPA 2022 export and deletion requests."""
+    req_type = request.args.get('type', 'all').strip().lower()
+    status = request.args.get('status', 'open').strip().lower()
+    search = request.args.get('search', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    query = DataRequest.query.join(User, DataRequest.user_id == User.id)
+
+    if req_type and req_type != 'all':
+        query = query.filter(DataRequest.type == req_type)
+
+    if status and status != 'all':
+        query = query.filter(DataRequest.status == status)
+
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (User.name.ilike(search_pattern)) |
+            (User.email.ilike(search_pattern))
+        )
+
+    query = query.order_by(DataRequest.created_at.desc())
+    pagination = query.paginate(page=page, per_page=15, error_out=False)
+
+    # For deletion requests, check active orders for each user on the page
+    requests_data = []
+    for req in pagination.items:
+        active_orders = []
+        if req.type == 'deletion':
+            active_orders = Order.query.join(Product, Order.product_id == Product.id).filter(
+                (Order.buyer_id == req.user_id) | (Product.farmer_id == req.user_id),
+                Order.status.in_(['pending', 'confirmed'])
+            ).all()
+
+        requests_data.append({
+            'request': req,
+            'active_orders_count': len(active_orders),
+            'active_orders': active_orders
+        })
+
+    # Summary metrics
+    counts = {
+        'total': DataRequest.query.count(),
+        'open': DataRequest.query.filter_by(status='open').count(),
+        'open_export': DataRequest.query.filter_by(type='export', status='open').count(),
+        'open_deletion': DataRequest.query.filter_by(type='deletion', status='open').count(),
+        'completed': DataRequest.query.filter_by(status='completed').count(),
+    }
+
+    return render_template(
+        'admin/data_requests.html',
+        requests_data=requests_data,
+        pagination=pagination,
+        req_type=req_type,
+        status=status,
+        search=search,
+        counts=counts
+    )
+
+
+@admin_bp.route('/data-requests/<int:request_id>/export')
+@roles_required('admin')
+def export_data_request(request_id):
+    """Generate and download a clean portable JSON personal data archive."""
+    req = DataRequest.query.get_or_404(request_id)
+    user = req.user
+
+    # Compile sanitized user personal data archive
+    export_payload = {
+        "metadata": {
+            "platform": "AgroLink Marketplace Sri Lanka",
+            "regulatory_framework": "Sri Lanka Personal Data Protection Act (PDPA No. 9 of 2022)",
+            "request_id": req.id,
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "user_id": user.id,
+        },
+        "account": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "phone": user.phone,
+            "whatsapp_number": user.whatsapp_number,
+            "location": user.location,
+            "address_text": user.address_text,
+            "farm_name": user.farm_name,
+            "bio": user.bio,
+            "coordinates": {
+                "latitude": float(user.latitude) if user.latitude is not None else None,
+                "longitude": float(user.longitude) if user.longitude is not None else None,
+            },
+            "is_verified": user.is_verified,
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() + "Z" if user.created_at else None,
+        },
+        "listings": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "category": p.category,
+                "price_per_kg": float(p.price_per_kg) if p.price_per_kg is not None else None,
+                "quantity_kg": float(p.quantity_kg) if p.quantity_kg is not None else None,
+                "is_available": p.is_available,
+                "created_at": p.created_at.isoformat() + "Z" if p.created_at else None,
+            }
+            for p in Product.query.filter_by(farmer_id=user.id).all()
+        ],
+        "orders": [
+            {
+                "id": o.id,
+                "total_price": float(o.total_price) if o.total_price is not None else None,
+                "delivery_fee": float(o.delivery_fee) if o.delivery_fee is not None else 0.0,
+                "fulfillment_type": o.fulfillment_type,
+                "status": o.status,
+                "created_at": o.created_at.isoformat() + "Z" if o.created_at else None,
+                "delivery_address": o.delivery_address,
+            }
+            for o in Order.query.join(Product, Order.product_id == Product.id).filter(
+                (Order.buyer_id == user.id) | (Product.farmer_id == user.id)
+            ).all()
+        ]
+    }
+
+    # Mark request as completed
+    req.status = 'completed'
+    req.handled_at = datetime.utcnow()
+    req.handled_by = current_user.id
+    req.admin_note = "Portable JSON archive generated and downloaded."
+
+    # Audit log event (user ID only, NEVER writing personal data to audit log)
+    _audit(
+        action='data_request_export',
+        target_type='user',
+        target_id=user.id,
+        details=f"Export JSON archive generated for data request #{req.id}"
+    )
+
+    db.session.commit()
+
+    filename = f"agrolink_user_{user.id}_data_export.json"
+    json_str = json.dumps(export_payload, indent=2, ensure_ascii=False)
+    return Response(
+        json_str,
+        mimetype="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@admin_bp.route('/data-requests/<int:request_id>/anonymize', methods=['POST'])
+@roles_required('admin')
+def anonymize_data_request(request_id):
+    """Irreversibly anonymize personal data under PDPA 2022 / GDPR Right to Erasure."""
+    req = DataRequest.query.get_or_404(request_id)
+    user = req.user
+
+    # 1. Guard: Check for active (pending or confirmed) orders
+    active_orders = Order.query.join(Product, Order.product_id == Product.id).filter(
+        (Order.buyer_id == user.id) | (Product.farmer_id == user.id),
+        Order.status.in_(['pending', 'confirmed'])
+    ).all()
+    if active_orders:
+        flash(
+            f'Cannot anonymize user #{user.id}: User has {len(active_orders)} active order(s) in progress. '
+            f'Orders must be completed or cancelled before personal data can be erased.',
+            'error'
+        )
+        return redirect(url_for('admin.data_requests'))
+
+    # 2. Guard: Must confirm by typing user's exact email
+    confirm_email = request.form.get('confirm_email', '').strip().lower()
+    if confirm_email != user.email.strip().lower():
+        flash('Confirmation failed: You must type the user\'s exact email address to authorize permanent anonymization.', 'error')
+        return redirect(url_for('admin.data_requests'))
+
+    # 3. Guard: Mandatory reason
+    reason = request.form.get('reason', '').strip()
+    if not reason:
+        flash('A reason is mandatory for account anonymization.', 'error')
+        return redirect(url_for('admin.data_requests'))
+
+    target_user_id = user.id
+
+    # 4. Delete profile image file if exists
+    if user.profile_image_url:
+        delete_uploaded_image(user.profile_image_url)
+
+    # 5. Overwrite PII with neutral placeholders
+    user.name = f"Deleted user #{target_user_id}"
+    user.email = f"deleted_user{target_user_id}@deleted.agrolink.lk"
+    user.phone = None
+    user.whatsapp_number = None
+    user.location = None
+    user.address_text = None
+    user.farm_name = None
+    user.bio = None
+    user.latitude = None
+    user.longitude = None
+    user.profile_image_url = None
+    user.is_active = False
+    user.session_version = (user.session_version or 1) + 1
+
+    # 6. Deactivate and hide farmer listings
+    Product.query.filter_by(farmer_id=target_user_id).update(
+        {'is_available': False, 'is_deleted': True},
+        synchronize_session='fetch'
+    )
+
+    # 7. Update data request status
+    req.status = 'completed'
+    req.handled_at = datetime.utcnow()
+    req.handled_by = current_user.id
+    req.admin_note = f"Permanently anonymized and deactivated. Reason: {reason}"
+
+    # 8. Audit log (NEVER logging old PII or email)
+    _audit(
+        action='user_anonymized',
+        target_type='user',
+        target_id=target_user_id,
+        details=f"User #{target_user_id} anonymized and deactivated under PDPA request #{req.id}. Orders preserved for accounting."
+    )
+
+    db.session.commit()
+    flash(f"User #{target_user_id} has been permanently anonymized and deactivated. Historic orders retained for accounting.", "success")
+    return redirect(url_for('admin.data_requests'))
+
+
+@admin_bp.route('/data-requests/<int:request_id>/reject', methods=['POST'])
+@roles_required('admin')
+def reject_data_request(request_id):
+    """Reject a data request with mandatory admin reason."""
+    req = DataRequest.query.get_or_404(request_id)
+    admin_note = request.form.get('admin_note', '').strip()
+
+    if not admin_note:
+        flash('An admin note / explanation is required to reject a data request.', 'error')
+        return redirect(url_for('admin.data_requests'))
+
+    req.status = 'rejected'
+    req.admin_note = admin_note
+    req.handled_at = datetime.utcnow()
+    req.handled_by = current_user.id
+
+    _audit(
+        action='data_request_rejected',
+        target_type='data_request',
+        target_id=req.id,
+        details=f"Data request #{req.id} ({req.type}) rejected. Note: {admin_note}"
+    )
+
+    db.session.commit()
+    flash(f"Data request #{req.id} has been rejected.", "info")
+    return redirect(url_for('admin.data_requests'))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SYSTEM STATUS & INTEGRATION DIAGNOSTICS (/admin/system)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/system')
+@roles_required('admin')
+def system_status():
+    """System health, infrastructure status, and integration diagnostics."""
+    # 1. Database Connectivity & Version
+    db_status = "Connected"
+    db_version = "PostgreSQL"
+    try:
+        db.session.execute(text("SELECT 1")).scalar()
+        raw_version = db.session.execute(text("SELECT version()")).scalar()
+        if raw_version:
+            db_version = raw_version.split(",")[0]
+    except Exception as e:
+        db_status = f"Error: {str(e)[:100]}"
+
+    # 2. Migration Revisions (Current vs Head)
+    current_rev = None
+    head_rev = "0014_data_requests"
+    try:
+        current_rev = db.session.execute(text("SELECT version_num FROM alembic_version")).scalar()
+    except Exception:
+        current_rev = "Unknown"
+
+    migration_in_sync = (current_rev == head_rev)
+
+    # 3. Environment & Debug Status
+    app_env = current_app.config.get('ENV') or os.environ.get('FLASK_ENV') or 'production'
+    is_debug = current_app.debug
+    debug_warning = bool(is_debug and app_env.lower() in ('production', 'prod'))
+
+    # 4. Upload Directory Health & Size
+    uploads_base = os.path.abspath(os.path.join(current_app.root_path, 'static', 'uploads'))
+    upload_writable = os.access(uploads_base, os.W_OK) if os.path.exists(uploads_base) else False
+
+    total_upload_bytes = 0
+    total_upload_files = 0
+    if os.path.exists(uploads_base):
+        for root, _, files in os.walk(uploads_base):
+            for f in files:
+                fp = os.path.join(root, f)
+                try:
+                    total_upload_bytes += os.path.getsize(fp)
+                    total_upload_files += 1
+                except OSError:
+                    pass
+    upload_size_mb = round(total_upload_bytes / (1024 * 1024), 2)
+
+    # 5. Failed Logins in the last 24 hours
+    twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
+    failed_logins_24h = AdminAuditLog.query.filter(
+        AdminAuditLog.action == 'admin_login_failed',
+        AdminAuditLog.created_at >= twenty_four_hours_ago
+    ).count()
+
+    # 6. Git Commit / App Version
+    app_version = "v2.0"
+    try:
+        git_hash = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+        if git_hash:
+            app_version = f"v2.0 ({git_hash})"
+    except Exception:
+        pass
+
+    # 7. Integrations (Shown ONLY as Present / Missing, NEVER secrets or keys!)
+    google_browser_key_present = bool(os.environ.get('GOOGLE_MAPS_BROWSER_KEY') or current_app.config.get('GOOGLE_MAPS_BROWSER_KEY'))
+    google_map_id_present = bool(os.environ.get('GOOGLE_MAPS_MAP_ID') or current_app.config.get('GOOGLE_MAPS_MAP_ID'))
+    google_server_key_present = bool(os.environ.get('GOOGLE_MAPS_SERVER_KEY') or current_app.config.get('GOOGLE_MAPS_SERVER_KEY'))
+
+    # Probe count in the last hour for rate limiting
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    routes_probes_last_hour = AdminAuditLog.query.filter(
+        AdminAuditLog.action == 'test_routes_api',
+        AdminAuditLog.created_at >= one_hour_ago
+    ).count()
+
+    return render_template(
+        'admin/system.html',
+        db_status=db_status,
+        db_version=db_version,
+        current_rev=current_rev,
+        head_rev=head_rev,
+        migration_in_sync=migration_in_sync,
+        app_env=app_env,
+        is_debug=is_debug,
+        debug_warning=debug_warning,
+        upload_writable=upload_writable,
+        upload_size_mb=upload_size_mb,
+        total_upload_files=total_upload_files,
+        failed_logins_24h=failed_logins_24h,
+        app_version=app_version,
+        google_browser_key_present=google_browser_key_present,
+        google_map_id_present=google_map_id_present,
+        google_server_key_present=google_server_key_present,
+        routes_probes_last_hour=routes_probes_last_hour,
+        max_probes_per_hour=5
+    )
+
+
+@admin_bp.route('/system/test-routes', methods=['POST'])
+@roles_required('admin')
+def test_routes_api():
+    """Execute a single diagnostic route calculation (Colombo -> Kandy). Audited and rate-limited."""
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    probes_count = AdminAuditLog.query.filter(
+        AdminAuditLog.action == 'test_routes_api',
+        AdminAuditLog.created_at >= one_hour_ago
+    ).count()
+
+    if probes_count >= 5:
+        flash('Rate limit reached: Maximum 5 Routes API test probes allowed per hour.', 'warning')
+        return redirect(url_for('admin.system_status'))
+
+    # Colombo Fort to Kandy Clock Tower coordinates
+    colombo_lat, colombo_lng = 6.9271, 79.8612
+    kandy_lat, kandy_lng = 7.2906, 80.6337
+
+    start_time = time.time()
+    try:
+        dist_km, source = get_driving_distance_km(colombo_lat, colombo_lng, kandy_lat, kandy_lng)
+        elapsed_ms = round((time.time() - start_time) * 1000)
+
+        _audit(
+            action='test_routes_api',
+            target_type='system',
+            details=f"Routes API probe: {source} route returned {dist_km} km in {elapsed_ms}ms"
+        )
+        db.session.commit()
+
+        if source == 'google':
+            flash(
+                f"Google Routes API Online (HTTP 200 OK): Distance Colombo to Kandy is {dist_km} km (latency: {elapsed_ms} ms).",
+                "success"
+            )
+        else:
+            flash(
+                f"Routes API Fallback Active: Server key returned estimated Haversine distance ({dist_km} km in {elapsed_ms} ms). Check Google Cloud API key permissions.",
+                "warning"
+            )
+    except Exception as e:
+        elapsed_ms = round((time.time() - start_time) * 1000)
+        _audit(
+            action='test_routes_api',
+            target_type='system',
+            result='failed',
+            details=f"Routes API probe failed after {elapsed_ms}ms: {str(e)[:150]}"
+        )
+        db.session.commit()
+        flash(f"Routes API probe failed: {str(e)[:150]}", "error")
+
+    return redirect(url_for('admin.system_status'))
+

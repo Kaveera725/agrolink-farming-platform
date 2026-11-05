@@ -22,3 +22,9 @@ def home():
         sample_prices=sample_prices,
         counts=counts
     )
+
+
+@main_bp.route('/privacy')
+def privacy():
+    """Sri Lanka PDPA 2022 and GDPR Privacy Notice."""
+    return render_template('main/privacy.html')

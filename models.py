@@ -308,3 +308,26 @@ class PlatformSetting(db.Model):
         return f'<PlatformSetting {self.key}={self.value}>'
 
 
+class DataRequest(db.Model):
+    __tablename__ = 'data_requests'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    type = db.Column(db.String(20), nullable=False, index=True)  # 'export', 'deletion'
+    status = db.Column(db.String(20), default='open', nullable=False, index=True)  # 'open', 'completed', 'rejected'
+    admin_note = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    handled_at = db.Column(db.DateTime, nullable=True)
+    handled_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+
+    user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('data_requests', lazy=True, cascade='all, delete-orphan'))
+    handler = db.relationship('User', foreign_keys=[handled_by], lazy=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f'<DataRequest #{self.id} user={self.user_id} type={self.type} status={self.status}>'
+
+
+
