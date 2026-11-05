@@ -50,8 +50,7 @@
         </svg>
         <label for="csv_file_input" class="cursor-pointer block">
           <span class="btn-primary py-2 px-4 text-xs font-bold inline-block mb-1">Select CSV File</span>
-          <input id="csv_file_input" type="file" name="file" accept=".csv" required class="hidden"
-            onchange="document.getElementById('file-chosen-name').textContent = this.files[0]?.name || 'No file selected';">
+          <input id="csv_file_input" type="file" name="file" accept=".csv" required class="hidden">
         </label>
         <p id="file-chosen-name" class="text-xs font-medium text-gray-600 mt-2">No file selected</p>
         <p class="text-[11px] text-gray-400 mt-1">UTF-8 .csv files only, max 1 MB</p>
@@ -151,14 +150,16 @@
       <a href="{{ url_for('admin.import_prices') }}" class="btn-secondary py-2 px-4 text-xs font-semibold">
         Cancel / Upload Another
       </a>
-      <form method="post" action="{{ url_for('admin.confirm_import_prices') }}">
+      <form method="post" action="{{ url_for('admin.confirm_import_prices') }}" id="confirmImportForm">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="import_payload" value="{{ payload_json }}">
+        <textarea name="import_payload" class="hidden" style="display:none;">{{ payload_json }}</textarea>
         <input type="hidden" name="filename" value="{{ filename }}">
-        <button type="submit" {% if (counts['new'] + counts['update'])==0 %}disabled{% endif %}
-          class="btn-primary py-2 px-5 text-xs font-bold shadow-sm {% if (counts['new'] + counts['update']) == 0 %}opacity-50 cursor-not-allowed{% endif %}"
-          onclick="return confirm('Confirm bulk import of {{ counts['new'] + counts['update'] }} price records?');">
-          Confirm &amp; Apply Import ({{ counts['new'] + counts['update'] }} Valid)
+        {% set valid_count = counts['new'] + counts['update'] %}
+        <button type="submit" {% if valid_count == 0 %}disabled{% endif %}
+          class="btn-primary py-2 px-5 text-xs font-bold shadow-sm {% if valid_count == 0 %}opacity-50 cursor-not-allowed{% endif %}"
+          id="confirmImportBtn"
+          data-count="{{ valid_count }}">
+          Confirm &amp; Apply Import ({{ valid_count }} Valid)
         </button>
       </form>
     </div>
@@ -259,4 +260,27 @@
 </div>
 {% endif %}
 
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('csv_file_input');
+  if (fileInput) {
+    fileInput.addEventListener('change', function() {
+      const name = (this.files && this.files.length > 0) ? this.files[0].name : 'No file selected';
+      const label = document.getElementById('file-chosen-name');
+      if (label) label.textContent = name;
+    });
+  }
+
+  const confirmForm = document.getElementById('confirmImportForm');
+  if (confirmForm) {
+    confirmForm.addEventListener('submit', (e) => {
+      const btn = document.getElementById('confirmImportBtn');
+      const count = btn ? btn.getAttribute('data-count') : '0';
+      if (!confirm(`Confirm bulk import of ${count} price records?`)) {
+        e.preventDefault();
+      }
+    });
+  }
+});
+</script>
 {% endblock %}

@@ -399,7 +399,7 @@
           <span class="font-bold text-leaf">{{ reg.count }} users</span>
         </div>
         <div class="w-full bg-canvas rounded-full h-2 overflow-hidden border">
-          <div class="bg-leaf h-2 rounded-full" style="width: {{ [reg.count * 5, 100]|min }}%"></div>
+          <div class="bg-leaf h-2 rounded-full" style="width: {{ [reg.count * 5, 100]|min }}%;"></div>
         </div>
       </div>
       {% else %}
@@ -466,6 +466,21 @@
 </div>
 
 {# ─── 9. CHART.JS SCRIPT (LOADED ONLY ON THIS PAGE) ─── #}
+<script id="dashboardChartData" type="application/json">
+{
+  "labels": {{ chart_labels|tojson|safe }},
+  "ordersData": {{ chart_orders_data|tojson|safe }},
+  "valueData": {{ chart_value_data|tojson|safe }},
+  "fulfillmentData": [{{ fulfillment_counts.delivery|default(0) }}, {{ fulfillment_counts.pickup|default(0) }}],
+  "statusData": [
+    {{ status_counts.pending|default(0) }},
+    {{ status_counts.confirmed|default(0) }},
+    {{ status_counts.delivered|default(0) }},
+    {{ status_counts.cancelled|default(0) }},
+    {{ status_counts.rejected|default(0) }}
+  ]
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -484,17 +499,13 @@ document.addEventListener('DOMContentLoaded', () => {
     gray: '#6B7280'
   };
 
-  const labels = {{ chart_labels|tojson }};
-  const ordersData = {{ chart_orders_data|tojson }};
-  const valueData = {{ chart_value_data|tojson }};
-  const fulfillmentData = [{{ fulfillment_counts.delivery }}, {{ fulfillment_counts.pickup }}];
-  const statusData = [
-    {{ status_counts.pending }},
-    {{ status_counts.confirmed }},
-    {{ status_counts.delivered }},
-    {{ status_counts.cancelled }},
-    {{ status_counts.rejected }}
-  ];
+  const chartDataEl = document.getElementById('dashboardChartData');
+  const chartConfig = chartDataEl ? JSON.parse(chartDataEl.textContent || '{}') : {};
+  const labels = chartConfig.labels || [];
+  const ordersData = chartConfig.ordersData || [];
+  const valueData = chartConfig.valueData || [];
+  const fulfillmentData = chartConfig.fulfillmentData || [0, 0];
+  const statusData = chartConfig.statusData || [0, 0, 0, 0, 0];
 
   // 1. Orders per day
   const ordersCtx = document.getElementById('ordersPerDayChart');

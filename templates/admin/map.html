@@ -152,7 +152,7 @@
             <span class="font-bold text-ink">{{ f.active_listings }}</span>
           </td>
           <td class="p-3">
-            {% if f.has_pin %}
+            {% if f.has_pin and f.lat is not none and f.lng is not none %}
             <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-leaf">
               📍 {{ '%.4f'|format(f.lat) }}, {{ '%.4f'|format(f.lng) }}
             </span>
@@ -180,11 +180,13 @@
 
 {# ─── GOOGLE MAPS LOADER & PLOTTING SCRIPT ─── #}
 {% if maps_enabled %}
+<script id="farmerMarkersDataJson" type="application/json">{{ farmer_markers|tojson|safe }}</script>
+<script id="buyerMarkersDataJson" type="application/json">{{ (buyer_markers or [])|tojson|safe }}</script>
 <script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const farmerMarkersData = {{ farmer_markers|tojson }};
-  const buyerMarkersData = {{ buyerMarkersData|default(buyer_markers)|tojson }};
+  const farmerMarkersData = JSON.parse(document.getElementById('farmerMarkersDataJson')?.textContent || '[]');
+  const buyerMarkersData = JSON.parse(document.getElementById('buyerMarkersDataJson')?.textContent || '[]');
   const mapElement = document.getElementById('farmersMap');
   const spinner = document.getElementById('mapLoadingSpinner');
   const noticeContainer = document.getElementById('mapNoticeContainer');
