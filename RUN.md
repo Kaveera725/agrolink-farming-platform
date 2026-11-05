@@ -62,7 +62,6 @@ If starting with a fresh database or missing market benchmark data, populate ind
 ```powershell
 flask seed-prices
 ```
-
 ---
 
 ### Step 6: Start the Flask Application
