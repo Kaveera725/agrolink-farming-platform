@@ -283,6 +283,22 @@ def create_app(debug=None):
         click.echo("  * http://127.0.0.1:5000/*")
         click.echo("==================================================\n")
 
+    @app.cli.command('seed-admin-demo')
+    @click.option('--clear', is_flag=True, default=False, help='Purge previously seeded demo records.')
+    def seed_admin_demo_command(clear):
+        """Seed ~300 users, ~200 products, ~800 orders for admin dashboard demonstration."""
+        from services.demo_seeder import seed_demo_data, clear_demo_data
+        if clear:
+            click.echo("Purging demo records (@demo.agrolink.lk)...")
+            u_del, p_del, o_del = clear_demo_data()
+            click.echo(f"Purged: {u_del} users, {p_del} products, {o_del} orders.")
+            return
+
+        click.echo("Seeding admin demo records (~300 users, ~200 products, ~800 orders across 6 months)...")
+        u_count, p_count, o_count = seed_demo_data()
+        click.echo(f"Successfully seeded: {u_count} users, {p_count} products, {o_count} orders.")
+        click.echo("To purge anytime, run: flask seed-admin-demo --clear")
+
     return app
 
 

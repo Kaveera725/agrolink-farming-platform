@@ -12,6 +12,7 @@ from flask import current_app, has_app_context
 # Cache storage: dict of key -> (value, expiry_timestamp)
 _SETTINGS_CACHE: Dict[str, tuple[Any, float]] = {}
 CACHE_TTL_SECONDS = 60
+_ALL_LOADED_UNTIL = 0.0
 
 SETTINGS_SCHEMA = {
     'delivery_base_fee': {
@@ -119,6 +120,8 @@ def _cast_value(val_str: Optional[str], val_type: str) -> Any:
 
 def clear_settings_cache(key: Optional[str] = None) -> None:
     """Invalidate cached settings either globally or for a specific key."""
+    global _ALL_LOADED_UNTIL
+    _ALL_LOADED_UNTIL = 0.0
     if key:
         _SETTINGS_CACHE.pop(key, None)
     else:
@@ -154,26 +157,30 @@ def get_setting(key: str, default: Any = None) -> Any:
 
     Cached for 60 seconds.
     """
+    global _ALL_LOADED_UNTIL
     now = time.time()
     cached = _SETTINGS_CACHE.get(key)
     if cached is not None and cached[1] > now:
         return cached[0]
 
-    # Query DB inside app context
-    val = None
-    try:
-        from models import PlatformSetting
-        row = PlatformSetting.query.filter_by(key=key).first()
-        if row is not None and row.value is not None:
-            val = _cast_value(row.value, row.value_type)
-    except Exception:
-        # If DB is unavailable or during early init
-        val = None
+    # Preload all settings into cache in one query if cache is cold
+    if now > _ALL_LOADED_UNTIL:
+        try:
+            from models import PlatformSetting
+            all_rows = PlatformSetting.query.all()
+            for r in all_rows:
+                if r.value is not None:
+                    _SETTINGS_CACHE[r.key] = (_cast_value(r.value, r.value_type), now + CACHE_TTL_SECONDS)
+            _ALL_LOADED_UNTIL = now + CACHE_TTL_SECONDS
+        except Exception:
+            pass
 
-    if val is None:
-        fallback = get_default_setting(key)
-        val = fallback if fallback is not None else default
+    cached = _SETTINGS_CACHE.get(key)
+    if cached is not None and cached[1] > now:
+        return cached[0]
 
+    fallback = get_default_setting(key)
+    val = fallback if fallback is not None else default
     _SETTINGS_CACHE[key] = (val, now + CACHE_TTL_SECONDS)
     return val
 

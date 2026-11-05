@@ -22,12 +22,15 @@
             {% endif %}
           </a>
 
+          {# Farmers Map #}
+          <a href="{{ url_for('admin.farmers_map') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.farmers_map' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Farmers Map</a>
+
           {# Listings #}
           <a href="{{ url_for('admin.listings') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.listings' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Listings</a>
 
           {# Listing Reports #}
           <a href="{{ url_for('admin.listing_reports') }}" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.listing_reports', 'admin.listing_report_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
-            <span>Reports</span>
+            <span>Listing Reports</span>
             {% if admin_open_reports_count and admin_open_reports_count > 0 %}
               <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none bg-rose-500 text-white rounded-full">
                 {{ admin_open_reports_count }}
@@ -44,8 +47,8 @@
           {# Market prices #}
           <a href="{{ url_for('admin.prices') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.prices' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Market prices</a>
 
-          {# Exports #}
-          <a href="{{ url_for('admin.exports') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.exports', 'admin.reports_csv') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Exports</a>
+          {# Reports Hub #}
+          <a href="{{ url_for('admin.reports') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint in ('admin.reports', 'admin.exports', 'admin.reports_csv') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Reports & Analytics</a>
 
           {# Activity log #}
           <a href="{{ url_for('admin.activity') }}" class="block px-3 py-2.5 rounded-lg text-sm font-semibold {% if request.endpoint == 'admin.activity' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">Activity log</a>

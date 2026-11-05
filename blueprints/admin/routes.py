@@ -9,7 +9,8 @@ from flask import (
     render_template, request, session, url_for, stream_with_context
 )
 from flask_login import current_user, logout_user
-from sqlalchemy import func
+from sqlalchemy import func, case, desc, asc, distinct, text
+from sqlalchemy.orm import joinedload
 
 from extensions import db
 from models import AdminAuditLog, AdminNote, Crop, ListingReport, MarketPrice, MarketPriceHistory, Order, PlatformSetting, Product, User, VerificationRequest
@@ -27,14 +28,23 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @admin_bp.context_processor
 def admin_nav_counts():
     """Supply real-time pending counters to admin sidebar."""
-    try:
-        pending_verifications = VerificationRequest.query.filter_by(status='pending').count()
-    except Exception:
-        pending_verifications = 0
-    try:
-        open_reports = ListingReport.query.filter(ListingReport.status.in_(['open', 'reviewing'])).count()
-    except Exception:
-        open_reports = 0
+    from flask import g
+    pending_verifications = getattr(g, 'admin_pending_verifications_count', None)
+    if pending_verifications is None:
+        try:
+            pending_verifications = VerificationRequest.query.filter_by(status='pending').count()
+            g.admin_pending_verifications_count = pending_verifications
+        except Exception:
+            pending_verifications = 0
+
+    open_reports = getattr(g, 'admin_open_reports_count', None)
+    if open_reports is None:
+        try:
+            open_reports = ListingReport.query.filter(ListingReport.status.in_(['open', 'reviewing'])).count()
+            g.admin_open_reports_count = open_reports
+        except Exception:
+            open_reports = 0
+
     return {
         'admin_pending_verifications_count': pending_verifications,
         'admin_open_reports_count': open_reports,
@@ -106,39 +116,227 @@ def set_admin_headers(response):
 @admin_bp.route('')
 @admin_bp.route('/dashboard')
 def dashboard():
-    since = datetime.utcnow() - timedelta(days=29)
-    orders = Order.query.order_by(Order.created_at.desc()).all()
-    daily = Counter(
-        order.created_at.date().isoformat()
-        for order in orders
-        if order.created_at and order.created_at >= since
-    )
-    chart_labels = [(since + timedelta(days=index)).date().isoformat() for index in range(30)]
-    chart_values = [daily[label] for label in chart_labels]
-    totals = {
-        'users': User.query.count(),
-        'farmers': User.query.filter_by(role='farmer').count(),
-        'buyers': User.query.filter_by(role='buyer').count(),
-        'admins': User.query.filter_by(role='admin').count(),
-        'active_listings': Product.query.filter_by(is_available=True, is_deleted=False).count(),
-        'orders': Order.query.count(),
-        'order_value': db.session.query(func.coalesce(func.sum(Order.total_price), 0)).scalar(),
-        'delivery_fees': db.session.query(func.coalesce(func.sum(Order.delivery_fee), 0)).scalar(),
-    }
-    status_counts = Counter(order.status for order in orders)
-    registrations = User.query.order_by(User.created_at.desc()).limit(8).all()
+    range_preset = request.args.get('range', '30').strip().lower()
+    start_str = request.args.get('start', '').strip()
+    end_str = request.args.get('end', '').strip()
+
+    now = datetime.utcnow()
+
+    # Determine date boundaries
+    if range_preset in ('7', '30', '90') and not (start_str and end_str and range_preset == 'custom'):
+        days = int(range_preset)
+        start_dt = (now - timedelta(days=days - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = now.strftime('%Y-%m-%d')
+    else:
+        range_preset = 'custom'
+        start_dt = _parse_date(start_str) if start_str else (now - timedelta(days=29)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt = _parse_date(end_str) if end_str else now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = end_dt + timedelta(days=1)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = end_dt.strftime('%Y-%m-%d')
+
     stale_days = get_setting('stale_price_days', default=7)
-    stale_cutoff = datetime.utcnow() - timedelta(days=stale_days)
+    stale_cutoff = now - timedelta(days=stale_days)
+    low_stock_limit = get_setting('low_stock_kg', default=50)
+
+    # 1. Total users by role and farmers without pin (pure SQL aggregation in single query)
+    user_counts = db.session.query(
+        func.count(User.id),
+        func.count(case((User.role == 'farmer', 1))),
+        func.count(case((User.role == 'buyer', 1))),
+        func.count(case((User.role == 'admin', 1))),
+        func.count(case(((User.role == 'farmer') & ((User.latitude.is_(None)) | (User.longitude.is_(None))), 1)))
+    ).first() or (0, 0, 0, 0, 0)
+    total_users, farmers_count, buyers_count, admins_count, farmers_without_pin = user_counts
+
+    # 2. Active listings and low-stock count in single query
+    prod_counts = db.session.query(
+        func.count(Product.id),
+        func.count(case((Product.quantity_kg < low_stock_limit, 1)))
+    ).filter(Product.is_available == True, Product.is_deleted == False).first() or (0, 0)
+    active_listings_count, low_stock_listings = prod_counts
+
+    # 3. KPI order metrics in date range (pure SQL aggregation in single query)
+    # Order value = total of orders that are not cancelled or rejected
+    # Completed value = total of delivered orders
+    order_kpis = db.session.query(
+        func.count(Order.id),
+        func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0),
+        func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0),
+        func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.delivery_fee), else_=0)), 0),
+        func.count(case((Order.status.notin_(['cancelled', 'rejected']), 1))),
+        func.count(case((Order.status == 'delivered', 1))),
+        func.count(case((Order.status.in_(['cancelled', 'rejected']), 1)))
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).first()
+
+    (
+        total_orders,
+        order_value,
+        completed_value,
+        delivery_fees,
+        active_orders_count,
+        delivered_count,
+        cancellations_count
+    ) = order_kpis or (0, 0, 0, 0, 0, 0, 0)
+
+    # Average Order Value (AOV) on non-cancelled/rejected orders
+    aov = (float(order_value) / active_orders_count) if active_orders_count > 0 else 0.0
+
+    # Completion Rate & Cancellation Rate
+    completion_rate = round((delivered_count / total_orders * 100), 1) if total_orders > 0 else 0.0
+    cancellation_rate = round((cancellations_count / total_orders * 100), 1) if total_orders > 0 else 0.0
+
+    totals = {
+        'users': total_users,
+        'farmers': farmers_count,
+        'buyers': buyers_count,
+        'admins': admins_count,
+        'active_listings': active_listings_count,
+        'orders': total_orders,
+        'order_value': float(order_value),
+        'completed_value': float(completed_value),
+        'delivery_fees': float(delivery_fees),
+        'aov': round(aov, 2),
+        'completion_rate': completion_rate,
+        'cancellation_rate': cancellation_rate,
+    }
+
+    # 4. Charts data (pure SQL aggregation)
+    # Orders and Order Value per day
+    daily_rows = db.session.query(
+        func.date(Order.created_at).label('order_date'),
+        func.count(Order.id).label('daily_count'),
+        func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0).label('daily_value')
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).group_by(text('order_date')).all()
+
+    daily_map = {str(row.order_date): (row.daily_count, float(row.daily_value)) for row in daily_rows}
+
+    # Generate continuous day labels
+    num_days = min(max((end_dt_excl.date() - start_dt.date()).days, 1), 90)
+    chart_labels = []
+    chart_orders_data = []
+    chart_value_data = []
+    for day_idx in range(num_days):
+        day_date = start_dt.date() + timedelta(days=day_idx)
+        day_str = str(day_date)
+        chart_labels.append(day_date.strftime('%b %d'))
+        c, v = daily_map.get(day_str, (0, 0.0))
+        chart_orders_data.append(c)
+        chart_value_data.append(round(v, 2))
+
+    # Delivery vs Pickup Split
+    fulfillment_rows = db.session.query(
+        Order.fulfillment_type,
+        func.count(Order.id)
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).group_by(Order.fulfillment_type).all()
+    fulfillment_counts = {'pickup': 0, 'delivery': 0}
+    for f_type, cnt in fulfillment_rows:
+        if f_type in fulfillment_counts:
+            fulfillment_counts[f_type] = cnt
+
+    # Orders by Status
+    status_rows = db.session.query(
+        Order.status,
+        func.count(Order.id)
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).group_by(Order.status).all()
+    status_counts = {s: 0 for s in ['pending', 'confirmed', 'delivered', 'cancelled', 'rejected']}
+    for s_name, cnt in status_rows:
+        if s_name in status_counts:
+            status_counts[s_name] = cnt
+
+    # 5. Top 5 Farmers by completed value
+    top_farmers = db.session.query(
+        User.id,
+        User.name,
+        User.farm_name,
+        func.coalesce(func.sum(Order.total_price), 0).label('completed_val'),
+        func.count(Order.id).label('delivered_orders')
+    ).join(Product, Product.farmer_id == User.id)\
+     .join(Order, Order.product_id == Product.id)\
+     .filter(Order.status == 'delivered', Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+     .group_by(User.id, User.name, User.farm_name)\
+     .order_by(desc('completed_val'))\
+     .limit(5).all()
+
+    # 6. Top 5 Crops by quantity ordered
+    top_crops = db.session.query(
+        Product.name,
+        func.coalesce(func.sum(Order.quantity_kg), 0).label('total_kg'),
+        func.count(Order.id).label('orders_count')
+    ).join(Order, Order.product_id == Product.id)\
+     .filter(Order.status.notin_(['cancelled', 'rejected']), Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+     .group_by(Product.name)\
+     .order_by(desc('total_kg'))\
+     .limit(5).all()
+
+    # 7. New registrations per week (last 6 weeks)
+    six_weeks_ago = (now - timedelta(weeks=6)).replace(hour=0, minute=0, second=0, microsecond=0)
+    weekly_reg_rows = db.session.query(
+        func.date_trunc('week', User.created_at).label('reg_week'),
+        func.count(User.id).label('user_count')
+    ).filter(User.created_at >= six_weeks_ago)\
+     .group_by(text('reg_week'))\
+     .order_by(text('reg_week')).all()
+
+    weekly_reg_labels = [r.reg_week.strftime('Week of %b %d') if hasattr(r.reg_week, 'strftime') else str(r.reg_week)[:10] for r in weekly_reg_rows]
+    weekly_reg_values = [r.user_count for r in weekly_reg_rows]
+    weekly_registrations = [
+        {'label': (r.reg_week.strftime('Week of %b %d') if hasattr(r.reg_week, 'strftime') else str(r.reg_week)[:10]), 'count': r.user_count}
+        for r in weekly_reg_rows
+    ]
+
+    # 8. "Needs attention" panel counts (all scalar subqueries batched into 1 SQL call)
+    from flask import g
+    attn_counts = db.session.query(
+        db.session.query(func.count(ListingReport.id)).filter(ListingReport.status.in_(['open', 'reviewing'])).scalar_subquery(),
+        db.session.query(func.count(VerificationRequest.id)).filter(VerificationRequest.status == 'pending').scalar_subquery(),
+        db.session.query(func.count(Order.id)).filter(Order.status == 'pending', Order.created_at < (now - timedelta(hours=24))).scalar_subquery()
+    ).first() or (0, 0, 0)
+    open_reports, pending_verifications, old_pending_orders = attn_counts
+
+    g.admin_open_reports_count = open_reports
+    g.admin_pending_verifications_count = pending_verifications
+
     stale_prices = MarketPrice.query.filter(MarketPrice.updated_at < stale_cutoff).order_by(MarketPrice.updated_at.asc()).all()
+
+    attention = {
+        'open_reports': open_reports,
+        'pending_verifications': pending_verifications,
+        'old_pending_orders': old_pending_orders,
+        'stale_prices': len(stale_prices),
+        'farmers_without_pin': farmers_without_pin,
+        'low_stock_listings': low_stock_listings
+    }
+
+    # Recent items with eager loading to avoid N+1 queries
+    recent_orders = Order.query.options(
+        joinedload(Order.product),
+        joinedload(Order.buyer)
+    ).order_by(Order.created_at.desc()).limit(8).all()
+    registrations = User.query.order_by(User.created_at.desc()).limit(8).all()
 
     return render_template(
         'admin/dashboard.html',
         totals=totals,
-        status_counts=status_counts,
-        recent_orders=orders[:8],
-        registrations=registrations,
+        range_preset=range_preset,
+        start=start_str,
+        end=end_str,
         chart_labels=chart_labels,
-        chart_values=chart_values,
+        chart_orders_data=chart_orders_data,
+        chart_value_data=chart_value_data,
+        chart_values=chart_orders_data,  # backward compatibility alias
+        fulfillment_counts=fulfillment_counts,
+        status_counts=status_counts,
+        top_farmers=top_farmers,
+        top_crops=top_crops,
+        weekly_reg_labels=weekly_reg_labels,
+        weekly_reg_values=weekly_reg_values,
+        weekly_registrations=weekly_registrations,
+        attention=attention,
+        recent_orders=recent_orders,
+        registrations=registrations,
         stale_prices=stale_prices,
         stale_days=stale_days
     )
@@ -1179,13 +1377,287 @@ def reset_platform_settings():
     return redirect(url_for('admin.settings'))
 
 
+@admin_bp.route('/map', endpoint='farmers_map')
+def farmers_map():
+    district_filter = request.args.get('district', '').strip()
+    verified_filter = request.args.get('verified', '').strip()
+    active_filter = request.args.get('has_active', '').strip()
+    include_buyers = request.args.get('include_buyers', '0').strip() == '1'
+
+    # Pinned farmers
+    farmer_query = User.query.filter(
+        User.role == 'farmer',
+        User.latitude.isnot(None),
+        User.longitude.isnot(None),
+        User.is_active == True
+    )
+    if district_filter:
+        farmer_query = farmer_query.filter(User.location.ilike(f'%{district_filter}%'))
+    if verified_filter == '1':
+        farmer_query = farmer_query.filter(User.is_verified == True)
+    elif verified_filter == '0':
+        farmer_query = farmer_query.filter(User.is_verified == False)
+
+    pinned_farmers = farmer_query.all()
+
+    # Active listing count per farmer
+    active_subq = db.session.query(
+        Product.farmer_id,
+        func.count(Product.id).label('listing_count')
+    ).filter(Product.is_available == True, Product.is_deleted == False).group_by(Product.farmer_id).all()
+    listing_count_map = {fid: count for fid, count in active_subq}
+
+    farmer_markers = []
+    for f in pinned_farmers:
+        count = listing_count_map.get(f.id, 0)
+        if active_filter == '1' and count == 0:
+            continue
+        if active_filter == '0' and count > 0:
+            continue
+        farmer_markers.append({
+            'id': f.id,
+            'name': f.name,
+            'farm_name': f.farm_name or '',
+            'district': f.location or 'Not specified',
+            'is_verified': bool(f.is_verified),
+            'lat': float(f.latitude),
+            'lng': float(f.longitude),
+            'active_listings': count,
+            'url': url_for('admin.user_detail', user_id=f.id),
+            'role': 'farmer'
+        })
+
+    buyer_markers = []
+    if include_buyers:
+        buyers_query = User.query.filter(
+            User.role == 'buyer',
+            User.latitude.isnot(None),
+            User.longitude.isnot(None),
+            User.is_active == True
+        )
+        if district_filter:
+            buyers_query = buyers_query.filter(User.location.ilike(f'%{district_filter}%'))
+        buyers = buyers_query.all()
+        for b in buyers:
+            buyer_markers.append({
+                'id': b.id,
+                'name': b.name,
+                'district': b.location or 'Not specified',
+                'lat': float(b.latitude),
+                'lng': float(b.longitude),
+                'url': url_for('admin.user_detail', user_id=b.id),
+                'role': 'buyer'
+            })
+
+    unpinned_count = User.query.filter(
+        User.role == 'farmer',
+        (User.latitude.is_(None)) | (User.longitude.is_(None)),
+        User.is_active == True
+    ).count()
+
+    districts_raw = db.session.query(distinct(User.location)).filter(
+        User.role == 'farmer', User.location.isnot(None)
+    ).order_by(User.location).all()
+    districts = [d[0] for d in districts_raw if d[0]]
+
+    all_farmers = User.query.filter_by(role='farmer', is_active=True).order_by(User.name.asc()).all()
+    farmer_table_data = []
+    for f in all_farmers:
+        farmer_table_data.append({
+            'id': f.id,
+            'name': f.name,
+            'farm_name': f.farm_name or '',
+            'district': f.location or 'Not specified',
+            'is_verified': bool(f.is_verified),
+            'has_pin': bool(f.latitude and f.longitude),
+            'lat': float(f.latitude) if f.latitude else None,
+            'lng': float(f.longitude) if f.longitude else None,
+            'active_listings': listing_count_map.get(f.id, 0),
+            'url': url_for('admin.user_detail', user_id=f.id)
+        })
+
+    return render_template(
+        'admin/map.html',
+        farmer_markers=farmer_markers,
+        buyer_markers=buyer_markers,
+        unpinned_count=unpinned_count,
+        districts=districts,
+        selected_district=district_filter,
+        verified_filter=verified_filter,
+        active_filter=active_filter,
+        include_buyers=include_buyers,
+        farmer_table_data=farmer_table_data
+    )
+
+
 @admin_bp.route('/exports')
 def exports():
     return render_template('admin/reports.html', start=request.args.get('start', ''), end=request.args.get('end', ''))
 
 
-# ─── 2. LISTING REPORTS ROUTES ──────────────────────────────────────────────
 @admin_bp.route('/reports', endpoint='reports')
+def reports():
+    report_type = request.args.get('type', 'sales').strip().lower()
+    sales_subview = request.args.get('subview', 'day').strip().lower()
+    range_preset = request.args.get('range', '30').strip().lower()
+    start_str = request.args.get('start', '').strip()
+    end_str = request.args.get('end', '').strip()
+    is_print = request.args.get('print', '0').strip() == '1'
+
+    now = datetime.utcnow()
+
+    if range_preset in ('7', '30', '90') and not (start_str and end_str and range_preset == 'custom'):
+        days = int(range_preset)
+        start_dt = (now - timedelta(days=days - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = now.strftime('%Y-%m-%d')
+    else:
+        range_preset = 'custom'
+        start_dt = _parse_date(start_str) if start_str else (now - timedelta(days=29)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt = _parse_date(end_str) if end_str else now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = end_dt + timedelta(days=1)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = end_dt.strftime('%Y-%m-%d')
+
+    if is_print:
+        _audit('report_print', 'report', None, f"Printed {report_type} report (start={start_str}, end={end_str})")
+        db.session.commit()
+
+    open_subq = db.session.query(
+        ListingReport.product_id,
+        func.count(func.distinct(ListingReport.reporter_id)).label('reporter_count')
+    ).filter(ListingReport.status.in_(['open', 'reviewing'])).group_by(ListingReport.product_id).all()
+    needs_review_count = sum(1 for pid, count in open_subq if count >= 3)
+
+    report_data = []
+    totals = {}
+
+    if report_type == 'sales':
+        if sales_subview == 'category':
+            rows = db.session.query(
+                Product.category,
+                func.count(Order.id).label('orders_count'),
+                func.count(case((Order.status == 'delivered', 1))).label('delivered_count'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.quantity_kg), else_=0)), 0).label('total_kg'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0).label('order_val'),
+                func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0).label('delivered_val')
+            ).join(Order, Order.product_id == Product.id)\
+             .filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+             .group_by(Product.category).order_by(desc('order_val')).all()
+
+            report_data = rows
+            totals = {
+                'orders_count': sum(r.orders_count for r in rows),
+                'delivered_count': sum(r.delivered_count for r in rows),
+                'total_kg': round(sum(float(r.total_kg) for r in rows), 2),
+                'order_val': round(sum(float(r.order_val) for r in rows), 2),
+                'delivered_val': round(sum(float(r.delivered_val) for r in rows), 2)
+            }
+        elif sales_subview == 'farmer':
+            rows = db.session.query(
+                User.id,
+                User.name,
+                User.farm_name,
+                User.location,
+                func.count(Order.id).label('orders_count'),
+                func.count(case((Order.status == 'delivered', 1))).label('delivered_count'),
+                func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0).label('delivered_val')
+            ).join(Product, Product.farmer_id == User.id)\
+             .join(Order, Order.product_id == Product.id)\
+             .filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+             .group_by(User.id, User.name, User.farm_name, User.location)\
+             .order_by(desc('delivered_val')).all()
+
+            report_data = rows
+            totals = {
+                'orders_count': sum(r.orders_count for r in rows),
+                'delivered_count': sum(r.delivered_count for r in rows),
+                'delivered_val': round(sum(float(r.delivered_val) for r in rows), 2)
+            }
+        else:
+            rows = db.session.query(
+                func.date(Order.created_at).label('order_date'),
+                func.count(Order.id).label('orders_count'),
+                func.count(case((Order.status == 'delivered', 1))).label('delivered_count'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0).label('order_val'),
+                func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0).label('delivered_val'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.delivery_fee), else_=0)), 0).label('delivery_fees')
+            ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+             .group_by(text('order_date'))\
+             .order_by(desc('order_date')).all()
+
+            report_data = rows
+            totals = {
+                'orders_count': sum(r.orders_count for r in rows),
+                'delivered_count': sum(r.delivered_count for r in rows),
+                'order_val': round(sum(float(r.order_val) for r in rows), 2),
+                'delivered_val': round(sum(float(r.delivered_val) for r in rows), 2),
+                'delivery_fees': round(sum(float(r.delivery_fees) for r in rows), 2)
+            }
+
+    elif report_type == 'users':
+        users = User.query.filter(User.created_at >= start_dt, User.created_at < end_dt_excl).order_by(User.created_at.desc()).all()
+        report_data = users
+        totals = {'total_users': len(users)}
+
+    elif report_type == 'orders':
+        orders = Order.query.filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).order_by(Order.created_at.desc()).all()
+        report_data = orders
+        totals = {
+            'total_orders': len(orders),
+            'quantity_kg': round(sum(float(o.quantity_kg or 0) for o in orders), 2),
+            'items_total': round(sum(float(o.items_total or 0) for o in orders), 2),
+            'delivery_fee': round(sum(float(o.delivery_fee or 0) for o in orders), 2),
+            'total_price': round(sum(float(o.total_price or 0) for o in orders), 2)
+        }
+
+    elif report_type == 'listings':
+        listings = Product.query.filter(Product.created_at >= start_dt, Product.created_at < end_dt_excl).order_by(Product.created_at.desc()).all()
+        report_data = listings
+        totals = {
+            'total_listings': len(listings),
+            'available_kg': round(sum(float(p.quantity_kg or 0) for p in listings if p.is_available and not p.is_deleted), 2)
+        }
+
+    elif report_type in ('prices', 'market_prices'):
+        prices = MarketPrice.query.order_by(MarketPrice.crop_name.asc()).all()
+        price_history_counts = dict(
+            db.session.query(MarketPriceHistory.market_price_id, func.count(MarketPriceHistory.id))
+            .group_by(MarketPriceHistory.market_price_id).all()
+        )
+        report_data = []
+        for p in prices:
+            report_data.append({
+                'price': p,
+                'history_count': price_history_counts.get(p.id, 0)
+            })
+        totals = {
+            'total_crops': len(prices),
+            'avg_buying': round(sum(p.buying_price for p in prices) / len(prices), 2) if prices else 0.0,
+            'avg_selling': round(sum(p.selling_price for p in prices) / len(prices), 2) if prices else 0.0
+        }
+
+    elif report_type in ('audit', 'audit_log'):
+        logs = AdminAuditLog.query.filter(AdminAuditLog.created_at >= start_dt, AdminAuditLog.created_at < end_dt_excl).order_by(AdminAuditLog.created_at.desc()).all()
+        report_data = logs
+        totals = {'total_events': len(logs)}
+
+    return render_template(
+        'admin/reports_hub.html',
+        report_type=report_type,
+        sales_subview=sales_subview,
+        range_preset=range_preset,
+        start=start_str,
+        end=end_str,
+        report_data=report_data,
+        totals=totals,
+        needs_review_count=needs_review_count,
+        is_print=is_print
+    )
+
+
+# ─── 2. LISTING REPORTS ROUTES ──────────────────────────────────────────────
 @admin_bp.route('/listing-reports', endpoint='listing_reports')
 def listing_reports():
     status = request.args.get('status', 'open').strip().lower()
@@ -1427,28 +1899,97 @@ def report_csv(report_type):
                 ]])
                 yield out.getvalue()
 
-        elif report_type == 'sales':
+        elif report_type in ('sales', 'sales_summary'):
             writer.writerow([sanitize_csv_cell(h) for h in ['metric', 'value']])
             yield out.getvalue()
             query = filtered_orders_q
             orders_list = query.all()
             total_orders = len(orders_list)
-            sales_sum = sum((Decimal(str(r.total_price or 0)) for r in orders_list), Decimal('0'))
-            fees_sum = sum((Decimal(str(r.delivery_fee or 0)) for r in orders_list), Decimal('0'))
+            sales_sum = sum((Decimal(str(r.total_price or 0)) for r in orders_list if r.status not in ('cancelled', 'rejected')), Decimal('0'))
+            completed_sum = sum((Decimal(str(r.total_price or 0)) for r in orders_list if r.status == 'delivered'), Decimal('0'))
+            fees_sum = sum((Decimal(str(r.delivery_fee or 0)) for r in orders_list if r.status not in ('cancelled', 'rejected')), Decimal('0'))
 
             for row in [
-                ['orders', total_orders],
-                ['sales_total', sales_sum],
+                ['total_orders', total_orders],
+                ['order_value', sales_sum],
+                ['completed_value', completed_sum],
                 ['delivery_fees', fees_sum]
             ]:
                 out = io.StringIO()
                 writer = csv.writer(out)
                 writer.writerow([sanitize_csv_cell(c) for c in row])
                 yield out.getvalue()
+
+        elif report_type == 'listings':
+            writer.writerow([sanitize_csv_cell(h) for h in ['id', 'crop_name', 'category', 'farmer', 'price_per_kg', 'quantity_kg', 'offers_delivery', 'status', 'created_at']])
+            yield out.getvalue()
+            l_query = Product.query.order_by(Product.created_at.desc())
+            if start: l_query = l_query.filter(Product.created_at >= start)
+            if end: l_query = l_query.filter(Product.created_at < end)
+            count = 0
+            for p in l_query.yield_per(1000):
+                count += 1
+                if count > 50000:
+                    out = io.StringIO()
+                    writer = csv.writer(out)
+                    writer.writerow(["EXPORT CAPPED AT 50,000 ROWS", ""])
+                    yield out.getvalue()
+                    break
+                out = io.StringIO()
+                writer = csv.writer(out)
+                writer.writerow([sanitize_csv_cell(val) for val in [
+                    p.id,
+                    p.name,
+                    p.category,
+                    p.farmer.name if p.farmer else '',
+                    p.price_per_kg,
+                    p.quantity_kg,
+                    'Yes' if p.offers_delivery else 'No',
+                    'Deleted' if p.is_deleted else ('Available' if p.is_available else 'Hidden'),
+                    p.created_at
+                ]])
+                yield out.getvalue()
+
+        elif report_type in ('prices', 'market_prices'):
+            writer.writerow([sanitize_csv_cell(h) for h in ['id', 'crop_name', 'category', 'buying_price', 'selling_price', 'unit', 'market_location', 'updated_at']])
+            yield out.getvalue()
+            p_query = MarketPrice.query.order_by(MarketPrice.crop_name.asc())
+            for p in p_query.yield_per(1000):
+                out = io.StringIO()
+                writer = csv.writer(out)
+                writer.writerow([sanitize_csv_cell(val) for val in [
+                    p.id, p.crop_name, p.category, p.buying_price, p.selling_price, p.unit, p.market_location, p.updated_at
+                ]])
+                yield out.getvalue()
+
+        elif report_type in ('audit', 'audit_log'):
+            writer.writerow([sanitize_csv_cell(h) for h in ['id', 'timestamp', 'admin_name', 'action', 'target_type', 'target_id', 'result', 'details']])
+            yield out.getvalue()
+            a_query = AdminAuditLog.query.order_by(AdminAuditLog.created_at.desc())
+            if start: a_query = a_query.filter(AdminAuditLog.created_at >= start)
+            if end: a_query = a_query.filter(AdminAuditLog.created_at < end)
+            count = 0
+            for a in a_query.yield_per(1000):
+                count += 1
+                if count > 50000:
+                    out = io.StringIO()
+                    writer = csv.writer(out)
+                    writer.writerow(["EXPORT CAPPED AT 50,000 ROWS", ""])
+                    yield out.getvalue()
+                    break
+                out = io.StringIO()
+                writer = csv.writer(out)
+                writer.writerow([sanitize_csv_cell(val) for val in [
+                    a.id, a.created_at, a.admin_user.name if a.admin_user else 'System',
+                    a.action, a.target_type, a.target_id, a.result, a.details
+                ]])
+                yield out.getvalue()
+
         else:
             return
 
-    if report_type not in ('users', 'orders', 'sales'):
+    valid_reports = ('users', 'orders', 'sales', 'sales_summary', 'listings', 'prices', 'market_prices', 'audit', 'audit_log')
+    if report_type not in valid_reports:
         return 'Unknown report', 404
 
     _audit('report_exported', 'report', None, report_type)
