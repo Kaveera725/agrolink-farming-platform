@@ -377,9 +377,59 @@
           </a>
         </div>
       </div>
+      {# Personal Data & Privacy Card (PDPA 2022) #}
       <div class="card p-5 border-l-4 border-leaf">
-        <p class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">Data Privacy</p>
-        <p class="text-xs text-gray-500 leading-relaxed">Your email and credentials are kept private and never shared with other marketplace users.</p>
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-xs font-bold text-gray-800 uppercase tracking-wide">Data Privacy &amp; Rights</p>
+          <a href="{{ url_for('main.privacy') }}" class="text-[11px] font-semibold text-leaf hover:underline">Notice →</a>
+        </div>
+        <p class="text-xs text-gray-500 leading-relaxed mb-3">
+          Under Sri Lanka's Personal Data Protection Act (PDPA No. 9 of 2022), you can request a portable copy of your account data or account anonymization.
+        </p>
+
+        {# Data Requests Queue for User #}
+        {% if data_requests %}
+        <div class="mb-3 space-y-1.5 border-t border-b border-bdr py-2">
+          <span class="text-[10px] font-bold uppercase text-muted tracking-wider block">Your Requests</span>
+          {% for dr in data_requests %}
+          <div class="flex items-center justify-between text-xs py-1">
+            <span class="capitalize font-semibold text-ink">
+              {{ dr.type }} ({{ dr.created_at.strftime('%d %b') }})
+            </span>
+            <span class="badge text-[10px] capitalize {% if dr.status == 'open' %}badge-amber{% elif dr.status == 'completed' %}badge-leaf{% else %}badge-rose{% endif %}">
+              {{ dr.status }}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="space-y-2">
+          {# Request Data Export Form #}
+          <form method="post" action="{{ url_for('profile.create_data_request') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="type" value="export">
+            <button type="submit" class="w-full py-1.5 px-3 rounded-lg border border-leaf-300 text-leaf hover:bg-leaf-50 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Request My Data (JSON)
+            </button>
+          </form>
+
+          {# Request Account Deletion Form #}
+          <form method="post" action="{{ url_for('profile.create_data_request') }}"
+                onsubmit="return confirm('Request permanent account anonymization and deactivation? Any active orders must be completed before deletion is approved.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="type" value="deletion">
+            <button type="submit" class="w-full py-1.5 px-3 rounded-lg border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Request Account Deletion
+            </button>
+          </form>
+        </div>
       </div>
       {% if user.role == 'farmer' %}
       <div class="card p-5 border-l-4" style="border-left-color:#E88533">

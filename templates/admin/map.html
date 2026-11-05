@@ -1,0 +1,346 @@
+{% extends "admin/_layout.html" %}
+
+{% block title %}Farmers Map — AgroLink Admin{% endblock %}
+
+{% block extra_head %}
+{# Load Maps credentials only on this page #}
+{% if maps_enabled %}
+<meta name="maps-browser-key" content="{{ maps_browser_key }}">
+<meta name="maps-map-id" content="{{ maps_map_id }}">
+{% endif %}
+<style>
+  .admin-map-container {
+    height: 580px;
+    width: 100%;
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div>
+    <p class="text-xs font-bold uppercase tracking-wider text-leaf">Geographic Intelligence</p>
+    <h1 class="text-2xl font-display font-bold text-ink mt-1">Farmers Map</h1>
+    <p class="text-xs sm:text-sm text-muted mt-1">Locate active farm locations, review coverage density, and inspect registered sellers.</p>
+  </div>
+
+  <div class="flex items-center gap-3">
+    {% if unpinned_count > 0 %}
+    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+      <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+      {{ unpinned_count }} farmer{% if unpinned_count > 1 %}s{% endif %} without map pin
+    </span>
+    {% endif %}
+    <button type="button" id="toggleViewBtn" class="btn-secondary text-xs py-2 px-3.5 rounded-xl font-bold">
+      Toggle Table View
+    </button>
+  </div>
+</div>
+
+{# ─── FILTERS TOOLBAR ─── #}
+<form method="GET" action="{{ url_for('admin.farmers_map') }}" class="card p-4 mb-6 flex flex-wrap items-end gap-3 bg-canvas/70 border border-leaf-200/80">
+  {# District Filter #}
+  <div>
+    <label class="block text-xs font-bold text-ink mb-1">District / Region</label>
+    <select name="district" class="input text-xs h-9 py-1 px-2.5 rounded-lg border-leaf-200 bg-white">
+      <option value="">All districts ({{ districts|length }})</option>
+      {% for d in districts %}
+      <option value="{{ d }}" {% if selected_district == d %}selected{% endif %}>{{ d }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {# Verification Status #}
+  <div>
+    <label class="block text-xs font-bold text-ink mb-1">Verification</label>
+    <select name="verified" class="input text-xs h-9 py-1 px-2.5 rounded-lg border-leaf-200 bg-white">
+      <option value="" {% if not verified_filter %}selected{% endif %}>All farmers</option>
+      <option value="1" {% if verified_filter == '1' %}selected{% endif %}>Verified only</option>
+      <option value="0" {% if verified_filter == '0' %}selected{% endif %}>Unverified only</option>
+    </select>
+  </div>
+
+  {# Has Active Listings #}
+  <div>
+    <label class="block text-xs font-bold text-ink mb-1">Active Listings</label>
+    <select name="has_active" class="input text-xs h-9 py-1 px-2.5 rounded-lg border-leaf-200 bg-white">
+      <option value="" {% if not active_filter %}selected{% endif %}>All</option>
+      <option value="1" {% if active_filter == '1' %}selected{% endif %}>Has active listings</option>
+      <option value="0" {% if active_filter == '0' %}selected{% endif %}>No active listings</option>
+    </select>
+  </div>
+
+  {# Include Buyers Toggle #}
+  <div class="flex items-center gap-2 pb-2">
+    <label class="inline-flex items-center cursor-pointer text-xs font-semibold text-ink">
+      <input type="checkbox" name="include_buyers" value="1" {% if include_buyers %}checked{% endif %}
+             class="rounded border-leaf-300 text-leaf focus:ring-leaf w-4 h-4 mr-2">
+      Include buyers on map
+    </label>
+  </div>
+
+  {# Submit and Reset #}
+  <div class="flex items-center gap-2 ml-auto">
+    <button type="submit" class="btn-primary text-xs py-2 px-4 h-9 font-bold rounded-lg">
+      Filter Pins
+    </button>
+    <a href="{{ url_for('admin.farmers_map') }}" class="btn-secondary text-xs py-2 px-3 h-9 font-semibold rounded-lg">
+      Reset
+    </a>
+  </div>
+</form>
+
+{# ─── MAP CANVAS & NOTICE CONTAINER ─── #}
+<div id="mapContainerWrapper" class="relative mb-6">
+  {# Fallback Alert Container if Maps fails #}
+  <div id="mapNoticeContainer" class="mb-4"></div>
+
+  {# Google Map Box #}
+  <div id="farmersMap" class="admin-map-container bg-canvas border border-leaf-200 shadow-sm relative">
+    <div id="mapLoadingSpinner" class="absolute inset-0 flex flex-col items-center justify-center bg-canvas/80 z-10">
+      <div class="w-8 h-8 border-4 border-leaf border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-xs font-semibold text-leaf mt-3">Loading interactive map...</p>
+    </div>
+  </div>
+</div>
+
+{# ─── FALLBACK / TOGGLE DATA TABLE ─── #}
+<div id="farmersTableWrapper" class="card overflow-hidden {% if maps_enabled %}hidden{% endif %}">
+  <div class="p-4 border-b border-bdr flex items-center justify-between bg-canvas/40">
+    <div>
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider">Farmer Locations Directory</h2>
+      <p class="text-xs text-muted">Complete list of registered farmers with geographic coordinates status.</p>
+    </div>
+    <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white border">
+      {{ farmer_table_data|length }} farmers
+    </span>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs">
+      <thead class="bg-canvas border-b border-bdr text-muted uppercase tracking-wider font-semibold">
+        <tr>
+          <th class="p-3">Farmer</th>
+          <th class="p-3">Farm Name</th>
+          <th class="p-3">District</th>
+          <th class="p-3">Verification</th>
+          <th class="p-3">Active Listings</th>
+          <th class="p-3">Map Pin</th>
+          <th class="p-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-bdr">
+        {% for f in farmer_table_data %}
+        <tr class="hover:bg-canvas transition">
+          <td class="p-3 font-bold text-ink">
+            <a href="{{ f.url }}" class="hover:text-leaf hover:underline">{{ f.name }}</a>
+          </td>
+          <td class="p-3 text-muted">{{ f.farm_name or '—' }}</td>
+          <td class="p-3 font-medium text-ink">{{ f.district }}</td>
+          <td class="p-3">
+            {% if f.is_verified %}
+            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              ✓ Verified
+            </span>
+            {% else %}
+            <span class="text-muted text-[11px]">Unverified</span>
+            {% endif %}
+          </td>
+          <td class="p-3">
+            <span class="font-bold text-ink">{{ f.active_listings }}</span>
+          </td>
+          <td class="p-3">
+            {% if f.has_pin and f.lat is not none and f.lng is not none %}
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-leaf">
+              📍 {{ '%.4f'|format(f.lat) }}, {{ '%.4f'|format(f.lng) }}
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+              No pin saved
+            </span>
+            {% endif %}
+          </td>
+          <td class="p-3 text-right">
+            <a href="{{ f.url }}" class="btn-secondary text-[11px] py-1 px-2.5 rounded font-bold">
+              View Profile →
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="p-6 text-center text-muted">No farmers match the selected criteria.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ─── GOOGLE MAPS LOADER & PLOTTING SCRIPT ─── #}
+{% if maps_enabled %}
+<script src="{{ url_for('static', filename='js/maps-loader.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const farmerMarkersData = {{ farmer_markers|tojson }};
+  const buyerMarkersData = {{ buyerMarkersData|default(buyer_markers)|tojson }};
+  const mapElement = document.getElementById('farmersMap');
+  const spinner = document.getElementById('mapLoadingSpinner');
+  const noticeContainer = document.getElementById('mapNoticeContainer');
+  const tableWrapper = document.getElementById('farmersTableWrapper');
+  const toggleBtn = document.getElementById('toggleViewBtn');
+
+  // Toggle Table view button
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      tableWrapper.classList.toggle('hidden');
+    });
+  }
+
+  function showFallbackNotice(title, message) {
+    if (spinner) spinner.style.display = 'none';
+    tableWrapper.classList.remove('hidden');
+    if (noticeContainer) {
+      noticeContainer.innerHTML = `
+        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-xs mb-4">
+          <div class="flex items-start gap-3">
+            <span class="text-xl">⚠️</span>
+            <div>
+              <h4 class="font-bold text-sm text-amber-950">${title}</h4>
+              <p class="text-xs text-amber-800 mt-0.5">${message} Below is the location table view.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  if (!window.AgroMapsLoader || !window.AgroMapsLoader.isAvailable()) {
+    showFallbackNotice('Google Maps Unavailable', 'No valid browser API key configured for Google Maps.');
+    return;
+  }
+
+  window.AgroMaps.ready
+    .then(() => {
+      if (spinner) spinner.style.display = 'none';
+
+      // Default center: Center of Sri Lanka (Kandy region)
+      const sriLankaCenter = { lat: 7.8731, lng: 80.7718 };
+      const mapId = window.AgroMapsLoader.getMapId() || undefined;
+
+      const map = new google.maps.Map(mapElement, {
+        zoom: 8,
+        center: sriLankaCenter,
+        mapId: mapId,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true
+      });
+
+      const infoWindow = new google.maps.InfoWindow();
+
+      // Plot Farmers
+      farmerMarkersData.forEach((f) => {
+        const marker = new google.maps.Marker({
+          position: { lat: f.lat, lng: f.lng },
+          map: map,
+          title: f.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 9,
+            fillColor: f.is_verified ? '#1B4332' : '#2D6A4F',
+            fillOpacity: 0.9,
+            strokeWeight: 2,
+            strokeColor: '#ffffff'
+          }
+        });
+
+        marker.addListener('click', () => {
+          const content = `
+            <div style="font-family: inherit; padding: 6px; min-width: 190px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <strong style="font-size: 14px; color: #0F271A;">${f.name}</strong>
+                ${f.is_verified ? '<span style="background: #D8F3DC; color: #1B4332; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 999px;">✓ Verified</span>' : ''}
+              </div>
+              <p style="font-size: 11px; color: #64748B; margin: 3px 0 6px;">${f.farm_name || 'Farmer'} · ${f.district}</p>
+              <p style="font-size: 12px; font-weight: 600; color: #2D6A4F; margin: 4px 0 8px;">
+                📦 ${f.active_listings} active produce listing${f.active_listings === 1 ? '' : 's'}
+              </p>
+              <a href="${f.url}" style="display: inline-block; font-size: 11px; font-weight: bold; color: #ffffff; background: #2D6A4F; padding: 5px 10px; border-radius: 6px; text-decoration: none;">
+                Inspect User Profile →
+              </a>
+            </div>
+          `;
+          infoWindow.setContent(content);
+          infoWindow.open(map, marker);
+        });
+      });
+
+      // Plot Buyers (if enabled)
+      buyerMarkersData.forEach((b) => {
+        const bMarker = new google.maps.Marker({
+          position: { lat: b.lat, lng: b.lng },
+          map: map,
+          title: b.name,
+          icon: {
+            path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+            scale: 5,
+            fillColor: '#1A659E',
+            fillOpacity: 0.85,
+            strokeWeight: 1.5,
+            strokeColor: '#ffffff'
+          }
+        });
+
+        bMarker.addListener('click', () => {
+          const content = `
+            <div style="font-family: inherit; padding: 6px; min-width: 170px;">
+              <strong style="font-size: 13px; color: #040F1A;">${b.name}</strong>
+              <span style="display: block; font-size: 10px; color: #1A659E; font-weight: bold; text-transform: uppercase;">Buyer</span>
+              <p style="font-size: 11px; color: #64748B; margin: 4px 0 8px;">District: ${b.district}</p>
+              <a href="${b.url}" style="display: inline-block; font-size: 11px; font-weight: bold; color: #1A659E; text-decoration: underline;">
+                View buyer account →
+              </a>
+            </div>
+          `;
+          infoWindow.setContent(content);
+          infoWindow.open(map, bMarker);
+        });
+      });
+
+      // Fit bounds if markers exist
+      if (farmerMarkersData.length > 0) {
+        const bounds = new google.maps.LatLngBounds();
+        farmerMarkersData.forEach((f) => bounds.extend({ lat: f.lat, lng: f.lng }));
+        map.fitBounds(bounds);
+        // Avoid overzooming for single marker
+        const listener = google.maps.event.addListener(map, "idle", () => {
+          if (map.getZoom() > 14) map.setZoom(14);
+          google.maps.event.removeListener(listener);
+        });
+      }
+    })
+    .catch((err) => {
+      console.warn('Google Maps failed to load:', err);
+      showFallbackNotice('Maps Unavailable', 'Unable to render Google Maps in your browser. Viewing data table instead.');
+    });
+});
+</script>
+{% else %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const noticeContainer = document.getElementById('mapNoticeContainer');
+  if (noticeContainer) {
+    noticeContainer.innerHTML = `
+      <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-xs mb-4">
+        <h4 class="font-bold text-sm text-amber-950">Google Maps Disabled</h4>
+        <p class="text-xs text-amber-800 mt-0.5">Google Maps credentials are not configured in .env. Viewing the table directory below.</p>
+      </div>
+    `;
+  }
+});
+</script>
+{% endif %}
+{% endblock %}
+

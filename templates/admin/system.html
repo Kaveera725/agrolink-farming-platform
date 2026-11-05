@@ -1,0 +1,252 @@
+{% extends "admin/_layout.html" %}
+
+{% block title %}System Status &amp; Diagnostics — AgroLink Admin{% endblock %}
+
+{% block admin_content %}
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+  <div>
+    <p class="text-xs font-bold uppercase tracking-wider text-leaf">Platform Infrastructure</p>
+    <h1 class="text-2xl font-display font-bold text-ink mt-1">System Status &amp; Diagnostics</h1>
+    <p class="text-xs sm:text-sm text-muted mt-1">
+      Live operational telemetry, database migration status, integration readiness, and API latency probes.
+    </p>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      Core System Operational
+    </span>
+  </div>
+</div>
+
+{# ─── DEBUG IN PRODUCTION WARNING BANNER ─── #}
+{% if debug_warning %}
+<div class="mb-6 p-4 rounded-xl border border-rose-300 bg-rose-50 text-rose-900 shadow-xs flex items-start gap-3">
+  <span class="text-2xl">⚠️</span>
+  <div>
+    <h4 class="font-bold text-sm text-rose-950">Security Alert: Debug Mode Enabled in Production</h4>
+    <p class="text-xs text-rose-800 mt-0.5">
+      Flask debug mode is active while running in production environment. Disable debug mode before public deployment to avoid exposing stack trace internals.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid lg:grid-cols-2 gap-6 mb-8">
+  {# ─── 1. CORE INFRASTRUCTURE ─── #}
+  <div class="card p-6 space-y-4">
+    <div class="flex items-center justify-between border-b border-bdr pb-3">
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+        <svg class="w-4 h-4 text-leaf" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+        </svg>
+        Database &amp; Application Core
+      </h2>
+      <span class="badge badge-leaf text-[11px] font-bold">PostgreSQL</span>
+    </div>
+
+    <div class="space-y-3 text-xs">
+      {# DB Connectivity #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Database Connectivity:</span>
+        <span class="font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+          ✓ {{ db_status }}
+        </span>
+      </div>
+
+      {# DB Engine Version #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Engine / Dialect:</span>
+        <span class="font-mono text-ink text-[11px]">{{ db_version }}</span>
+      </div>
+
+      {# Migrations Current vs Head #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Schema Migrations:</span>
+        <div class="text-right">
+          <span class="font-mono text-[11px] font-bold {% if migration_in_sync %}text-emerald-700{% else %}text-amber-700{% endif %}">
+            {{ current_rev }}
+          </span>
+          {% if migration_in_sync %}
+          <span class="text-[10px] text-emerald-700 font-bold ml-1">(Up to date with Head)</span>
+          {% else %}
+          <span class="text-[10px] text-amber-700 font-bold ml-1">(Head: {{ head_rev }})</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# App Environment #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Environment (FLASK_ENV):</span>
+        <span class="font-bold uppercase tracking-wider text-ink px-2 py-0.5 rounded bg-canvas border">
+          {{ app_env }}
+        </span>
+      </div>
+
+      {# Debug Mode #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Flask Debug Mode:</span>
+        <span class="font-bold {% if is_debug %}text-amber-700{% else %}text-emerald-700{% endif %}">
+          {{ 'Enabled (Debug ON)' if is_debug else 'Disabled (Safe)' }}
+        </span>
+      </div>
+
+      {# App Version / Git #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Application Build / Release:</span>
+        <span class="font-mono text-xs font-bold text-ink">{{ app_version }}</span>
+      </div>
+    </div>
+  </div>
+
+  {# ─── 2. STORAGE & SECURITY TELEMETRY ─── #}
+  <div class="card p-6 space-y-4">
+    <div class="flex items-center justify-between border-b border-bdr pb-3">
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+        <svg class="w-4 h-4 text-leaf" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        Storage &amp; Security Health
+      </h2>
+      <span class="badge badge-leaf text-[11px] font-bold">Audited</span>
+    </div>
+
+    <div class="space-y-3 text-xs">
+      {# Upload Directory Writable #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Upload Directory (/static/uploads):</span>
+        <span class="font-semibold {% if upload_writable %}text-emerald-700 bg-emerald-50 border border-emerald-200{% else %}text-rose-700 bg-rose-50 border border-rose-200{% endif %} px-2.5 py-0.5 rounded-full">
+          {{ '✓ Writable' if upload_writable else '✗ Read-Only / Inaccessible' }}
+        </span>
+      </div>
+
+      {# Upload Directory Total Size #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Upload Storage Utilisation:</span>
+        <span class="font-mono text-ink font-bold">
+          {{ upload_size_mb }} MB <span class="text-muted font-normal">({{ total_upload_files }} files)</span>
+        </span>
+      </div>
+
+      {# Failed Logins (24 Hours) #}
+      <div class="flex justify-between items-center py-1">
+        <span class="text-muted font-medium">Failed Logins (Last 24h):</span>
+        <div>
+          {% if failed_logins_24h == 0 %}
+          <span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            0 failed attempts
+          </span>
+          {% else %}
+          <span class="text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+            {{ failed_logins_24h }} failed attempt{% if failed_logins_24h > 1 %}s{% endif %}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Security Policy Note #}
+      <div class="p-3 bg-canvas/60 rounded-xl border border-bdr text-muted text-[11px] leading-relaxed mt-2">
+        <p class="font-semibold text-ink mb-0.5">🔒 Zero Secret Leakage Standard</p>
+        Credentials, raw API keys, passwords, and environment connection strings are never exposed or returned over HTTP endpoints.
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ─── 3. INTEGRATIONS & EXTERNAL APIS ─── #}
+<div class="card p-6">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-bdr gap-3 mb-5">
+    <div>
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+        <svg class="w-4 h-4 text-leaf" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+        </svg>
+        External Service Integrations
+      </h2>
+      <p class="text-xs text-muted mt-0.5">Third-party service configurations and live connectivity diagnostics.</p>
+    </div>
+
+    {# Real Route API Probe Form #}
+    <form method="POST" action="{{ url_for('admin.test_routes_api') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit"
+              {% if routes_probes_last_hour >= max_probes_per_hour %}disabled title="Hourly probe limit reached"{% endif %}
+              class="btn-primary text-xs py-2 px-4 font-bold flex items-center gap-2 rounded-xl {% if routes_probes_last_hour >= max_probes_per_hour %}opacity-50 cursor-not-allowed{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <span>Test Routes API Probe</span>
+        <span class="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">
+          {{ routes_probes_last_hour }}/{{ max_probes_per_hour }}
+        </span>
+      </button>
+    </form>
+  </div>
+
+  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    {# Google Maps Browser Key #}
+    <div class="p-4 rounded-xl bg-canvas border border-bdr">
+      <span class="text-[10px] font-bold uppercase text-muted tracking-wider block">Google Maps (Browser)</span>
+      <p class="text-sm font-bold text-ink mt-1">Browser Key</p>
+      <div class="mt-2">
+        {% if google_browser_key_present %}
+        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+          ✓ Present
+        </span>
+        {% else %}
+        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+          ✗ Missing
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Google Maps Map ID #}
+    <div class="p-4 rounded-xl bg-canvas border border-bdr">
+      <span class="text-[10px] font-bold uppercase text-muted tracking-wider block">Google Maps (Vector Map)</span>
+      <p class="text-sm font-bold text-ink mt-1">Map ID</p>
+      <div class="mt-2">
+        {% if google_map_id_present %}
+        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+          ✓ Present
+        </span>
+        {% else %}
+        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+          Optional (Missing)
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Google Maps Server Key #}
+    <div class="p-4 rounded-xl bg-canvas border border-bdr">
+      <span class="text-[10px] font-bold uppercase text-muted tracking-wider block">Google Routes API (Server)</span>
+      <p class="text-sm font-bold text-ink mt-1">Server Key</p>
+      <div class="mt-2">
+        {% if google_server_key_present %}
+        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+          ✓ Present
+        </span>
+        {% else %}
+        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+          Fallback (Haversine)
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    {# WhatsApp Provider #}
+    <div class="p-4 rounded-xl bg-canvas border border-bdr">
+      <span class="text-[10px] font-bold uppercase text-muted tracking-wider block">Direct Messaging</span>
+      <p class="text-sm font-bold text-ink mt-1">WhatsApp Provider</p>
+      <div class="mt-2">
+        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+          Standard Deep Link (wa.me)
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

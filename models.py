@@ -201,6 +201,12 @@ class AdminAuditLog(db.Model):
 
     admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('admin_actions', lazy=True))
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f'<AdminAuditLog {self.action} by {self.admin_id}>'
+
 
 class AdminNote(db.Model):
     __tablename__ = 'admin_notes'
@@ -214,6 +220,9 @@ class AdminNote(db.Model):
     admin = db.relationship('User', foreign_keys=[admin_id], backref=db.backref('notes_written', lazy=True))
     user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('admin_notes', lazy=True, order_by='AdminNote.created_at.desc()'))
     order = db.relationship('Order', foreign_keys=[order_id], backref=db.backref('admin_notes', lazy=True, order_by='AdminNote.created_at.desc()'))
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f'<AdminNote {self.id} for User {self.user_id} Order {self.order_id}>'
@@ -231,6 +240,9 @@ class VerificationRequest(db.Model):
     decided_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
 
     decided_by_user = db.relationship('User', foreign_keys=[decided_by], lazy=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def __repr__(self):
         return f'<VerificationRequest {self.id} farmer={self.farmer_id} status={self.status}>'
@@ -251,6 +263,9 @@ class ListingReport(db.Model):
 
     handled_by_user = db.relationship('User', foreign_keys=[handled_by], lazy=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<ListingReport {self.id} product={self.product_id} reporter={self.reporter_id} status={self.status}>'
 
@@ -269,6 +284,9 @@ class MarketPriceHistory(db.Model):
 
     user = db.relationship('User', foreign_keys=[changed_by], lazy=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<MarketPriceHistory {self.id} price={self.market_price_id} {self.old_selling}->{self.new_selling}>'
 
@@ -283,7 +301,33 @@ class PlatformSetting(db.Model):
 
     updater = db.relationship('User', foreign_keys=[updated_by], lazy=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
     def __repr__(self):
         return f'<PlatformSetting {self.key}={self.value}>'
+
+
+class DataRequest(db.Model):
+    __tablename__ = 'data_requests'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    type = db.Column(db.String(20), nullable=False, index=True)  # 'export', 'deletion'
+    status = db.Column(db.String(20), default='open', nullable=False, index=True)  # 'open', 'completed', 'rejected'
+    admin_note = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    handled_at = db.Column(db.DateTime, nullable=True)
+    handled_by = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'), nullable=True)
+
+    user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('data_requests', lazy=True, cascade='all, delete-orphan'))
+    handler = db.relationship('User', foreign_keys=[handled_by], lazy=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f'<DataRequest #{self.id} user={self.user_id} type={self.type} status={self.status}>'
+
 
 

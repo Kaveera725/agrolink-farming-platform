@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Notice &amp; Data Protection — AgroLink{% endblock %}
+
+{% block content %}
+<div class="container-app py-8 sm:py-12 max-w-4xl">
+  {# Header #}
+  <div class="mb-8">
+    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-leaf-50 text-leaf border border-leaf-200 mb-3">
+      <span>🛡️ Sri Lanka PDPA (No. 9 of 2022) Compliant</span>
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-display font-bold text-ink">Privacy Notice &amp; Data Rights</h1>
+    <p class="text-sm sm:text-base text-muted mt-2">
+      How AgroLink collects, protects, and handles your personal data in accordance with Sri Lankan law and international privacy standards.
+    </p>
+  </div>
+
+  <div class="space-y-8">
+    {# 1. Data Collection #}
+    <div class="card p-6 sm:p-8 space-y-4">
+      <h2 class="text-lg font-bold text-ink flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-leaf-100 text-leaf flex items-center justify-center text-xs font-bold">1</span>
+        Personal Data We Collect
+      </h2>
+      <p class="text-xs sm:text-sm text-muted leading-relaxed">
+        AgroLink collects only the minimal information strictly necessary to facilitate transparent trade between farmers and wholesale buyers:
+      </p>
+      <ul class="text-xs sm:text-sm text-muted space-y-2 list-disc list-inside pl-2">
+        <li><strong>Account Identifiers:</strong> Name, verified email address, role (Farmer or Buyer), and secure salted/hashed passwords.</li>
+        <li><strong>Contact Information:</strong> Sri Lankan telephone number and WhatsApp contact for direct farmer-buyer trade communication.</li>
+        <li><strong>Location &amp; Delivery Data:</strong> District, delivery address, and geographic coordinates (latitude and longitude) for driving distance and delivery fee calculations.</li>
+        <li><strong>Marketplace &amp; Order Activity:</strong> Crop listings, produce quantities, harvest notes, order totals, and fulfillment timestamps.</li>
+      </ul>
+    </div>
+
+    {# 2. Purpose and Lawful Basis #}
+    <div class="card p-6 sm:p-8 space-y-4">
+      <h2 class="text-lg font-bold text-ink flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-leaf-100 text-leaf flex items-center justify-center text-xs font-bold">2</span>
+        Purpose of Processing
+      </h2>
+      <p class="text-xs sm:text-sm text-muted leading-relaxed">
+        Your data is processed strictly for:
+      </p>
+      <div class="grid sm:grid-cols-2 gap-4 pt-2">
+        <div class="p-4 rounded-xl bg-canvas border border-bdr">
+          <h3 class="text-xs font-bold text-ink uppercase tracking-wider mb-1">Direct Agricultural Trade</h3>
+          <p class="text-xs text-muted">Enabling commercial buyers to discover farmers, negotiate crop harvests, and contact farmers directly via WhatsApp.</p>
+        </div>
+        <div class="p-4 rounded-xl bg-canvas border border-bdr">
+          <h3 class="text-xs font-bold text-ink uppercase tracking-wider mb-1">Route &amp; Delivery Calculation</h3>
+          <p class="text-xs text-muted">Calculating driving routes and distance-tiered delivery fees using Google Maps Routes API without exposing private home coordinates.</p>
+        </div>
+      </div>
+    </div>
+
+    {# 3. Your Rights under PDPA 2022 #}
+    <div class="card p-6 sm:p-8 space-y-4 border-l-4 border-l-leaf">
+      <h2 class="text-lg font-bold text-ink flex items-center gap-2">
+        <span class="w-6 h-6 rounded-full bg-leaf text-white flex items-center justify-center text-xs font-bold">3</span>
+        Your Data Rights &amp; Self-Service Tools
+      </h2>
+      <p class="text-xs sm:text-sm text-muted leading-relaxed">
+        Under Section 13 and Section 14 of the Sri Lanka Personal Data Protection Act (PDPA No. 9 of 2022), you hold enforceable rights over your data:
+      </p>
+
+      <div class="space-y-3 pt-2">
+        <div class="p-4 rounded-xl bg-leaf-50/50 border border-leaf-200">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h3 class="text-sm font-bold text-leaf-950">Right to Access &amp; Data Portability</h3>
+              <p class="text-xs text-leaf-800 mt-1">
+                You can request a machine-readable JSON export of your complete profile, listings, and order history at any time.
+              </p>
+            </div>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('profile.view') }}" class="btn-primary text-xs py-1.5 px-3 whitespace-nowrap font-bold">
+              Profile Rights →
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-amber-50/50 border border-amber-200">
+          <h3 class="text-sm font-bold text-amber-950">Right to Erasure &amp; Anonymization</h3>
+          <p class="text-xs text-amber-800 mt-1">
+            You may request complete account anonymization and deactivation. Once all active orders are settled, your personal identifiers (name, email, phone, location, photo) are permanently purged, and your orders retained in anonymized format for accounting compliance.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {# 4. Contact and Governance #}
+    <div class="card p-6 sm:p-8 space-y-3">
+      <h2 class="text-lg font-bold text-ink">Data Protection Governance</h2>
+      <p class="text-xs sm:text-sm text-muted leading-relaxed">
+        AgroLink operates with a strict principle of least privilege. Administrative access is protected by role verification, password policies, and tamper-evident append-only audit logging.
+      </p>
+      <div class="pt-2 text-xs text-muted">
+        <p>For data protection inquiries or formal rights requests, contact our compliance team:</p>
+        <p class="font-semibold text-ink mt-1">Email: <a href="mailto:privacy@agrolink.lk" class="text-leaf hover:underline">privacy@agrolink.lk</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

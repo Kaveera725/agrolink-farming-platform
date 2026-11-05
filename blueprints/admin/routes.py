@@ -1,5 +1,9 @@
 import csv
 import io
+import json
+import os
+import subprocess
+import time
 from collections import Counter
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -9,35 +13,59 @@ from flask import (
     render_template, request, session, url_for, stream_with_context
 )
 from flask_login import current_user, logout_user
-from sqlalchemy import func
+from sqlalchemy import func, case, desc, asc, distinct, text
+from sqlalchemy.orm import joinedload
 
 from extensions import db
-from models import AdminAuditLog, AdminNote, Crop, ListingReport, MarketPrice, MarketPriceHistory, Order, PlatformSetting, Product, User, VerificationRequest
+from models import (
+    AdminAuditLog, AdminNote, Crop, DataRequest, ListingReport,
+    MarketPrice, MarketPriceHistory, Order, PlatformSetting, Product, User, VerificationRequest
+)
 from services.settings import (
     SETTINGS_SCHEMA, get_setting, set_setting, clear_settings_cache,
     reset_settings_to_defaults, validate_setting
 )
+from services.distance import get_driving_distance_km
 from services.notifications import notify_order_cancelled_by_admin
 from utils.decorators import roles_required
 from utils.phone import normalize_phone_number, validate_sl_phone
 from utils.security import generate_temp_password, sanitize_csv_cell
+from utils.uploads import delete_uploaded_image
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @admin_bp.context_processor
 def admin_nav_counts():
     """Supply real-time pending counters to admin sidebar."""
-    try:
-        pending_verifications = VerificationRequest.query.filter_by(status='pending').count()
-    except Exception:
-        pending_verifications = 0
-    try:
-        open_reports = ListingReport.query.filter(ListingReport.status.in_(['open', 'reviewing'])).count()
-    except Exception:
-        open_reports = 0
+    from flask import g
+    pending_verifications = getattr(g, 'admin_pending_verifications_count', None)
+    if pending_verifications is None:
+        try:
+            pending_verifications = VerificationRequest.query.filter_by(status='pending').count()
+            g.admin_pending_verifications_count = pending_verifications
+        except Exception:
+            pending_verifications = 0
+
+    open_reports = getattr(g, 'admin_open_reports_count', None)
+    if open_reports is None:
+        try:
+            open_reports = ListingReport.query.filter(ListingReport.status.in_(['open', 'reviewing'])).count()
+            g.admin_open_reports_count = open_reports
+        except Exception:
+            open_reports = 0
+
+    open_data_requests = getattr(g, 'admin_open_data_requests_count', None)
+    if open_data_requests is None:
+        try:
+            open_data_requests = DataRequest.query.filter_by(status='open').count()
+            g.admin_open_data_requests_count = open_data_requests
+        except Exception:
+            open_data_requests = 0
+
     return {
         'admin_pending_verifications_count': pending_verifications,
         'admin_open_reports_count': open_reports,
+        'admin_open_data_requests_count': open_data_requests,
     }
 
 
@@ -106,39 +134,227 @@ def set_admin_headers(response):
 @admin_bp.route('')
 @admin_bp.route('/dashboard')
 def dashboard():
-    since = datetime.utcnow() - timedelta(days=29)
-    orders = Order.query.order_by(Order.created_at.desc()).all()
-    daily = Counter(
-        order.created_at.date().isoformat()
-        for order in orders
-        if order.created_at and order.created_at >= since
-    )
-    chart_labels = [(since + timedelta(days=index)).date().isoformat() for index in range(30)]
-    chart_values = [daily[label] for label in chart_labels]
-    totals = {
-        'users': User.query.count(),
-        'farmers': User.query.filter_by(role='farmer').count(),
-        'buyers': User.query.filter_by(role='buyer').count(),
-        'admins': User.query.filter_by(role='admin').count(),
-        'active_listings': Product.query.filter_by(is_available=True, is_deleted=False).count(),
-        'orders': Order.query.count(),
-        'order_value': db.session.query(func.coalesce(func.sum(Order.total_price), 0)).scalar(),
-        'delivery_fees': db.session.query(func.coalesce(func.sum(Order.delivery_fee), 0)).scalar(),
-    }
-    status_counts = Counter(order.status for order in orders)
-    registrations = User.query.order_by(User.created_at.desc()).limit(8).all()
+    range_preset = request.args.get('range', '30').strip().lower()
+    start_str = request.args.get('start', '').strip()
+    end_str = request.args.get('end', '').strip()
+
+    now = datetime.utcnow()
+
+    # Determine date boundaries
+    if range_preset in ('7', '30', '90') and not (start_str and end_str and range_preset == 'custom'):
+        days = int(range_preset)
+        start_dt = (now - timedelta(days=days - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = now.strftime('%Y-%m-%d')
+    else:
+        range_preset = 'custom'
+        start_dt = _parse_date(start_str) if start_str else (now - timedelta(days=29)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt = _parse_date(end_str) if end_str else now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = end_dt + timedelta(days=1)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = end_dt.strftime('%Y-%m-%d')
+
     stale_days = get_setting('stale_price_days', default=7)
-    stale_cutoff = datetime.utcnow() - timedelta(days=stale_days)
+    stale_cutoff = now - timedelta(days=stale_days)
+    low_stock_limit = get_setting('low_stock_kg', default=50)
+
+    # 1. Total users by role and farmers without pin (pure SQL aggregation in single query)
+    user_counts = db.session.query(
+        func.count(User.id),
+        func.count(case((User.role == 'farmer', 1))),
+        func.count(case((User.role == 'buyer', 1))),
+        func.count(case((User.role == 'admin', 1))),
+        func.count(case(((User.role == 'farmer') & ((User.latitude.is_(None)) | (User.longitude.is_(None))), 1)))
+    ).first() or (0, 0, 0, 0, 0)
+    total_users, farmers_count, buyers_count, admins_count, farmers_without_pin = user_counts
+
+    # 2. Active listings and low-stock count in single query
+    prod_counts = db.session.query(
+        func.count(Product.id),
+        func.count(case((Product.quantity_kg < low_stock_limit, 1)))
+    ).filter(Product.is_available == True, Product.is_deleted == False).first() or (0, 0)
+    active_listings_count, low_stock_listings = prod_counts
+
+    # 3. KPI order metrics in date range (pure SQL aggregation in single query)
+    # Order value = total of orders that are not cancelled or rejected
+    # Completed value = total of delivered orders
+    order_kpis = db.session.query(
+        func.count(Order.id),
+        func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0),
+        func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0),
+        func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.delivery_fee), else_=0)), 0),
+        func.count(case((Order.status.notin_(['cancelled', 'rejected']), 1))),
+        func.count(case((Order.status == 'delivered', 1))),
+        func.count(case((Order.status.in_(['cancelled', 'rejected']), 1)))
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).first()
+
+    (
+        total_orders,
+        order_value,
+        completed_value,
+        delivery_fees,
+        active_orders_count,
+        delivered_count,
+        cancellations_count
+    ) = order_kpis or (0, 0, 0, 0, 0, 0, 0)
+
+    # Average Order Value (AOV) on non-cancelled/rejected orders
+    aov = (float(order_value) / active_orders_count) if active_orders_count > 0 else 0.0
+
+    # Completion Rate & Cancellation Rate
+    completion_rate = round((delivered_count / total_orders * 100), 1) if total_orders > 0 else 0.0
+    cancellation_rate = round((cancellations_count / total_orders * 100), 1) if total_orders > 0 else 0.0
+
+    totals = {
+        'users': total_users,
+        'farmers': farmers_count,
+        'buyers': buyers_count,
+        'admins': admins_count,
+        'active_listings': active_listings_count,
+        'orders': total_orders,
+        'order_value': float(order_value),
+        'completed_value': float(completed_value),
+        'delivery_fees': float(delivery_fees),
+        'aov': round(aov, 2),
+        'completion_rate': completion_rate,
+        'cancellation_rate': cancellation_rate,
+    }
+
+    # 4. Charts data (pure SQL aggregation)
+    # Orders and Order Value per day
+    daily_rows = db.session.query(
+        func.date(Order.created_at).label('order_date'),
+        func.count(Order.id).label('daily_count'),
+        func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0).label('daily_value')
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).group_by(text('order_date')).all()
+
+    daily_map = {str(row.order_date): (row.daily_count, float(row.daily_value)) for row in daily_rows}
+
+    # Generate continuous day labels
+    num_days = min(max((end_dt_excl.date() - start_dt.date()).days, 1), 90)
+    chart_labels = []
+    chart_orders_data = []
+    chart_value_data = []
+    for day_idx in range(num_days):
+        day_date = start_dt.date() + timedelta(days=day_idx)
+        day_str = str(day_date)
+        chart_labels.append(day_date.strftime('%b %d'))
+        c, v = daily_map.get(day_str, (0, 0.0))
+        chart_orders_data.append(c)
+        chart_value_data.append(round(v, 2))
+
+    # Delivery vs Pickup Split
+    fulfillment_rows = db.session.query(
+        Order.fulfillment_type,
+        func.count(Order.id)
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).group_by(Order.fulfillment_type).all()
+    fulfillment_counts = {'pickup': 0, 'delivery': 0}
+    for f_type, cnt in fulfillment_rows:
+        if f_type in fulfillment_counts:
+            fulfillment_counts[f_type] = cnt
+
+    # Orders by Status
+    status_rows = db.session.query(
+        Order.status,
+        func.count(Order.id)
+    ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).group_by(Order.status).all()
+    status_counts = {s: 0 for s in ['pending', 'confirmed', 'delivered', 'cancelled', 'rejected']}
+    for s_name, cnt in status_rows:
+        if s_name in status_counts:
+            status_counts[s_name] = cnt
+
+    # 5. Top 5 Farmers by completed value
+    top_farmers = db.session.query(
+        User.id,
+        User.name,
+        User.farm_name,
+        func.coalesce(func.sum(Order.total_price), 0).label('completed_val'),
+        func.count(Order.id).label('delivered_orders')
+    ).join(Product, Product.farmer_id == User.id)\
+     .join(Order, Order.product_id == Product.id)\
+     .filter(Order.status == 'delivered', Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+     .group_by(User.id, User.name, User.farm_name)\
+     .order_by(desc('completed_val'))\
+     .limit(5).all()
+
+    # 6. Top 5 Crops by quantity ordered
+    top_crops = db.session.query(
+        Product.name,
+        func.coalesce(func.sum(Order.quantity_kg), 0).label('total_kg'),
+        func.count(Order.id).label('orders_count')
+    ).join(Order, Order.product_id == Product.id)\
+     .filter(Order.status.notin_(['cancelled', 'rejected']), Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+     .group_by(Product.name)\
+     .order_by(desc('total_kg'))\
+     .limit(5).all()
+
+    # 7. New registrations per week (last 6 weeks)
+    six_weeks_ago = (now - timedelta(weeks=6)).replace(hour=0, minute=0, second=0, microsecond=0)
+    weekly_reg_rows = db.session.query(
+        func.date_trunc('week', User.created_at).label('reg_week'),
+        func.count(User.id).label('user_count')
+    ).filter(User.created_at >= six_weeks_ago)\
+     .group_by(text('reg_week'))\
+     .order_by(text('reg_week')).all()
+
+    weekly_reg_labels = [r.reg_week.strftime('Week of %b %d') if hasattr(r.reg_week, 'strftime') else str(r.reg_week)[:10] for r in weekly_reg_rows]
+    weekly_reg_values = [r.user_count for r in weekly_reg_rows]
+    weekly_registrations = [
+        {'label': (r.reg_week.strftime('Week of %b %d') if hasattr(r.reg_week, 'strftime') else str(r.reg_week)[:10]), 'count': r.user_count}
+        for r in weekly_reg_rows
+    ]
+
+    # 8. "Needs attention" panel counts (all scalar subqueries batched into 1 SQL call)
+    from flask import g
+    attn_counts = db.session.query(
+        db.session.query(func.count(ListingReport.id)).filter(ListingReport.status.in_(['open', 'reviewing'])).scalar_subquery(),
+        db.session.query(func.count(VerificationRequest.id)).filter(VerificationRequest.status == 'pending').scalar_subquery(),
+        db.session.query(func.count(Order.id)).filter(Order.status == 'pending', Order.created_at < (now - timedelta(hours=24))).scalar_subquery()
+    ).first() or (0, 0, 0)
+    open_reports, pending_verifications, old_pending_orders = attn_counts
+
+    g.admin_open_reports_count = open_reports
+    g.admin_pending_verifications_count = pending_verifications
+
     stale_prices = MarketPrice.query.filter(MarketPrice.updated_at < stale_cutoff).order_by(MarketPrice.updated_at.asc()).all()
+
+    attention = {
+        'open_reports': open_reports,
+        'pending_verifications': pending_verifications,
+        'old_pending_orders': old_pending_orders,
+        'stale_prices': len(stale_prices),
+        'farmers_without_pin': farmers_without_pin,
+        'low_stock_listings': low_stock_listings
+    }
+
+    # Recent items with eager loading to avoid N+1 queries
+    recent_orders = Order.query.options(
+        joinedload(Order.product),
+        joinedload(Order.buyer)
+    ).order_by(Order.created_at.desc()).limit(8).all()
+    registrations = User.query.order_by(User.created_at.desc()).limit(8).all()
 
     return render_template(
         'admin/dashboard.html',
         totals=totals,
-        status_counts=status_counts,
-        recent_orders=orders[:8],
-        registrations=registrations,
+        range_preset=range_preset,
+        start=start_str,
+        end=end_str,
         chart_labels=chart_labels,
-        chart_values=chart_values,
+        chart_orders_data=chart_orders_data,
+        chart_value_data=chart_value_data,
+        chart_values=chart_orders_data,  # backward compatibility alias
+        fulfillment_counts=fulfillment_counts,
+        status_counts=status_counts,
+        top_farmers=top_farmers,
+        top_crops=top_crops,
+        weekly_reg_labels=weekly_reg_labels,
+        weekly_reg_values=weekly_reg_values,
+        weekly_registrations=weekly_registrations,
+        attention=attention,
+        recent_orders=recent_orders,
+        registrations=registrations,
         stale_prices=stale_prices,
         stale_days=stale_days
     )
@@ -1179,13 +1395,287 @@ def reset_platform_settings():
     return redirect(url_for('admin.settings'))
 
 
+@admin_bp.route('/map', endpoint='farmers_map')
+def farmers_map():
+    district_filter = request.args.get('district', '').strip()
+    verified_filter = request.args.get('verified', '').strip()
+    active_filter = request.args.get('has_active', '').strip()
+    include_buyers = request.args.get('include_buyers', '0').strip() == '1'
+
+    # Pinned farmers
+    farmer_query = User.query.filter(
+        User.role == 'farmer',
+        User.latitude.isnot(None),
+        User.longitude.isnot(None),
+        User.is_active == True
+    )
+    if district_filter:
+        farmer_query = farmer_query.filter(User.location.ilike(f'%{district_filter}%'))
+    if verified_filter == '1':
+        farmer_query = farmer_query.filter(User.is_verified == True)
+    elif verified_filter == '0':
+        farmer_query = farmer_query.filter(User.is_verified == False)
+
+    pinned_farmers = farmer_query.all()
+
+    # Active listing count per farmer
+    active_subq = db.session.query(
+        Product.farmer_id,
+        func.count(Product.id).label('listing_count')
+    ).filter(Product.is_available == True, Product.is_deleted == False).group_by(Product.farmer_id).all()
+    listing_count_map = {fid: count for fid, count in active_subq}
+
+    farmer_markers = []
+    for f in pinned_farmers:
+        count = listing_count_map.get(f.id, 0)
+        if active_filter == '1' and count == 0:
+            continue
+        if active_filter == '0' and count > 0:
+            continue
+        farmer_markers.append({
+            'id': f.id,
+            'name': f.name,
+            'farm_name': f.farm_name or '',
+            'district': f.location or 'Not specified',
+            'is_verified': bool(f.is_verified),
+            'lat': float(f.latitude),
+            'lng': float(f.longitude),
+            'active_listings': count,
+            'url': url_for('admin.user_detail', user_id=f.id),
+            'role': 'farmer'
+        })
+
+    buyer_markers = []
+    if include_buyers:
+        buyers_query = User.query.filter(
+            User.role == 'buyer',
+            User.latitude.isnot(None),
+            User.longitude.isnot(None),
+            User.is_active == True
+        )
+        if district_filter:
+            buyers_query = buyers_query.filter(User.location.ilike(f'%{district_filter}%'))
+        buyers = buyers_query.all()
+        for b in buyers:
+            buyer_markers.append({
+                'id': b.id,
+                'name': b.name,
+                'district': b.location or 'Not specified',
+                'lat': float(b.latitude),
+                'lng': float(b.longitude),
+                'url': url_for('admin.user_detail', user_id=b.id),
+                'role': 'buyer'
+            })
+
+    unpinned_count = User.query.filter(
+        User.role == 'farmer',
+        (User.latitude.is_(None)) | (User.longitude.is_(None)),
+        User.is_active == True
+    ).count()
+
+    districts_raw = db.session.query(User.location).distinct().filter(
+        User.role == 'farmer', User.location.isnot(None)
+    ).order_by(User.location).all()
+    districts = [d[0] for d in districts_raw if d[0]]
+
+    all_farmers = User.query.filter_by(role='farmer', is_active=True).order_by(User.name.asc()).all()
+    farmer_table_data = []
+    for f in all_farmers:
+        farmer_table_data.append({
+            'id': f.id,
+            'name': f.name,
+            'farm_name': f.farm_name or '',
+            'district': f.location or 'Not specified',
+            'is_verified': bool(f.is_verified),
+            'has_pin': bool(f.latitude and f.longitude),
+            'lat': float(f.latitude) if f.latitude else None,
+            'lng': float(f.longitude) if f.longitude else None,
+            'active_listings': listing_count_map.get(f.id, 0),
+            'url': url_for('admin.user_detail', user_id=f.id)
+        })
+
+    return render_template(
+        'admin/map.html',
+        farmer_markers=farmer_markers,
+        buyer_markers=buyer_markers,
+        unpinned_count=unpinned_count,
+        districts=districts,
+        selected_district=district_filter,
+        verified_filter=verified_filter,
+        active_filter=active_filter,
+        include_buyers=include_buyers,
+        farmer_table_data=farmer_table_data
+    )
+
+
 @admin_bp.route('/exports')
 def exports():
     return render_template('admin/reports.html', start=request.args.get('start', ''), end=request.args.get('end', ''))
 
 
-# ─── 2. LISTING REPORTS ROUTES ──────────────────────────────────────────────
 @admin_bp.route('/reports', endpoint='reports')
+def reports():
+    report_type = request.args.get('type', 'sales').strip().lower()
+    sales_subview = request.args.get('subview', 'day').strip().lower()
+    range_preset = request.args.get('range', '30').strip().lower()
+    start_str = request.args.get('start', '').strip()
+    end_str = request.args.get('end', '').strip()
+    is_print = request.args.get('print', '0').strip() == '1'
+
+    now = datetime.utcnow()
+
+    if range_preset in ('7', '30', '90') and not (start_str and end_str and range_preset == 'custom'):
+        days = int(range_preset)
+        start_dt = (now - timedelta(days=days - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = now.strftime('%Y-%m-%d')
+    else:
+        range_preset = 'custom'
+        start_dt = _parse_date(start_str) if start_str else (now - timedelta(days=29)).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt = _parse_date(end_str) if end_str else now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_dt_excl = end_dt + timedelta(days=1)
+        start_str = start_dt.strftime('%Y-%m-%d')
+        end_str = end_dt.strftime('%Y-%m-%d')
+
+    if is_print:
+        _audit('report_print', 'report', None, f"Printed {report_type} report (start={start_str}, end={end_str})")
+        db.session.commit()
+
+    open_subq = db.session.query(
+        ListingReport.product_id,
+        func.count(func.distinct(ListingReport.reporter_id)).label('reporter_count')
+    ).filter(ListingReport.status.in_(['open', 'reviewing'])).group_by(ListingReport.product_id).all()
+    needs_review_count = sum(1 for pid, count in open_subq if count >= 3)
+
+    report_data = []
+    totals = {}
+
+    if report_type == 'sales':
+        if sales_subview == 'category':
+            rows = db.session.query(
+                Product.category,
+                func.count(Order.id).label('orders_count'),
+                func.count(case((Order.status == 'delivered', 1))).label('delivered_count'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.quantity_kg), else_=0)), 0).label('total_kg'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0).label('order_val'),
+                func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0).label('delivered_val')
+            ).join(Order, Order.product_id == Product.id)\
+             .filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+             .group_by(Product.category).order_by(desc('order_val')).all()
+
+            report_data = rows
+            totals = {
+                'orders_count': sum(r.orders_count for r in rows),
+                'delivered_count': sum(r.delivered_count for r in rows),
+                'total_kg': round(sum(float(r.total_kg) for r in rows), 2),
+                'order_val': round(sum(float(r.order_val) for r in rows), 2),
+                'delivered_val': round(sum(float(r.delivered_val) for r in rows), 2)
+            }
+        elif sales_subview == 'farmer':
+            rows = db.session.query(
+                User.id,
+                User.name,
+                User.farm_name,
+                User.location,
+                func.count(Order.id).label('orders_count'),
+                func.count(case((Order.status == 'delivered', 1))).label('delivered_count'),
+                func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0).label('delivered_val')
+            ).join(Product, Product.farmer_id == User.id)\
+             .join(Order, Order.product_id == Product.id)\
+             .filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+             .group_by(User.id, User.name, User.farm_name, User.location)\
+             .order_by(desc('delivered_val')).all()
+
+            report_data = rows
+            totals = {
+                'orders_count': sum(r.orders_count for r in rows),
+                'delivered_count': sum(r.delivered_count for r in rows),
+                'delivered_val': round(sum(float(r.delivered_val) for r in rows), 2)
+            }
+        else:
+            rows = db.session.query(
+                func.date(Order.created_at).label('order_date'),
+                func.count(Order.id).label('orders_count'),
+                func.count(case((Order.status == 'delivered', 1))).label('delivered_count'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.total_price), else_=0)), 0).label('order_val'),
+                func.coalesce(func.sum(case((Order.status == 'delivered', Order.total_price), else_=0)), 0).label('delivered_val'),
+                func.coalesce(func.sum(case((Order.status.notin_(['cancelled', 'rejected']), Order.delivery_fee), else_=0)), 0).label('delivery_fees')
+            ).filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl)\
+             .group_by(text('order_date'))\
+             .order_by(desc('order_date')).all()
+
+            report_data = rows
+            totals = {
+                'orders_count': sum(r.orders_count for r in rows),
+                'delivered_count': sum(r.delivered_count for r in rows),
+                'order_val': round(sum(float(r.order_val) for r in rows), 2),
+                'delivered_val': round(sum(float(r.delivered_val) for r in rows), 2),
+                'delivery_fees': round(sum(float(r.delivery_fees) for r in rows), 2)
+            }
+
+    elif report_type == 'users':
+        users = User.query.filter(User.created_at >= start_dt, User.created_at < end_dt_excl).order_by(User.created_at.desc()).all()
+        report_data = users
+        totals = {'total_users': len(users)}
+
+    elif report_type == 'orders':
+        orders = Order.query.filter(Order.created_at >= start_dt, Order.created_at < end_dt_excl).order_by(Order.created_at.desc()).all()
+        report_data = orders
+        totals = {
+            'total_orders': len(orders),
+            'quantity_kg': round(sum(float(o.quantity_kg or 0) for o in orders), 2),
+            'items_total': round(sum(float(o.items_total or 0) for o in orders), 2),
+            'delivery_fee': round(sum(float(o.delivery_fee or 0) for o in orders), 2),
+            'total_price': round(sum(float(o.total_price or 0) for o in orders), 2)
+        }
+
+    elif report_type == 'listings':
+        listings = Product.query.filter(Product.created_at >= start_dt, Product.created_at < end_dt_excl).order_by(Product.created_at.desc()).all()
+        report_data = listings
+        totals = {
+            'total_listings': len(listings),
+            'available_kg': round(sum(float(p.quantity_kg or 0) for p in listings if p.is_available and not p.is_deleted), 2)
+        }
+
+    elif report_type in ('prices', 'market_prices'):
+        prices = MarketPrice.query.order_by(MarketPrice.crop_name.asc()).all()
+        price_history_counts = dict(
+            db.session.query(MarketPriceHistory.market_price_id, func.count(MarketPriceHistory.id))
+            .group_by(MarketPriceHistory.market_price_id).all()
+        )
+        report_data = []
+        for p in prices:
+            report_data.append({
+                'price': p,
+                'history_count': price_history_counts.get(p.id, 0)
+            })
+        totals = {
+            'total_crops': len(prices),
+            'avg_buying': round(sum(p.buying_price for p in prices) / len(prices), 2) if prices else 0.0,
+            'avg_selling': round(sum(p.selling_price for p in prices) / len(prices), 2) if prices else 0.0
+        }
+
+    elif report_type in ('audit', 'audit_log'):
+        logs = AdminAuditLog.query.filter(AdminAuditLog.created_at >= start_dt, AdminAuditLog.created_at < end_dt_excl).order_by(AdminAuditLog.created_at.desc()).all()
+        report_data = logs
+        totals = {'total_events': len(logs)}
+
+    return render_template(
+        'admin/reports_hub.html',
+        report_type=report_type,
+        sales_subview=sales_subview,
+        range_preset=range_preset,
+        start=start_str,
+        end=end_str,
+        report_data=report_data,
+        totals=totals,
+        needs_review_count=needs_review_count,
+        is_print=is_print
+    )
+
+
+# ─── 2. LISTING REPORTS ROUTES ──────────────────────────────────────────────
 @admin_bp.route('/listing-reports', endpoint='listing_reports')
 def listing_reports():
     status = request.args.get('status', 'open').strip().lower()
@@ -1427,28 +1917,97 @@ def report_csv(report_type):
                 ]])
                 yield out.getvalue()
 
-        elif report_type == 'sales':
+        elif report_type in ('sales', 'sales_summary'):
             writer.writerow([sanitize_csv_cell(h) for h in ['metric', 'value']])
             yield out.getvalue()
             query = filtered_orders_q
             orders_list = query.all()
             total_orders = len(orders_list)
-            sales_sum = sum((Decimal(str(r.total_price or 0)) for r in orders_list), Decimal('0'))
-            fees_sum = sum((Decimal(str(r.delivery_fee or 0)) for r in orders_list), Decimal('0'))
+            sales_sum = sum((Decimal(str(r.total_price or 0)) for r in orders_list if r.status not in ('cancelled', 'rejected')), Decimal('0'))
+            completed_sum = sum((Decimal(str(r.total_price or 0)) for r in orders_list if r.status == 'delivered'), Decimal('0'))
+            fees_sum = sum((Decimal(str(r.delivery_fee or 0)) for r in orders_list if r.status not in ('cancelled', 'rejected')), Decimal('0'))
 
             for row in [
-                ['orders', total_orders],
-                ['sales_total', sales_sum],
+                ['total_orders', total_orders],
+                ['order_value', sales_sum],
+                ['completed_value', completed_sum],
                 ['delivery_fees', fees_sum]
             ]:
                 out = io.StringIO()
                 writer = csv.writer(out)
                 writer.writerow([sanitize_csv_cell(c) for c in row])
                 yield out.getvalue()
+
+        elif report_type == 'listings':
+            writer.writerow([sanitize_csv_cell(h) for h in ['id', 'crop_name', 'category', 'farmer', 'price_per_kg', 'quantity_kg', 'offers_delivery', 'status', 'created_at']])
+            yield out.getvalue()
+            l_query = Product.query.order_by(Product.created_at.desc())
+            if start: l_query = l_query.filter(Product.created_at >= start)
+            if end: l_query = l_query.filter(Product.created_at < end)
+            count = 0
+            for p in l_query.yield_per(1000):
+                count += 1
+                if count > 50000:
+                    out = io.StringIO()
+                    writer = csv.writer(out)
+                    writer.writerow(["EXPORT CAPPED AT 50,000 ROWS", ""])
+                    yield out.getvalue()
+                    break
+                out = io.StringIO()
+                writer = csv.writer(out)
+                writer.writerow([sanitize_csv_cell(val) for val in [
+                    p.id,
+                    p.name,
+                    p.category,
+                    p.farmer.name if p.farmer else '',
+                    p.price_per_kg,
+                    p.quantity_kg,
+                    'Yes' if p.offers_delivery else 'No',
+                    'Deleted' if p.is_deleted else ('Available' if p.is_available else 'Hidden'),
+                    p.created_at
+                ]])
+                yield out.getvalue()
+
+        elif report_type in ('prices', 'market_prices'):
+            writer.writerow([sanitize_csv_cell(h) for h in ['id', 'crop_name', 'category', 'buying_price', 'selling_price', 'unit', 'market_location', 'updated_at']])
+            yield out.getvalue()
+            p_query = MarketPrice.query.order_by(MarketPrice.crop_name.asc())
+            for p in p_query.yield_per(1000):
+                out = io.StringIO()
+                writer = csv.writer(out)
+                writer.writerow([sanitize_csv_cell(val) for val in [
+                    p.id, p.crop_name, p.category, p.buying_price, p.selling_price, p.unit, p.market_location, p.updated_at
+                ]])
+                yield out.getvalue()
+
+        elif report_type in ('audit', 'audit_log'):
+            writer.writerow([sanitize_csv_cell(h) for h in ['id', 'timestamp', 'admin_name', 'action', 'target_type', 'target_id', 'result', 'details']])
+            yield out.getvalue()
+            a_query = AdminAuditLog.query.order_by(AdminAuditLog.created_at.desc())
+            if start: a_query = a_query.filter(AdminAuditLog.created_at >= start)
+            if end: a_query = a_query.filter(AdminAuditLog.created_at < end)
+            count = 0
+            for a in a_query.yield_per(1000):
+                count += 1
+                if count > 50000:
+                    out = io.StringIO()
+                    writer = csv.writer(out)
+                    writer.writerow(["EXPORT CAPPED AT 50,000 ROWS", ""])
+                    yield out.getvalue()
+                    break
+                out = io.StringIO()
+                writer = csv.writer(out)
+                writer.writerow([sanitize_csv_cell(val) for val in [
+                    a.id, a.created_at, a.admin_user.name if a.admin_user else 'System',
+                    a.action, a.target_type, a.target_id, a.result, a.details
+                ]])
+                yield out.getvalue()
+
         else:
             return
 
-    if report_type not in ('users', 'orders', 'sales'):
+    valid_reports = ('users', 'orders', 'sales', 'sales_summary', 'listings', 'prices', 'market_prices', 'audit', 'audit_log')
+    if report_type not in valid_reports:
         return 'Unknown report', 404
 
     _audit('report_exported', 'report', None, report_type)
@@ -1745,3 +2304,425 @@ def crops():
         districts=districts,
         today=today
     )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PERSONAL DATA TOOLS (SRI LANKA PDPA 2022 / GDPR COMPLIANCE)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/data-requests')
+@roles_required('admin')
+def data_requests():
+    """Admin queue for Sri Lanka PDPA 2022 export and deletion requests."""
+    req_type = request.args.get('type', 'all').strip().lower()
+    status = request.args.get('status', 'open').strip().lower()
+    search = request.args.get('search', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    query = DataRequest.query.join(User, DataRequest.user_id == User.id)
+
+    if req_type and req_type != 'all':
+        query = query.filter(DataRequest.type == req_type)
+
+    if status and status != 'all':
+        query = query.filter(DataRequest.status == status)
+
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.filter(
+            (User.name.ilike(search_pattern)) |
+            (User.email.ilike(search_pattern))
+        )
+
+    query = query.order_by(DataRequest.created_at.desc())
+    pagination = query.paginate(page=page, per_page=15, error_out=False)
+
+    # For deletion requests, check active orders for each user on the page
+    requests_data = []
+    for req in pagination.items:
+        active_orders = []
+        if req.type == 'deletion':
+            active_orders = Order.query.join(Product, Order.product_id == Product.id).filter(
+                (Order.buyer_id == req.user_id) | (Product.farmer_id == req.user_id),
+                Order.status.in_(['pending', 'confirmed'])
+            ).all()
+
+        requests_data.append({
+            'request': req,
+            'active_orders_count': len(active_orders),
+            'active_orders': active_orders
+        })
+
+    # Summary metrics
+    counts = {
+        'total': DataRequest.query.count(),
+        'open': DataRequest.query.filter_by(status='open').count(),
+        'open_export': DataRequest.query.filter_by(type='export', status='open').count(),
+        'open_deletion': DataRequest.query.filter_by(type='deletion', status='open').count(),
+        'completed': DataRequest.query.filter_by(status='completed').count(),
+    }
+
+    return render_template(
+        'admin/data_requests.html',
+        requests_data=requests_data,
+        pagination=pagination,
+        req_type=req_type,
+        status=status,
+        search=search,
+        counts=counts
+    )
+
+
+@admin_bp.route('/data-requests/<int:request_id>/export')
+@roles_required('admin')
+def export_data_request(request_id):
+    """Generate and download a clean portable JSON personal data archive."""
+    req = DataRequest.query.get_or_404(request_id)
+    user = req.user
+
+    # Compile sanitized user personal data archive
+    export_payload = {
+        "metadata": {
+            "platform": "AgroLink Marketplace Sri Lanka",
+            "regulatory_framework": "Sri Lanka Personal Data Protection Act (PDPA No. 9 of 2022)",
+            "request_id": req.id,
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "user_id": user.id,
+        },
+        "account": {
+            "id": user.id,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "phone": user.phone,
+            "whatsapp_number": user.whatsapp_number,
+            "location": user.location,
+            "address_text": user.address_text,
+            "farm_name": user.farm_name,
+            "bio": user.bio,
+            "coordinates": {
+                "latitude": float(user.latitude) if user.latitude is not None else None,
+                "longitude": float(user.longitude) if user.longitude is not None else None,
+            },
+            "is_verified": user.is_verified,
+            "is_active": user.is_active,
+            "created_at": user.created_at.isoformat() + "Z" if user.created_at else None,
+        },
+        "listings": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "category": p.category,
+                "price_per_kg": float(p.price_per_kg) if p.price_per_kg is not None else None,
+                "quantity_kg": float(p.quantity_kg) if p.quantity_kg is not None else None,
+                "is_available": p.is_available,
+                "created_at": p.created_at.isoformat() + "Z" if p.created_at else None,
+            }
+            for p in Product.query.filter_by(farmer_id=user.id).all()
+        ],
+        "orders": [
+            {
+                "id": o.id,
+                "total_price": float(o.total_price) if o.total_price is not None else None,
+                "delivery_fee": float(o.delivery_fee) if o.delivery_fee is not None else 0.0,
+                "fulfillment_type": o.fulfillment_type,
+                "status": o.status,
+                "created_at": o.created_at.isoformat() + "Z" if o.created_at else None,
+                "delivery_address": o.delivery_address,
+            }
+            for o in Order.query.join(Product, Order.product_id == Product.id).filter(
+                (Order.buyer_id == user.id) | (Product.farmer_id == user.id)
+            ).all()
+        ]
+    }
+
+    # Mark request as completed
+    req.status = 'completed'
+    req.handled_at = datetime.utcnow()
+    req.handled_by = current_user.id
+    req.admin_note = "Portable JSON archive generated and downloaded."
+
+    # Audit log event (user ID only, NEVER writing personal data to audit log)
+    _audit(
+        action='data_request_export',
+        target_type='user',
+        target_id=user.id,
+        details=f"Export JSON archive generated for data request #{req.id}"
+    )
+
+    db.session.commit()
+
+    filename = f"agrolink_user_{user.id}_data_export.json"
+    json_str = json.dumps(export_payload, indent=2, ensure_ascii=False)
+    return Response(
+        json_str,
+        mimetype="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@admin_bp.route('/data-requests/<int:request_id>/anonymize', methods=['POST'])
+@roles_required('admin')
+def anonymize_data_request(request_id):
+    """Irreversibly anonymize personal data under PDPA 2022 / GDPR Right to Erasure."""
+    req = DataRequest.query.get_or_404(request_id)
+    user = req.user
+
+    # 1. Guard: Check for active (pending or confirmed) orders
+    active_orders = Order.query.join(Product, Order.product_id == Product.id).filter(
+        (Order.buyer_id == user.id) | (Product.farmer_id == user.id),
+        Order.status.in_(['pending', 'confirmed'])
+    ).all()
+    if active_orders:
+        flash(
+            f'Cannot anonymize user #{user.id}: User has {len(active_orders)} active order(s) in progress. '
+            f'Orders must be completed or cancelled before personal data can be erased.',
+            'error'
+        )
+        return redirect(url_for('admin.data_requests'))
+
+    # 2. Guard: Must confirm by typing user's exact email
+    confirm_email = request.form.get('confirm_email', '').strip().lower()
+    if confirm_email != user.email.strip().lower():
+        flash('Confirmation failed: You must type the user\'s exact email address to authorize permanent anonymization.', 'error')
+        return redirect(url_for('admin.data_requests'))
+
+    # 3. Guard: Mandatory reason
+    reason = request.form.get('reason', '').strip()
+    if not reason:
+        flash('A reason is mandatory for account anonymization.', 'error')
+        return redirect(url_for('admin.data_requests'))
+
+    target_user_id = user.id
+
+    # 4. Delete profile image file if exists
+    if user.profile_image_url:
+        delete_uploaded_image(user.profile_image_url)
+
+    # 5. Overwrite PII with neutral placeholders
+    user.name = f"Deleted user #{target_user_id}"
+    user.email = f"deleted_user{target_user_id}@deleted.agrolink.lk"
+    user.phone = None
+    user.whatsapp_number = None
+    user.location = None
+    user.address_text = None
+    user.farm_name = None
+    user.bio = None
+    user.latitude = None
+    user.longitude = None
+    user.profile_image_url = None
+    user.is_active = False
+    user.session_version = (user.session_version or 1) + 1
+
+    # 6. Deactivate and hide farmer listings
+    Product.query.filter_by(farmer_id=target_user_id).update(
+        {'is_available': False, 'is_deleted': True},
+        synchronize_session='fetch'
+    )
+
+    # 7. Update data request status
+    req.status = 'completed'
+    req.handled_at = datetime.utcnow()
+    req.handled_by = current_user.id
+    req.admin_note = f"Permanently anonymized and deactivated. Reason: {reason}"
+
+    # 8. Audit log (NEVER logging old PII or email)
+    _audit(
+        action='user_anonymized',
+        target_type='user',
+        target_id=target_user_id,
+        details=f"User #{target_user_id} anonymized and deactivated under PDPA request #{req.id}. Orders preserved for accounting."
+    )
+
+    db.session.commit()
+    flash(f"User #{target_user_id} has been permanently anonymized and deactivated. Historic orders retained for accounting.", "success")
+    return redirect(url_for('admin.data_requests'))
+
+
+@admin_bp.route('/data-requests/<int:request_id>/reject', methods=['POST'])
+@roles_required('admin')
+def reject_data_request(request_id):
+    """Reject a data request with mandatory admin reason."""
+    req = DataRequest.query.get_or_404(request_id)
+    admin_note = request.form.get('admin_note', '').strip()
+
+    if not admin_note:
+        flash('An admin note / explanation is required to reject a data request.', 'error')
+        return redirect(url_for('admin.data_requests'))
+
+    req.status = 'rejected'
+    req.admin_note = admin_note
+    req.handled_at = datetime.utcnow()
+    req.handled_by = current_user.id
+
+    _audit(
+        action='data_request_rejected',
+        target_type='data_request',
+        target_id=req.id,
+        details=f"Data request #{req.id} ({req.type}) rejected. Note: {admin_note}"
+    )
+
+    db.session.commit()
+    flash(f"Data request #{req.id} has been rejected.", "info")
+    return redirect(url_for('admin.data_requests'))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SYSTEM STATUS & INTEGRATION DIAGNOSTICS (/admin/system)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_bp.route('/system')
+@roles_required('admin')
+def system_status():
+    """System health, infrastructure status, and integration diagnostics."""
+    # 1. Database Connectivity & Version
+    db_status = "Connected"
+    db_version = "PostgreSQL"
+    try:
+        db.session.execute(text("SELECT 1")).scalar()
+        raw_version = db.session.execute(text("SELECT version()")).scalar()
+        if raw_version:
+            db_version = raw_version.split(",")[0]
+    except Exception as e:
+        db_status = f"Error: {str(e)[:100]}"
+
+    # 2. Migration Revisions (Current vs Head)
+    current_rev = None
+    head_rev = "0014_data_requests"
+    try:
+        current_rev = db.session.execute(text("SELECT version_num FROM alembic_version")).scalar()
+    except Exception:
+        current_rev = "Unknown"
+
+    migration_in_sync = (current_rev == head_rev)
+
+    # 3. Environment & Debug Status
+    app_env = current_app.config.get('ENV') or os.environ.get('FLASK_ENV') or 'production'
+    is_debug = current_app.debug
+    debug_warning = bool(is_debug and app_env.lower() in ('production', 'prod'))
+
+    # 4. Upload Directory Health & Size
+    uploads_base = os.path.abspath(os.path.join(current_app.root_path, 'static', 'uploads'))
+    upload_writable = os.access(uploads_base, os.W_OK) if os.path.exists(uploads_base) else False
+
+    total_upload_bytes = 0
+    total_upload_files = 0
+    if os.path.exists(uploads_base):
+        for root, _, files in os.walk(uploads_base):
+            for f in files:
+                fp = os.path.join(root, f)
+                try:
+                    total_upload_bytes += os.path.getsize(fp)
+                    total_upload_files += 1
+                except OSError:
+                    pass
+    upload_size_mb = round(total_upload_bytes / (1024 * 1024), 2)
+
+    # 5. Failed Logins in the last 24 hours
+    twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
+    failed_logins_24h = AdminAuditLog.query.filter(
+        AdminAuditLog.action == 'admin_login_failed',
+        AdminAuditLog.created_at >= twenty_four_hours_ago
+    ).count()
+
+    # 6. Git Commit / App Version
+    app_version = "v2.0"
+    try:
+        git_hash = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True
+        ).strip()
+        if git_hash:
+            app_version = f"v2.0 ({git_hash})"
+    except Exception:
+        pass
+
+    # 7. Integrations (Shown ONLY as Present / Missing, NEVER secrets or keys!)
+    google_browser_key_present = bool(os.environ.get('GOOGLE_MAPS_BROWSER_KEY') or current_app.config.get('GOOGLE_MAPS_BROWSER_KEY'))
+    google_map_id_present = bool(os.environ.get('GOOGLE_MAPS_MAP_ID') or current_app.config.get('GOOGLE_MAPS_MAP_ID'))
+    google_server_key_present = bool(os.environ.get('GOOGLE_MAPS_SERVER_KEY') or current_app.config.get('GOOGLE_MAPS_SERVER_KEY'))
+
+    # Probe count in the last hour for rate limiting
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    routes_probes_last_hour = AdminAuditLog.query.filter(
+        AdminAuditLog.action == 'test_routes_api',
+        AdminAuditLog.created_at >= one_hour_ago
+    ).count()
+
+    return render_template(
+        'admin/system.html',
+        db_status=db_status,
+        db_version=db_version,
+        current_rev=current_rev,
+        head_rev=head_rev,
+        migration_in_sync=migration_in_sync,
+        app_env=app_env,
+        is_debug=is_debug,
+        debug_warning=debug_warning,
+        upload_writable=upload_writable,
+        upload_size_mb=upload_size_mb,
+        total_upload_files=total_upload_files,
+        failed_logins_24h=failed_logins_24h,
+        app_version=app_version,
+        google_browser_key_present=google_browser_key_present,
+        google_map_id_present=google_map_id_present,
+        google_server_key_present=google_server_key_present,
+        routes_probes_last_hour=routes_probes_last_hour,
+        max_probes_per_hour=5
+    )
+
+
+@admin_bp.route('/system/test-routes', methods=['POST'])
+@roles_required('admin')
+def test_routes_api():
+    """Execute a single diagnostic route calculation (Colombo -> Kandy). Audited and rate-limited."""
+    one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+    probes_count = AdminAuditLog.query.filter(
+        AdminAuditLog.action == 'test_routes_api',
+        AdminAuditLog.created_at >= one_hour_ago
+    ).count()
+
+    if probes_count >= 5:
+        flash('Rate limit reached: Maximum 5 Routes API test probes allowed per hour.', 'warning')
+        return redirect(url_for('admin.system_status'))
+
+    # Colombo Fort to Kandy Clock Tower coordinates
+    colombo_lat, colombo_lng = 6.9271, 79.8612
+    kandy_lat, kandy_lng = 7.2906, 80.6337
+
+    start_time = time.time()
+    try:
+        dist_km, source = get_driving_distance_km(colombo_lat, colombo_lng, kandy_lat, kandy_lng)
+        elapsed_ms = round((time.time() - start_time) * 1000)
+
+        _audit(
+            action='test_routes_api',
+            target_type='system',
+            details=f"Routes API probe: {source} route returned {dist_km} km in {elapsed_ms}ms"
+        )
+        db.session.commit()
+
+        if source == 'google':
+            flash(
+                f"Google Routes API Online (HTTP 200 OK): Distance Colombo to Kandy is {dist_km} km (latency: {elapsed_ms} ms).",
+                "success"
+            )
+        else:
+            flash(
+                f"Routes API Fallback Active: Server key returned estimated Haversine distance ({dist_km} km in {elapsed_ms} ms). Check Google Cloud API key permissions.",
+                "warning"
+            )
+    except Exception as e:
+        elapsed_ms = round((time.time() - start_time) * 1000)
+        _audit(
+            action='test_routes_api',
+            target_type='system',
+            result='failed',
+            details=f"Routes API probe failed after {elapsed_ms}ms: {str(e)[:150]}"
+        )
+        db.session.commit()
+        flash(f"Routes API probe failed: {str(e)[:150]}", "error")
+
+    return redirect(url_for('admin.system_status'))
+

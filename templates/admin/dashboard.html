@@ -1,26 +1,630 @@
 {% extends "admin/_layout.html" %}
-{% block title %}Admin overview{% endblock %}
-{% block admin_content %}
-<div class="flex items-start justify-between gap-4 mb-8"><div><p class="text-sm font-semibold text-leaf">Control centre</p><h1 class="mt-1">Admin overview</h1><p class="mt-2 text-muted">A clear read on the marketplace today.</p></div><a href="{{ url_for('admin.exports') }}" class="btn-secondary">Export reports</a></div>
+{% block title %}Admin Dashboard & Operations — AgroLink{% endblock %}
 
-{% if stale_prices and stale_prices|length > 0 %}
-<div class="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-  <div class="flex items-center gap-2.5">
-    <svg class="w-5 h-5 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-    <div>
-      <span class="font-bold text-sm">Prices not updated in {{ stale_days }} days ({{ stale_prices|length }} items)</span>
-      <p class="text-xs text-amber-800">Crops like {{ stale_prices[:3]|map(attribute='crop_name')|join(', ') }}{% if stale_prices|length > 3 %} and {{ stale_prices|length - 3 }} more{% endif %} have outdated benchmarks.</p>
-    </div>
+{% block admin_content %}
+{# ─── 1. TOP HEADER & DATE RANGE FILTER TOOLBAR ─── #}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+  <div>
+    <p class="text-xs font-bold uppercase tracking-wider text-leaf">Operations Control Centre</p>
+    <h1 class="text-2xl lg:text-3xl font-display font-extrabold text-ink mt-1">Admin Overview</h1>
+    <p class="text-xs sm:text-sm text-muted mt-1">High-level marketplace KPIs, operational queues, and performance metrics.</p>
   </div>
-  <a href="{{ url_for('admin.prices') }}" class="btn-primary py-1.5 px-3.5 text-xs font-semibold whitespace-nowrap">
-    Review Prices →
+
+  {# Date Range Filter Presets & Custom Picker #}
+  <div class="flex flex-wrap items-center gap-2 bg-canvas border border-leaf-200/80 rounded-2xl p-1.5 shadow-xs">
+    <div class="inline-flex rounded-xl bg-white p-1 border border-leaf-100 shadow-2xs">
+      <a href="{{ url_for('admin.dashboard', range='7') }}"
+         class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {% if range_preset == '7' %}bg-leaf text-white shadow-xs{% else %}text-muted hover:text-ink hover:bg-canvas{% endif %}">
+        Last 7d
+      </a>
+      <a href="{{ url_for('admin.dashboard', range='30') }}"
+         class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {% if range_preset == '30' %}bg-leaf text-white shadow-xs{% else %}text-muted hover:text-ink hover:bg-canvas{% endif %}">
+        Last 30d
+      </a>
+      <a href="{{ url_for('admin.dashboard', range='90') }}"
+         class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {% if range_preset == '90' %}bg-leaf text-white shadow-xs{% else %}text-muted hover:text-ink hover:bg-canvas{% endif %}">
+        Last 90d
+      </a>
+    </div>
+
+    {# Custom Date Form #}
+    <form method="GET" action="{{ url_for('admin.dashboard') }}" class="flex items-center gap-1.5">
+      <input type="hidden" name="range" value="custom">
+      <input type="date" name="start" value="{{ start }}" required
+             aria-label="Start date"
+             class="input text-xs py-1 px-2.5 h-8 border-leaf-200 focus:border-leaf w-32 rounded-lg">
+      <span class="text-xs text-muted">to</span>
+      <input type="date" name="end" value="{{ end }}" required
+             aria-label="End date"
+             class="input text-xs py-1 px-2.5 h-8 border-leaf-200 focus:border-leaf w-32 rounded-lg">
+      <button type="submit" class="btn-primary text-xs py-1.5 px-3 h-8 rounded-lg font-bold">
+        Apply
+      </button>
+    </form>
+  </div>
+</div>
+
+{# ─── 2. DEFINITIONS NOTIFICATION BANNER ─── #}
+<div class="mb-6 p-3.5 rounded-xl bg-white border border-leaf-200/90 shadow-2xs text-xs text-inksoft flex flex-wrap items-center justify-between gap-3">
+  <div class="flex items-center gap-2">
+    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-leaf-100 text-leaf-800 font-bold text-[10px]">i</span>
+    <span><strong>Metric Definitions:</strong> 
+      <span class="text-leaf-800 font-semibold" title="Total amount of all placed orders excluding rejected or cancelled">Order Value</span> = non-cancelled/non-rejected orders · 
+      <span class="text-leaf-800 font-semibold" title="Total amount of orders successfully delivered to buyers">Completed Value</span> = delivered orders only · 
+      <span class="text-muted" title="Payment gateway settlement totals will appear once payment processing is active">Paid Value</span> = coming soon with online payments.
+    </span>
+  </div>
+  <a href="{{ url_for('admin.reports') }}" class="text-xs font-bold text-leaf hover:underline whitespace-nowrap">
+    Full Reports Hub →
   </a>
 </div>
-{% endif %}
-<div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-{% for label, value, tone in [('Total users', totals.users, 'leaf'), ('Active listings', totals.active_listings, 'earth'), ('Orders', totals.orders, 'sky'), ('Order value', 'LKR ' ~ ('%.2f'|format(totals.order_value or 0)), 'gold')] %}<div class="card p-5 border-l-4 border-{{ tone }}"><p class="text-sm text-muted">{{ label }}</p><p class="text-2xl font-bold text-ink mt-2">{{ value }}</p></div>{% endfor %}
+
+{# ─── 3. NEEDS ATTENTION OPERATIONAL PANEL ─── #}
+<section aria-labelledby="needs-attention-heading" class="mb-8">
+  <div class="flex items-center justify-between mb-3">
+    <h2 id="needs-attention-heading" class="text-sm font-bold uppercase tracking-wider text-muted flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+      Needs Attention
+    </h2>
+    <span class="text-xs text-muted">Action items requiring administrative review</span>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+    {# Open Reports #}
+    <a href="{{ url_for('admin.listing_reports', status='open') }}"
+       class="card p-3.5 hover:border-rose-400 transition flex flex-col justify-between group {% if attention.open_reports > 0 %}border-rose-200 bg-rose-50/40{% endif %}">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-muted group-hover:text-ink">Open reports</span>
+        <span class="text-lg">🚩</span>
+      </div>
+      <div class="mt-2 flex items-baseline justify-between">
+        <span class="text-2xl font-extrabold {% if attention.open_reports > 0 %}text-rose-600{% else %}text-ink{% endif %}">{{ attention.open_reports }}</span>
+        <span class="text-[11px] font-semibold text-rose-700">Review →</span>
+      </div>
+    </a>
+
+    {# Pending Farmer Verifications #}
+    <a href="{{ url_for('admin.verifications', status='pending') }}"
+       class="card p-3.5 hover:border-amber-400 transition flex flex-col justify-between group {% if attention.pending_verifications > 0 %}border-amber-200 bg-amber-50/40{% endif %}">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-muted group-hover:text-ink">Verifications</span>
+        <span class="text-lg">🛡️</span>
+      </div>
+      <div class="mt-2 flex items-baseline justify-between">
+        <span class="text-2xl font-extrabold {% if attention.pending_verifications > 0 %}text-amber-600{% else %}text-ink{% endif %}">{{ attention.pending_verifications }}</span>
+        <span class="text-[11px] font-semibold text-amber-700">Review →</span>
+      </div>
+    </a>
+
+    {# Orders Pending > 24 Hours #}
+    <a href="{{ url_for('admin.orders', status='pending') }}"
+       class="card p-3.5 hover:border-orange-400 transition flex flex-col justify-between group {% if attention.old_pending_orders > 0 %}border-orange-200 bg-orange-50/40{% endif %}">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-muted group-hover:text-ink">Pending &gt; 24h</span>
+        <span class="text-lg">⏳</span>
+      </div>
+      <div class="mt-2 flex items-baseline justify-between">
+        <span class="text-2xl font-extrabold {% if attention.old_pending_orders > 0 %}text-orange-600{% else %}text-ink{% endif %}">{{ attention.old_pending_orders }}</span>
+        <span class="text-[11px] font-semibold text-orange-700">Check →</span>
+      </div>
+    </a>
+
+    {# Stale Market Prices #}
+    <a href="{{ url_for('admin.prices') }}"
+       class="card p-3.5 hover:border-amber-400 transition flex flex-col justify-between group {% if attention.stale_prices > 0 %}border-amber-200 bg-amber-50/40{% endif %}">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-muted group-hover:text-ink">Stale prices</span>
+        <span class="text-lg">📉</span>
+      </div>
+      <div class="mt-2 flex items-baseline justify-between">
+        <span class="text-2xl font-extrabold {% if attention.stale_prices > 0 %}text-amber-600{% else %}text-ink{% endif %}">{{ attention.stale_prices }}</span>
+        <span class="text-[11px] font-semibold text-amber-700">Update →</span>
+      </div>
+    </a>
+
+    {# Farmers Without Map Pin #}
+    <a href="{{ url_for('admin.users', role='farmer') }}"
+       class="card p-3.5 hover:border-sky-400 transition flex flex-col justify-between group {% if attention.farmers_without_pin > 0 %}border-sky-200 bg-sky-50/40{% endif %}">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-muted group-hover:text-ink">No map pin</span>
+        <span class="text-lg">📍</span>
+      </div>
+      <div class="mt-2 flex items-baseline justify-between">
+        <span class="text-2xl font-extrabold {% if attention.farmers_without_pin > 0 %}text-sky-700{% else %}text-ink{% endif %}">{{ attention.farmers_without_pin }}</span>
+        <span class="text-[11px] font-semibold text-sky-700">Locate →</span>
+      </div>
+    </a>
+
+    {# Low Stock Listings #}
+    <a href="{{ url_for('admin.listings') }}"
+       class="card p-3.5 hover:border-earth-400 transition flex flex-col justify-between group {% if attention.low_stock_listings > 0 %}border-earth-200 bg-earth-50/40{% endif %}">
+      <div class="flex items-center justify-between">
+        <span class="text-xs text-muted group-hover:text-ink">Low stock</span>
+        <span class="text-lg">📦</span>
+      </div>
+      <div class="mt-2 flex items-baseline justify-between">
+        <span class="text-2xl font-extrabold {% if attention.low_stock_listings > 0 %}text-earth{% else %}text-ink{% endif %}">{{ attention.low_stock_listings }}</span>
+        <span class="text-[11px] font-semibold text-earth">Inspect →</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+{# ─── 4. CORE KPIS METRICS GRID ─── #}
+<section aria-labelledby="kpis-heading" class="mb-8">
+  <div class="flex items-center justify-between mb-3">
+    <h2 id="kpis-heading" class="text-sm font-bold uppercase tracking-wider text-muted">
+      Platform Performance ({{ start }} to {{ end }})
+    </h2>
+    <span class="text-xs text-muted font-medium">Auto-aggregated with SQL</span>
+  </div>
+
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    {# Total Users #}
+    <div class="card p-4 border-l-4 border-leaf">
+      <p class="text-xs text-muted font-medium">Total registered users</p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-ink mt-1">{{ totals.users }}</p>
+      <div class="mt-2 flex items-center gap-2 text-[11px] text-muted">
+        <span class="text-leaf font-bold">{{ totals.farmers }} farmers</span> · 
+        <span class="text-sky font-bold">{{ totals.buyers }} buyers</span> · 
+        <span>{{ totals.admins }} admins</span>
+      </div>
+    </div>
+
+    {# Active Listings #}
+    <div class="card p-4 border-l-4 border-earth">
+      <p class="text-xs text-muted font-medium">Active produce listings</p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-ink mt-1">{{ totals.active_listings }}</p>
+      <p class="mt-2 text-[11px] text-muted">Currently buyable on marketplace</p>
+    </div>
+
+    {# Total Orders in Range #}
+    <div class="card p-4 border-l-4 border-sky">
+      <p class="text-xs text-muted font-medium">Total orders placed</p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-ink mt-1">{{ totals.orders }}</p>
+      <div class="mt-2 flex items-center justify-between text-[11px] text-muted">
+        <span>Completion: <strong class="text-leaf-800">{{ totals.completion_rate }}%</strong></span>
+        <span>Rejection: <strong class="text-rose-600">{{ totals.cancellation_rate }}%</strong></span>
+      </div>
+    </div>
+
+    {# Order Value #}
+    <div class="card p-4 border-l-4 border-amber-500">
+      <p class="text-xs text-muted font-medium" title="Excludes cancelled and rejected orders">
+        Order Value (Gross) ⓘ
+      </p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-ink mt-1">LKR {{ '{:,.2f}'.format(totals.order_value) }}</p>
+      <p class="mt-2 text-[11px] text-muted">AOV: <strong>LKR {{ '{:,.2f}'.format(totals.aov) }}</strong></p>
+    </div>
+
+    {# Completed Value #}
+    <div class="card p-4 border-l-4 border-emerald-600">
+      <p class="text-xs text-muted font-medium" title="Total value of successfully delivered orders">
+        Completed Value ⓘ
+      </p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-emerald-800 mt-1">LKR {{ '{:,.2f}'.format(totals.completed_value) }}</p>
+      <p class="mt-2 text-[11px] text-muted">Successfully fulfilled to buyers</p>
+    </div>
+
+    {# Delivery Fees #}
+    <div class="card p-4 border-l-4 border-sky-600">
+      <p class="text-xs text-muted font-medium">Delivery Fees</p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-ink mt-1">LKR {{ '{:,.2f}'.format(totals.delivery_fees) }}</p>
+      <p class="mt-2 text-[11px] text-muted">Collected on delivery orders</p>
+    </div>
+
+    {# Paid Value (Coming Soon Placeholder) #}
+    <div class="card p-4 border-l-4 border-gray-300 bg-gray-50/50">
+      <p class="text-xs text-muted font-medium" title="Online payment settlement total">Paid Value ⓘ</p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-gray-400 mt-1">LKR 0.00</p>
+      <p class="mt-2 text-[11px] text-muted italic">Pending payment gateway integration</p>
+    </div>
+
+    {# Average Order Value #}
+    <div class="card p-4 border-l-4 border-purple-500">
+      <p class="text-xs text-muted font-medium">Average Order Value (AOV)</p>
+      <p class="text-2xl lg:text-3xl font-extrabold text-ink mt-1">LKR {{ '{:,.2f}'.format(totals.aov) }}</p>
+      <p class="mt-2 text-[11px] text-muted">Per active valid transaction</p>
+    </div>
+  </div>
+</section>
+
+{# ─── 5. EMPTY STATE WHEN NO ORDERS IN RANGE ─── #}
+{% if totals.orders == 0 %}
+<div class="card p-8 text-center my-8 bg-amber-50/30 border border-amber-200 rounded-2xl">
+  <div class="w-12 h-12 mx-auto rounded-full bg-amber-100 flex items-center justify-center text-amber-700 text-xl font-bold mb-3">
+    📅
+  </div>
+  <h3 class="text-base font-bold text-ink">No order activity in this date range</h3>
+  <p class="text-xs sm:text-sm text-muted mt-1 max-w-md mx-auto">
+    There are no orders recorded between {{ start }} and {{ end }}. Try selecting a wider date preset (e.g. Last 90 days) or seed demo data using <code class="font-mono bg-white px-1.5 py-0.5 border rounded">flask seed-admin-demo</code>.
+  </p>
 </div>
-<div class="grid xl:grid-cols-[1.4fr_1fr] gap-6 mb-8"><section class="card p-5"><div class="flex justify-between items-center mb-4"><h2 class="text-xl">Orders per day</h2><span class="text-xs text-muted">Last 30 days</span></div><canvas id="orders-chart" height="120"></canvas></section><section class="card p-5"><h2 class="text-xl mb-4">Users by role</h2><div class="space-y-3">{% for label, value in [('Farmers', totals.farmers), ('Buyers', totals.buyers), ('Admins', totals.admins)] %}<div class="flex justify-between border-b border-bdr pb-3"><span class="text-inksoft">{{ label }}</span><strong>{{ value }}</strong></div>{% endfor %}</div><h2 class="text-xl mt-7 mb-4">Orders by status</h2><div class="flex flex-wrap gap-2">{% for status, count in status_counts.items() %}<span class="badge">{{ status }} · {{ count }}</span>{% endfor %}</div></section></div>
-<div class="grid xl:grid-cols-2 gap-6"><section class="card overflow-hidden"><div class="p-5 border-b border-bdr"><h2 class="text-xl">Recent orders</h2></div>{% for order in recent_orders %}<a class="flex justify-between gap-3 p-4 border-b border-bdr hover:bg-canvas" href="{{ url_for('admin.order_detail', order_id=order.id) }}"><span><strong>#{{ order.id }}</strong> · {{ order.product.name }}<small class="block text-muted">{{ order.buyer.name }}</small></span><span class="text-right"><strong>LKR {{ '%.2f'|format(order.total_price) }}</strong><small class="block text-muted capitalize">{{ order.status }}</small></span></a>{% else %}<p class="p-5 text-muted">No orders yet.</p>{% endfor %}</section><section class="card overflow-hidden"><div class="p-5 border-b border-bdr"><h2 class="text-xl">Recent registrations</h2></div>{% for user in registrations %}<a class="flex justify-between p-4 border-b border-bdr hover:bg-canvas" href="{{ url_for('admin.user_detail', user_id=user.id) }}"><span><strong>{{ user.name }}</strong><small class="block text-muted">{{ user.email }}</small></span><span class="badge capitalize">{{ user.role }}</span></a>{% else %}<p class="p-5 text-muted">No users yet.</p>{% endfor %}</section></div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script><script>new Chart(document.getElementById('orders-chart'),{type:'line',data:{labels:{{ chart_labels|tojson }},datasets:[{label:'Orders',data:{{ chart_values|tojson }},borderColor:'#2D6A4F',backgroundColor:'rgba(45,106,79,.12)',fill:true,tension:.35}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});</script>
+{% endif %}
+
+{# ─── 6. VISUAL CHARTS GRID (CHART.JS BRANDED) ─── #}
+<div class="grid xl:grid-cols-2 gap-6 mb-8">
+  {# Chart 1: Orders per day #}
+  <section class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-base font-bold text-ink">Orders per Day</h2>
+        <p class="text-xs text-muted">Daily order count over selected period</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-leaf-50 text-leaf-800 border border-leaf-200">
+        {{ totals.orders }} orders
+      </span>
+    </div>
+    <div class="relative h-64">
+      <canvas id="ordersPerDayChart"></canvas>
+    </div>
+  </section>
+
+  {# Chart 2: Order Value per day #}
+  <section class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-base font-bold text-ink">Order Value per Day (LKR)</h2>
+        <p class="text-xs text-muted">Gross daily trade volume</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-leaf-50 text-leaf-800 border border-leaf-200">
+        LKR {{ '{:,.0f}'.format(totals.order_value) }}
+      </span>
+    </div>
+    <div class="relative h-64">
+      <canvas id="orderValueChart"></canvas>
+    </div>
+  </section>
+
+  {# Chart 3: Fulfillment Split (Delivery vs Pickup) #}
+  <section class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-base font-bold text-ink">Fulfillment Method Split</h2>
+        <p class="text-xs text-muted">Customer delivery vs farm pickup</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-canvas text-muted border">
+        Ratio
+      </span>
+    </div>
+    <div class="relative h-56 flex items-center justify-center">
+      <canvas id="fulfillmentSplitChart"></canvas>
+    </div>
+    <div class="mt-4 flex items-center justify-center gap-6 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-[#1A659E]"></span>
+        <span>Delivery: <strong>{{ fulfillment_counts.delivery }}</strong></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-[#A0522D]"></span>
+        <span>Farm Pickup: <strong>{{ fulfillment_counts.pickup }}</strong></span>
+      </div>
+    </div>
+  </section>
+
+  {# Chart 4: Orders by Status #}
+  <section class="card p-5">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-base font-bold text-ink">Orders by Fulfillment Status</h2>
+        <p class="text-xs text-muted">Lifecycle progress across all orders</p>
+      </div>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-canvas text-muted border">
+        Status breakdown
+      </span>
+    </div>
+    <div class="relative h-56 flex items-center justify-center">
+      <canvas id="orderStatusChart"></canvas>
+    </div>
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-3 text-xs">
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>Pending: <strong>{{ status_counts.pending }}</strong></span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span>Confirmed: <strong>{{ status_counts.confirmed }}</strong></span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>Delivered: <strong>{{ status_counts.delivered }}</strong></span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>Cancelled: <strong>{{ status_counts.cancelled }}</strong></span>
+      <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#6B7280]"></span>Rejected: <strong>{{ status_counts.rejected }}</strong></span>
+    </div>
+  </section>
+</div>
+
+{# ─── 7. TOP 5 RANKINGS & WEEKLY REGISTRATIONS ─── #}
+<div class="grid xl:grid-cols-3 gap-6 mb-8">
+  {# Top 5 Farmers by Completed Value #}
+  <section class="card p-5">
+    <div class="flex items-center justify-between mb-3 border-b border-bdr pb-2">
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider">Top Farmers</h2>
+      <span class="text-xs text-muted">By completed sales</span>
+    </div>
+    <div class="divide-y divide-bdr">
+      {% for f in top_farmers %}
+      <div class="py-2.5 flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="w-5 h-5 rounded-full bg-leaf-100 text-leaf-800 font-bold flex items-center justify-center text-[10px] shrink-0">
+            {{ loop.index }}
+          </span>
+          <div class="truncate">
+            <a href="{{ url_for('admin.user_detail', user_id=f.id) }}" class="font-bold text-ink hover:text-leaf truncate block">
+              {{ f.name }}
+            </a>
+            <span class="text-muted block text-[11px] truncate">{{ f.farm_name or 'Independent Farmer' }}</span>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <strong class="text-leaf-900 block">LKR {{ '{:,.2f}'.format(f.completed_val) }}</strong>
+          <span class="text-muted text-[10px]">{{ f.delivered_orders }} delivered</span>
+        </div>
+      </div>
+      {% else %}
+      <p class="py-4 text-xs text-muted text-center">No delivered orders in this period.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# Top 5 Crops by Quantity Ordered #}
+  <section class="card p-5">
+    <div class="flex items-center justify-between mb-3 border-b border-bdr pb-2">
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider">Top Crops</h2>
+      <span class="text-xs text-muted">By quantity ordered (kg)</span>
+    </div>
+    <div class="divide-y divide-bdr">
+      {% for c in top_crops %}
+      <div class="py-2.5 flex items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="w-5 h-5 rounded-full bg-earth-100 text-earth-800 font-bold flex items-center justify-center text-[10px] shrink-0">
+            {{ loop.index }}
+          </span>
+          <span class="font-bold text-ink truncate">{{ c.name }}</span>
+        </div>
+        <div class="text-right shrink-0">
+          <strong class="text-earth block">{{ '{:,.1f}'.format(c.total_kg) }} kg</strong>
+          <span class="text-muted text-[10px]">{{ c.orders_count }} orders</span>
+        </div>
+      </div>
+      {% else %}
+      <p class="py-4 text-xs text-muted text-center">No crop sales in this period.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# New Registrations per Week #}
+  <section class="card p-5">
+    <div class="flex items-center justify-between mb-3 border-b border-bdr pb-2">
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider">Registrations Trend</h2>
+      <span class="text-xs text-muted">Weekly new accounts</span>
+    </div>
+    <div class="space-y-3 pt-2">
+      {% for reg in weekly_registrations %}
+      <div>
+        <div class="flex justify-between text-xs mb-1">
+          <span class="font-medium text-ink">{{ reg.label }}</span>
+          <span class="font-bold text-leaf">{{ reg.count }} users</span>
+        </div>
+        <div class="w-full bg-canvas rounded-full h-2 overflow-hidden border">
+          <div class="bg-leaf h-2 rounded-full" style="width: {{ [reg.count * 5, 100]|min }}%;"></div>
+        </div>
+      </div>
+      {% else %}
+      <p class="py-4 text-xs text-muted text-center">No registrations recorded recently.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+{# ─── 8. RECENT ORDERS & REGISTRATIONS STRIP ─── #}
+<div class="grid xl:grid-cols-2 gap-6">
+  {# Recent Orders #}
+  <section class="card overflow-hidden">
+    <div class="p-4 border-b border-bdr flex items-center justify-between">
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider">Recent Orders</h2>
+      <a href="{{ url_for('admin.orders') }}" class="text-xs font-semibold text-leaf hover:underline">View all →</a>
+    </div>
+    <div class="divide-y divide-bdr">
+      {% for order in recent_orders %}
+      <a class="flex items-center justify-between p-3.5 hover:bg-canvas text-xs transition"
+         href="{{ url_for('admin.order_detail', order_id=order.id) }}">
+        <div>
+          <span class="font-bold text-ink">#{{ order.id }}</span> · 
+          <span class="text-muted">{{ order.product.name if order.product else 'Produce' }}</span>
+          <small class="block text-muted text-[11px] mt-0.5">Buyer: {{ order.buyer.name if order.buyer else 'User' }}</small>
+        </div>
+        <div class="text-right">
+          <strong class="block text-ink">LKR {{ '{:,.2f}'.format(order.total_price) }}</strong>
+          <span class="badge text-[10px] capitalize mt-0.5">{{ order.status }}</span>
+        </div>
+      </a>
+      {% else %}
+      <p class="p-4 text-xs text-muted">No orders placed yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# Recent User Registrations #}
+  <section class="card overflow-hidden">
+    <div class="p-4 border-b border-bdr flex items-center justify-between">
+      <h2 class="text-sm font-bold text-ink uppercase tracking-wider">Recent Registrations</h2>
+      <a href="{{ url_for('admin.users') }}" class="text-xs font-semibold text-leaf hover:underline">View all →</a>
+    </div>
+    <div class="divide-y divide-bdr">
+      {% for user in registrations %}
+      <a class="flex items-center justify-between p-3.5 hover:bg-canvas text-xs transition"
+         href="{{ url_for('admin.user_detail', user_id=user.id) }}">
+        <div>
+          <strong class="text-ink block">{{ user.name }}</strong>
+          <span class="text-muted text-[11px]">{{ user.email }}</span>
+        </div>
+        <div class="text-right">
+          <span class="badge text-[10px] capitalize">{{ user.role }}</span>
+          {% if user.is_verified %}
+          <span class="block text-[10px] text-emerald-700 font-bold mt-0.5">✓ Verified</span>
+          {% endif %}
+        </div>
+      </a>
+      {% else %}
+      <p class="p-4 text-xs text-muted">No users registered yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+{# ─── 9. CHART.JS SCRIPT (LOADED ONLY ON THIS PAGE) ─── #}
+<script id="dashboardChartData" type="application/json">
+{
+  "labels": {{ chart_labels|tojson|safe }},
+  "ordersData": {{ chart_orders_data|tojson|safe }},
+  "valueData": {{ chart_value_data|tojson|safe }},
+  "fulfillmentData": [{{ fulfillment_counts.delivery|default(0) }}, {{ fulfillment_counts.pickup|default(0) }}],
+  "statusData": [
+    {{ status_counts.pending|default(0) }},
+    {{ status_counts.confirmed|default(0) }},
+    {{ status_counts.delivered|default(0) }},
+    {{ status_counts.cancelled|default(0) }},
+    {{ status_counts.rejected|default(0) }}
+  ]
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const brandColors = {
+    leaf: '#2D6A4F',
+    leafDark: '#1B4332',
+    leafPale: 'rgba(45, 106, 79, 0.12)',
+    earth: '#A0522D',
+    earthPale: 'rgba(160, 82, 45, 0.15)',
+    sky: '#1A659E',
+    skyPale: 'rgba(26, 101, 158, 0.15)',
+    amber: '#F59E0B',
+    blue: '#3B82F6',
+    emerald: '#10B981',
+    red: '#EF4444',
+    gray: '#6B7280'
+  };
+
+  const chartDataEl = document.getElementById('dashboardChartData');
+  const chartConfig = chartDataEl ? JSON.parse(chartDataEl.textContent || '{}') : {};
+  const labels = chartConfig.labels || [];
+  const ordersData = chartConfig.ordersData || [];
+  const valueData = chartConfig.valueData || [];
+  const fulfillmentData = chartConfig.fulfillmentData || [0, 0];
+  const statusData = chartConfig.statusData || [0, 0, 0, 0, 0];
+
+  // 1. Orders per day
+  const ordersCtx = document.getElementById('ordersPerDayChart');
+  if (ordersCtx) {
+    new Chart(ordersCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Orders',
+          data: ordersData,
+          borderColor: brandColors.leaf,
+          backgroundColor: brandColors.leafPale,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { precision: 0 } },
+          x: { ticks: { maxTicksLimit: 10 } }
+        }
+      }
+    });
+  }
+
+  // 2. Order value per day
+  const valueCtx = document.getElementById('orderValueChart');
+  if (valueCtx) {
+    new Chart(valueCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Order Value (LKR)',
+          data: valueData,
+          borderColor: brandColors.leafDark,
+          backgroundColor: 'rgba(27, 67, 50, 0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => 'LKR ' + Number(ctx.parsed.y).toLocaleString(undefined, {minimumFractionDigits: 2})
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true },
+          x: { ticks: { maxTicksLimit: 10 } }
+        }
+      }
+    });
+  }
+
+  // 3. Fulfillment split (Doughnut)
+  const fulfillCtx = document.getElementById('fulfillmentSplitChart');
+  if (fulfillCtx) {
+    new Chart(fulfillCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Delivery', 'Pickup'],
+        datasets: [{
+          data: fulfillmentData,
+          backgroundColor: [brandColors.sky, brandColors.earth],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        cutout: '68%'
+      }
+    });
+  }
+
+  // 4. Orders by Status
+  const statusCtx = document.getElementById('orderStatusChart');
+  if (statusCtx) {
+    new Chart(statusCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Pending', 'Confirmed', 'Delivered', 'Cancelled', 'Rejected'],
+        datasets: [{
+          data: statusData,
+          backgroundColor: [
+            brandColors.amber,
+            brandColors.blue,
+            brandColors.emerald,
+            brandColors.red,
+            brandColors.gray
+          ],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        cutout: '68%'
+      }
+    });
+  }
+});
+</script>
 {% endblock %}
