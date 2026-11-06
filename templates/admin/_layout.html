@@ -11,11 +11,11 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Overview</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.dashboard') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.dashboard' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.dashboard' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Dashboard</span>
               </a>
               <a href="{{ url_for('admin.farmers_map') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.farmers_map' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.farmers_map' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Farmers Map</span>
               </a>
             </div>
@@ -26,25 +26,27 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">People</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.users') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.users', 'admin.user_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.users', 'admin.user_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Users Directory</span>
               </a>
 
               <a href="{{ url_for('admin.verifications') }}"
-                 class="flex items-center justify-between px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.verifications' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center justify-between px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.verifications' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Verification</span>
                 {% if admin_pending_verifications_count and admin_pending_verifications_count > 0 %}
-                <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none bg-amber-500 text-ink rounded-full">
+                <span
+                  class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none bg-amber-500 text-ink rounded-full">
                   {{ admin_pending_verifications_count }}
                 </span>
                 {% endif %}
               </a>
 
               <a href="{{ url_for('admin.data_requests') }}"
-                 class="flex items-center justify-between px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.data_requests' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center justify-between px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.data_requests' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Data Requests (PDPA)</span>
                 {% if admin_open_data_requests_count and admin_open_data_requests_count > 0 %}
-                <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none bg-rose-500 text-white rounded-full">
+                <span
+                  class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none bg-rose-500 text-white rounded-full">
                   {{ admin_open_data_requests_count }}
                 </span>
                 {% endif %}
@@ -57,22 +59,23 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Marketplace</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.listings') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.listings' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.listings' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Produce Listings</span>
               </a>
 
               <a href="{{ url_for('admin.listing_reports') }}"
-                 class="flex items-center justify-between px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.listing_reports', 'admin.listing_report_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center justify-between px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.listing_reports', 'admin.listing_report_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Listing Reports</span>
                 {% if admin_open_reports_count and admin_open_reports_count > 0 %}
-                <span class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none bg-rose-500 text-white rounded-full">
+                <span
+                  class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none bg-rose-500 text-white rounded-full">
                   {{ admin_open_reports_count }}
                 </span>
                 {% endif %}
               </a>
 
               <a href="{{ url_for('admin.crops') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.crops' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.crops' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Crops &amp; Harvests</span>
               </a>
             </div>
@@ -83,7 +86,7 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Orders</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.orders') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.orders', 'admin.order_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.orders', 'admin.order_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Orders Registry</span>
               </a>
             </div>
@@ -94,11 +97,11 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Pricing</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.prices') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.prices', 'admin.price_detail', 'admin.create_price', 'admin.edit_price') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.prices', 'admin.price_detail', 'admin.create_price', 'admin.edit_price') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Market Prices</span>
               </a>
               <a href="{{ url_for('admin.import_prices') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.import_prices', 'admin.confirm_import_prices') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.import_prices', 'admin.confirm_import_prices') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Bulk CSV Import</span>
               </a>
             </div>
@@ -109,7 +112,7 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Reports</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.reports') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.reports', 'admin.exports', 'admin.reports_csv', 'admin.reports_print') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.reports', 'admin.exports', 'admin.reports_csv', 'admin.reports_print') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Reports &amp; Analytics</span>
               </a>
             </div>
@@ -120,7 +123,7 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Settings</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.settings') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.settings', 'admin.platform_settings') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.settings', 'admin.platform_settings') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Platform Settings</span>
               </a>
             </div>
@@ -131,11 +134,11 @@
             <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">System</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.system_status') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.system_status' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.system_status' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Status &amp; Telemetry</span>
               </a>
               <a href="{{ url_for('admin.activity') }}"
-                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.activity' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint == 'admin.activity' %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Activity Audit Log</span>
               </a>
             </div>

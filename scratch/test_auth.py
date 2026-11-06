@@ -30,7 +30,7 @@ with app_instance.test_client() as client:
     assert b'role-farmer' in r.data, 'Role farmer radio missing'
     assert b'role-buyer' in r.data, 'Role buyer radio missing'
     assert b'Password Strength:' in r.data, 'Strength meter missing'
-    assert b'Interactive GPS Map Location' in r.data, 'Map slot missing'
+    assert b'reg-location-picker' in r.data, 'Map slot missing'
     csrf_reg = get_csrf(r.data)
     print('PASS: Register GET 200 OK with role cards and grouped sections')
 
