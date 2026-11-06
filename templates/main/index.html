@@ -4,38 +4,89 @@
 
 {% block title %}AgroLink — Connecting Sri Lankan Agriculture Directly{% endblock %}
 
+{# ── HERO IMAGE PRELOAD: Variant A — framed photo + ambient green background ─ #}
+{% block extra_head %}
+<link rel="preload" as="image"
+  href="{{ url_for('static', filename='img/hero/farmer-greenhouse-640.webp') }}"
+  imagesrcset="{{ url_for('static', filename='img/hero/farmer-greenhouse-640.webp') }} 547w"
+  imagesizes="(max-width: 1023px) calc(100vw - 2rem), 44vw">
+<style>
+  /* Blurred ambient background layer behind the whole hero */
+  #hero-ambient-bg {
+    background-image: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAQABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDoY50/vCor268tNymudhunzyxp9zdMyYJrFT5tBo3rO9EyZY0Vy8d08YwDRQ520Ez/2Q==");
+    background-size: cover;
+    background-position: center 30%;
+    transform: scale(1.15);
+    filter: blur(28px);
+    opacity: 0.22;
+    will-change: transform;
+  }
+
+  /* Photo frame placeholder tint while real image loads */
+  .hero-photo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAQABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDoY50/vCor268tNymudhunzyxp9zdMyYJrFT5tBo3rO9EyZY0Vy8d08YwDRQ520Ez/2Q==");
+    background-size: cover;
+    background-position: center 30%;
+  }
+
+  /* Entrance animations — off when user prefers reduced motion */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-anim-pill  { opacity: 0; transform: translateY(16px); animation: heroFadeUp 0.4s ease 0.05s forwards; }
+    .hero-anim-h1    { opacity: 0; transform: translateY(18px); animation: heroFadeUp 0.45s ease 0.15s forwards; }
+    .hero-anim-para  { opacity: 0; transform: translateY(16px); animation: heroFadeUp 0.4s ease 0.25s forwards; }
+    .hero-anim-ctas  { opacity: 0; transform: translateY(14px); animation: heroFadeUp 0.4s ease 0.35s forwards; }
+    .hero-anim-photo { opacity: 0; transform: scale(1.03);     animation: heroPhotoIn 0.9s ease 0.1s forwards; }
+    .hero-anim-stats { opacity: 0; transform: translateY(12px); animation: heroFadeUp 0.4s ease 0.6s forwards; }
+
+    @keyframes heroFadeUp  { to { opacity: 1; transform: translateY(0); } }
+    @keyframes heroPhotoIn { to { opacity: 1; transform: scale(1); } }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-{# ── 1. HERO SECTION ─────────────────────────────────────────────────────── #}
-<section class="relative bg-gradient-to-br from-leaf-900 via-leaf-800 to-leaf text-white py-14 sm:py-20 lg:py-28 overflow-hidden" aria-labelledby="hero-heading">
-  {# Subtle background grid pattern #}
+{# ── 1. HERO SECTION — VARIANT A: Framed photo + ambient green background ─── #}
+<section class="relative text-white py-14 sm:py-20 lg:py-24 overflow-hidden" aria-labelledby="hero-heading"
+  style="background: linear-gradient(135deg, #0F271A 0%, #1B4332 35%, #2D6A4F 70%, #40916C 100%);">
+
+  {# 1a. Radial dot grid pattern (unchanged) #}
   <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1.25px,transparent_1.25px)] [background-size:20px_20px]" aria-hidden="true"></div>
 
+  {# 1b. Blurred ambient photo layer — decorative #}
+  <div id="hero-ambient-bg" class="absolute inset-0" role="presentation" aria-hidden="true"></div>
+
+  {# 1c. Left-to-right gradient so text area stays dark & readable #}
+  <div class="absolute inset-0 bg-gradient-to-r from-leaf-950/90 via-leaf-900/70 to-transparent pointer-events-none" aria-hidden="true"></div>
+
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-      
-      {# Left Column: Copy & Action CTAs #}
-      <div class="lg:col-span-7 space-y-6 text-center sm:text-left">
-        {# Value Pill #}
-        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-leaf-100 shadow-xs">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+
+      {# ── LEFT COLUMN: Copy & CTAs — wording, order, links UNCHANGED ─────── #}
+      <div class="lg:col-span-6 space-y-6 text-center sm:text-left">
+
+        {# Value Pill — exact text unchanged #}
+        <div class="hero-anim-pill inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-leaf-100 shadow-xs">
           <span class="w-2 h-2 rounded-full bg-gold animate-pulse" aria-hidden="true"></span>
           <span>Direct Farm-to-Buyer Trading in Sri Lanka</span>
         </div>
 
-        {# Main Headline in Playfair #}
-        <h1 id="hero-heading" class="font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] text-white">
+        {# Main Headline — exact two-tone styling unchanged #}
+        <h1 id="hero-heading" class="hero-anim-h1 font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] text-white">
           Fresh from Sri Lankan Farms,<br class="hidden sm:inline" />
           <span class="text-leaf-200">Direct to Your Doorstep.</span>
         </h1>
 
-        {# One-line Value Proposition #}
-        <p class="text-base sm:text-lg lg:text-xl text-leaf-100/90 leading-relaxed font-normal max-w-2xl mx-auto sm:mx-0">
+        {# Paragraph — exact text unchanged #}
+        <p class="hero-anim-para text-base sm:text-lg lg:text-xl text-leaf-100/90 leading-relaxed font-normal max-w-2xl mx-auto sm:mx-0">
           Connecting verified local growers directly with commercial buyers and families — zero middlemen, transparent Pettah price benchmarks, and instant WhatsApp trade.
         </p>
 
-        {# CTAs (Conditional for Guests vs Logged-in Users) #}
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
+        {# CTAs — same conditional logic, same styles, same links as original #}
+        <div class="hero-anim-ctas flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
           {% if current_user.is_authenticated %}
-            {# Logged-in Shortcut #}
             <a
               href="{{ url_for('dashboard.index') }}"
               class="inline-flex items-center justify-center gap-2.5 bg-gold hover:bg-gold-light active:bg-amber-600 text-ink font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
@@ -51,7 +102,6 @@
               <span>Browse Marketplace</span>
             </a>
           {% else %}
-            {# Guest CTAs #}
             <a
               href="{{ url_for('marketplace.index') }}"
               class="inline-flex items-center justify-center gap-2.5 bg-gold hover:bg-gold-light active:bg-amber-600 text-ink font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
@@ -70,71 +120,86 @@
         </div>
       </div>
 
-      {# Right Column: Decorative Inline-SVG Illustration (No Remote Images) #}
-      <div class="lg:col-span-5 flex justify-center">
-        <div class="w-full max-w-md bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl space-y-6">
-          {# Header of Card #}
-          <div class="flex items-center justify-between pb-4 border-b border-white/15">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-leaf-200 border border-white/20">
-                {{ icon('leaf', size=22) }}
-              </div>
-              <div>
-                <h3 class="font-display font-bold text-base sm:text-lg text-white">Direct Sri Lankan Harvest</h3>
-                <p class="text-xs text-leaf-200">Bypassing Middleman Distribution</p>
-              </div>
+      {# ── RIGHT COLUMN: Photo frame — replaces the SVG illustration ─────── #}
+      {#
+        Aspect ratio 547:365 (the real pixel size of the source image).
+        Max-width ~540px desktop. rounded-3xl, 1px white/10 border, deep green shadow.
+        Overlays are confined to top 18% (chip + badge) and bottom 22% (stat strip).
+      #}
+      <div class="lg:col-span-6 flex justify-center lg:justify-end">
+        <div class="hero-anim-photo hero-photo-wrap relative w-full max-w-[540px] rounded-3xl overflow-hidden
+                    border border-white/10
+                    shadow-[0_24px_64px_-12px_rgba(27,67,50,0.55)]"
+          style="aspect-ratio: 547/365;">
+
+          {# Sharp hero photo — no lazy load, fetchpriority high #}
+          <picture>
+            <source
+              type="image/webp"
+              srcset="{{ url_for('static', filename='img/hero/farmer-greenhouse-640.webp') }} 547w"
+              sizes="(max-width: 1023px) calc(100vw - 2rem), 44vw">
+            <img
+              src="{{ url_for('static', filename='img/hero/farmer-greenhouse.jpeg') }}"
+              alt="Smiling farmer in a greenhouse checking her phone"
+              width="547"
+              height="365"
+              class="absolute inset-0 w-full h-full object-cover"
+              style="object-position: center 30%;"
+              fetchpriority="high"
+              decoding="async">
+          </picture>
+
+          {# Bottom vignette: transparent → rgba(27,67,50,0.72) for stat strip AA contrast #}
+          <div class="absolute inset-x-0 bottom-0 h-[42%] pointer-events-none"
+            style="background: linear-gradient(to top, rgba(27,67,50,0.78) 0%, rgba(27,67,50,0.42) 55%, transparent 100%);"
+            aria-hidden="true"></div>
+
+          {# Top vignette: separates chip from bright greenhouse ceiling #}
+          <div class="absolute inset-x-0 top-0 h-[28%] pointer-events-none"
+            style="background: linear-gradient(to bottom, rgba(15,39,26,0.60) 0%, transparent 100%);"
+            aria-hidden="true"></div>
+
+          {# ── TOP-LEFT: Frosted chip — existing title + subtitle text ────── #}
+          <div class="absolute top-3 left-3 flex items-center gap-2 px-2.5 py-1.5 rounded-xl
+                      bg-black/30 backdrop-blur-md border border-white/20
+                      shadow-[0_2px_12px_rgba(0,0,0,0.30)]">
+            <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-leaf-200 border border-white/20 shrink-0">
+              {{ icon('leaf', size=13) }}
             </div>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-400/20 text-emerald-200 border border-emerald-400/30">
+            <div>
+              <span class="block text-[11px] font-bold text-white leading-none">Direct Sri Lankan Harvest</span>
+              <span class="block text-[10px] text-leaf-200 leading-none mt-0.5">Bypassing Middleman Distribution</span>
+            </div>
+          </div>
+
+          {# ── TOP-RIGHT: "Live Network" badge — exact text + style ─────── #}
+          <div class="absolute top-3 right-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold
+                         bg-black/30 backdrop-blur-md text-emerald-200 border border-emerald-400/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" aria-hidden="true"></span>
               Live Network
             </span>
           </div>
 
-          {# Inline SVG Agricultural Scene Illustration #}
-          <div class="relative w-full h-44 sm:h-52 rounded-2xl bg-gradient-to-b from-leaf-800/80 to-leaf-950/80 p-4 border border-white/10 flex items-center justify-center overflow-hidden" aria-hidden="true">
-            <svg class="w-full h-full text-leaf-300" viewBox="0 0 360 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {# Rising Morning Sun #}
-              <circle cx="180" cy="50" r="32" fill="#F4A226" fill-opacity="0.85" />
-              <circle cx="180" cy="50" r="44" stroke="#FFE57A" stroke-opacity="0.3" stroke-width="2" stroke-dasharray="4 4" />
-              
-              {# Distant Mountains #}
-              <path d="M-10 140 L60 80 L140 140 Z" fill="#1B4332" fill-opacity="0.7" />
-              <path d="M110 140 L190 70 L280 140 Z" fill="#2D6A4F" fill-opacity="0.5" />
-              <path d="M230 140 L300 85 L370 140 Z" fill="#1B4332" fill-opacity="0.7" />
-              
-              {# Terraced Paddy Fields #}
-              <path d="M0 130 C80 120 180 125 360 115 L360 180 L0 180 Z" fill="#40916C" fill-opacity="0.85" />
-              <path d="M0 145 C100 138 220 142 360 132 L360 180 L0 180 Z" fill="#2D6A4F" />
-              <path d="M0 160 C90 156 240 158 360 152 L360 180 L0 180 Z" fill="#1B4332" />
-              
-              {# Stylized Crops Sprouting #}
-              <path d="M40 150 Q45 135 50 150 Q55 135 60 150" stroke="#D8F3DC" stroke-width="2.5" stroke-linecap="round" />
-              <path d="M120 152 Q125 137 130 152 Q135 137 140 152" stroke="#D8F3DC" stroke-width="2.5" stroke-linecap="round" />
-              <path d="M200 154 Q205 139 210 154 Q215 139 220 154" stroke="#D8F3DC" stroke-width="2.5" stroke-linecap="round" />
-              <path d="M280 152 Q285 137 290 152 Q295 137 300 152" stroke="#D8F3DC" stroke-width="2.5" stroke-linecap="round" />
-              
-              {# Small Delivery Truck Icon on road #}
-              <rect x="150" y="162" width="22" height="11" rx="2" fill="#FFFFFF" fill-opacity="0.9" />
-              <rect x="167" y="165" width="8" height="8" rx="1" fill="#FFFFFF" fill-opacity="0.9" />
-              <circle cx="156" cy="173" r="3" fill="#1B4332" />
-              <circle cx="171" cy="173" r="3" fill="#1B4332" />
-            </svg>
+          {# ── BOTTOM: Frosted stat strip — 3 existing stat values/labels ─ #}
+          <div class="hero-anim-stats absolute inset-x-3 bottom-3 rounded-2xl
+                      bg-black/25 backdrop-blur-md border border-white/20
+                      shadow-[0_2px_12px_rgba(0,0,0,0.35)]
+                      grid grid-cols-3 divide-x divide-white/15">
+            <div class="flex flex-col items-center py-2.5 px-3 text-center">
+              <span class="text-gold font-bold text-sm leading-none">0%</span>
+              <span class="text-[10px] text-white/90 mt-0.5 leading-none font-medium">Broker Fees</span>
+            </div>
+            <div class="flex flex-col items-center py-2.5 px-3 text-center">
+              <span class="text-gold font-bold text-sm leading-none">25</span>
+              <span class="text-[10px] text-white/90 mt-0.5 leading-none font-medium">Districts</span>
+            </div>
+            <div class="flex flex-col items-center py-2.5 px-3 text-center">
+              <span class="text-gold font-bold text-sm leading-none">100%</span>
+              <span class="text-[10px] text-white/90 mt-0.5 leading-none font-medium">Direct Trade</span>
+            </div>
           </div>
 
-          {# 3 Quick Highlights #}
-          <div class="grid grid-cols-3 gap-2 pt-1 text-center text-xs">
-            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-              <span class="block text-gold font-bold text-sm">0%</span>
-              <span class="text-[11px] text-leaf-200">Broker Fees</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-              <span class="block text-gold font-bold text-sm">25</span>
-              <span class="text-[11px] text-leaf-200">Districts</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-white/5 border border-white/10">
-              <span class="block text-gold font-bold text-sm">100%</span>
-              <span class="text-[11px] text-leaf-200">Direct Trade</span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -142,7 +207,7 @@
   </div>
 </section>
 
-{# ── 2. TRUST STRIP (Live Metrics) ────────────────────────────────────────── #}
+{# ── 2. TRUST STRIP (Live Metrics) ──────────────────────────────────────────────── #}
 <section class="bg-white border-y border-bdr py-6 sm:py-8 shadow-xs" aria-label="Platform Live Metrics">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-bdr">
@@ -207,7 +272,7 @@
   </div>
 </section>
 
-{# ── 3. CATEGORY TILES GRID ──────────────────────────────────────────────── #}
+{# ── 3. CATEGORY TILES GRID ──────────────────────────────────────────────────────── #}
 <section class="py-14 sm:py-20 bg-canvas/40" aria-labelledby="categories-heading">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {# Header #}
@@ -230,13 +295,13 @@
 
     {# Category Grid (7 Categories) #}
     {% set category_items = [
-      {'name': 'Vegetables', 'desc': 'Carrots, leeks, beans, cabbage, pumpkin & greens', 'icon': 'sprout', 'color': 'leaf'},
-      {'name': 'Fruits', 'desc': 'Papaya, bananas, mangoes, pineapples & passion fruit', 'icon': 'leaf', 'color': 'gold'},
-      {'name': 'Grains & Rice', 'desc': 'Samba, Nadu, Keeri Samba, corn & finger millet', 'icon': 'package', 'color': 'earth'},
-      {'name': 'Spices', 'desc': 'Ceylon cinnamon, black pepper, cloves, cardamom & chili', 'icon': 'shield-check', 'color': 'danger'},
-      {'name': 'Pulses', 'desc': 'Green gram, cowpea, black gram & dhal crops', 'icon': 'trending-up', 'color': 'sky'},
-      {'name': 'Roots & Tubers', 'desc': 'Manioc, sweet potatoes, innala & potato harvests', 'icon': 'tractor', 'color': 'earth'},
-      {'name': 'Other', 'desc': 'Coconut, bee honey, fresh herbs & seasonal harvests', 'icon': 'shopping-basket', 'color': 'purple'}
+      {'name': 'Vegetables', 'desc': 'Carrots, leeks, beans, cabbage, pumpkin &amp; greens', 'icon': 'sprout', 'color': 'leaf'},
+      {'name': 'Fruits', 'desc': 'Papaya, bananas, mangoes, pineapples &amp; passion fruit', 'icon': 'leaf', 'color': 'gold'},
+      {'name': 'Grains &amp; Rice', 'desc': 'Samba, Nadu, Keeri Samba, corn &amp; finger millet', 'icon': 'package', 'color': 'earth'},
+      {'name': 'Spices', 'desc': 'Ceylon cinnamon, black pepper, cloves, cardamom &amp; chili', 'icon': 'shield-check', 'color': 'danger'},
+      {'name': 'Pulses', 'desc': 'Green gram, cowpea, black gram &amp; dhal crops', 'icon': 'trending-up', 'color': 'sky'},
+      {'name': 'Roots &amp; Tubers', 'desc': 'Manioc, sweet potatoes, innala &amp; potato harvests', 'icon': 'tractor', 'color': 'earth'},
+      {'name': 'Other', 'desc': 'Coconut, bee honey, fresh herbs &amp; seasonal harvests', 'icon': 'shopping-basket', 'color': 'purple'}
     ] %}
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
@@ -273,7 +338,7 @@
   </div>
 </section>
 
-{# ── 4. HOW IT WORKS (Interactive Tabs) ───────────────────────────────────── #}
+{# ── 4. HOW IT WORKS (Interactive Tabs) ───────────────────────────────────────────── #}
 <section class="py-16 sm:py-20 bg-white" aria-labelledby="how-it-works-title">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
@@ -425,7 +490,7 @@
   </div>
 </section>
 
-{# ── 5. FRESH LISTINGS (Horizontal Scroll-Snap Row) ───────────────────────── #}
+{# ── 5. FRESH LISTINGS (Horizontal Scroll-Snap Row) ──────────────────────────────── #}
 <section class="py-14 sm:py-20 bg-canvas/40 border-t border-bdr" aria-labelledby="fresh-listings-heading">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
@@ -439,7 +504,7 @@
         <p class="text-sm text-muted mt-1">Recently listed produce ready for immediate wholesale or retail dispatch.</p>
       </div>
 
-      {# Controls: Scroll Buttons & View All #}
+      {# Controls: Scroll Buttons &amp; View All #}
       <div class="flex items-center gap-3">
         <div class="hidden sm:flex items-center gap-1.5">
           <button
@@ -492,7 +557,7 @@
   </div>
 </section>
 
-{# ── 6. MARKET PRICE SNAPSHOT TABLE ───────────────────────────────────────── #}
+{# ── 6. MARKET PRICE SNAPSHOT TABLE ──────────────────────────────────────────────── #}
 <section class="py-14 sm:py-20 bg-white" aria-labelledby="market-snapshot-title">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
@@ -585,7 +650,7 @@
   </div>
 </section>
 
-{# ── 7. BENEFITS BAND (4 Pillars) ─────────────────────────────────────────── #}
+{# ── 7. BENEFITS BAND (4 Pillars) ─────────────────────────────────────────────────── #}
 <section class="py-16 sm:py-20 bg-canvas/50 border-t border-bdr" aria-labelledby="benefits-title">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
@@ -653,7 +718,7 @@
   </div>
 </section>
 
-{# ── 8. FINAL HIGH-IMPACT CTA BAND ────────────────────────────────────────── #}
+{# ── 8. FINAL HIGH-IMPACT CTA BAND ────────────────────────────────────────────────── #}
 <section class="py-14 sm:py-20 bg-white" aria-label="Join AgroLink Today">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="bg-gradient-to-br from-leaf-900 via-leaf-800 to-leaf text-white rounded-3xl p-8 sm:p-14 text-center relative overflow-hidden shadow-xl">
@@ -704,7 +769,7 @@
   </div>
 </section>
 
-{# ── LIGHTWEIGHT CLIENT-SIDE SCRIPT (Tabs & Carousel Controls) ────────────── #}
+{# ── LIGHTWEIGHT CLIENT-SIDE SCRIPT (Tabs & Carousel Controls) ──────────────────── #}
 <script>
   (function() {
     // 1. How It Works Tab Switcher
