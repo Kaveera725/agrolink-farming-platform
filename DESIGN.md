@@ -88,8 +88,7 @@ All three text tokens pass **4.5:1** on both `surface` (#FFF) and `canvas` (#F7F
 
 | Family | Variable | Google Fonts | Use for |
 |--------|----------|--------------|---------|
-| **Playfair Display** | `font-display` | `display=swap` | `h1`, `h2`, big metric numbers only |
-| **DM Sans** | `font-sans` (default) | `display=swap` | Everything else |
+| **Poppins** | `font-display`, `font-sans` (universal) | `display=swap` | All headings, body, navigation, numbers, UI |
 
 Fallback stack includes `"Noto Sans Sinhala"` and `"Noto Sans Tamil"` for localization.
 
@@ -108,7 +107,7 @@ Fallback stack includes `"Noto Sans Sinhala"` and `"Noto Sans Tamil"` for locali
 
 ### Prices
 
-Always format as: **`LKR 1,250.00`** using `tabular-nums` and `DM Sans bold`.
+Always format as: **`LKR 1,250.00`** using `tabular-nums` and `Poppins bold`.
 ```html
 <span class="price-value">LKR 1,250.00</span>
 <span class="price-unit">/ kg</span>
