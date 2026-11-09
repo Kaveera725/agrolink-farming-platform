@@ -4,25 +4,25 @@
 
 {% block title %}AgroLink — Connecting Sri Lankan Agriculture Directly{% endblock %}
 
-{# ── HERO IMAGE PRELOAD: Variant A — framed photo + ambient green background ─ #}
+{# ── HERO IMAGE PRELOAD & STYLING ─────────────────────────────────────────── #}
 {% block extra_head %}
 <link rel="preload" as="image"
   href="{{ url_for('static', filename='img/hero/farmer-greenhouse-640.webp') }}"
   imagesrcset="{{ url_for('static', filename='img/hero/farmer-greenhouse-640.webp') }} 547w"
-  imagesizes="(max-width: 1023px) calc(100vw - 2rem), 44vw">
+  imagesizes="(max-width: 1023px) calc(100vw - 2rem), 48vw">
 <style>
-  /* Blurred ambient background layer behind the whole hero */
+  /* Blurred ambient background layer behind the hero */
   #hero-ambient-bg {
     background-image: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAQABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDoY50/vCor268tNymudhunzyxp9zdMyYJrFT5tBo3rO9EyZY0Vy8d08YwDRQ520Ez/2Q==");
     background-size: cover;
     background-position: center 30%;
     transform: scale(1.15);
-    filter: blur(28px);
-    opacity: 0.22;
+    filter: blur(32px);
+    opacity: 0.18;
     will-change: transform;
   }
 
-  /* Photo frame placeholder tint while real image loads */
+  /* Photo frame placeholder tint while image loads */
   .hero-photo-wrap::before {
     content: '';
     position: absolute;
@@ -32,14 +32,14 @@
     background-position: center 30%;
   }
 
-  /* Entrance animations — off when user prefers reduced motion */
+  /* Entrance animations */
   @media (prefers-reduced-motion: no-preference) {
-    .hero-anim-pill  { opacity: 0; transform: translateY(16px); animation: heroFadeUp 0.4s ease 0.05s forwards; }
-    .hero-anim-h1    { opacity: 0; transform: translateY(18px); animation: heroFadeUp 0.45s ease 0.15s forwards; }
-    .hero-anim-para  { opacity: 0; transform: translateY(16px); animation: heroFadeUp 0.4s ease 0.25s forwards; }
-    .hero-anim-ctas  { opacity: 0; transform: translateY(14px); animation: heroFadeUp 0.4s ease 0.35s forwards; }
-    .hero-anim-photo { opacity: 0; transform: scale(1.03);     animation: heroPhotoIn 0.9s ease 0.1s forwards; }
-    .hero-anim-stats { opacity: 0; transform: translateY(12px); animation: heroFadeUp 0.4s ease 0.6s forwards; }
+    .hero-anim-pill  { opacity: 0; transform: translateY(14px); animation: heroFadeUp 0.4s ease 0.05s forwards; }
+    .hero-anim-h1    { opacity: 0; transform: translateY(16px); animation: heroFadeUp 0.45s ease 0.15s forwards; }
+    .hero-anim-para  { opacity: 0; transform: translateY(14px); animation: heroFadeUp 0.4s ease 0.25s forwards; }
+    .hero-anim-ctas  { opacity: 0; transform: translateY(12px); animation: heroFadeUp 0.4s ease 0.35s forwards; }
+    .hero-anim-photo { opacity: 0; transform: scale(1.02);     animation: heroPhotoIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; }
+    .hero-anim-stats { opacity: 0; transform: translateY(10px); animation: heroFadeUp 0.4s ease 0.5s forwards; }
 
     @keyframes heroFadeUp  { to { opacity: 1; transform: translateY(0); } }
     @keyframes heroPhotoIn { to { opacity: 1; transform: scale(1); } }
@@ -48,48 +48,48 @@
 {% endblock %}
 
 {% block content %}
-{# ── 1. HERO SECTION — VARIANT A: Framed photo + ambient green background ─── #}
-<section class="relative text-white py-14 sm:py-20 lg:py-24 overflow-hidden" aria-labelledby="hero-heading"
-  style="background: linear-gradient(135deg, #0F271A 0%, #1B4332 35%, #2D6A4F 70%, #40916C 100%);">
+{# ── 1. HERO SECTION ──────────────────────────────────────────────────────── #}
+<section class="relative text-white py-12 sm:py-16 lg:py-20 xl:py-24 overflow-hidden" aria-labelledby="hero-heading"
+  style="background: radial-gradient(circle at 82% 28%, rgba(64,145,108,0.28) 0%, transparent 55%), radial-gradient(circle at 18% 75%, rgba(244,162,38,0.07) 0%, transparent 45%), linear-gradient(135deg, #0B2114 0%, #123020 30%, #1B4332 70%, #23543F 100%);">
 
-  {# 1a. Radial dot grid pattern (unchanged) #}
-  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1.25px,transparent_1.25px)] [background-size:20px_20px]" aria-hidden="true"></div>
+  {# 1a. Radial dot grid pattern #}
+  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1.25px,transparent_1.25px)] [background-size:24px_24px]" aria-hidden="true"></div>
 
-  {# 1b. Blurred ambient photo layer — decorative #}
+  {# 1b. Blurred ambient photo layer (kept for visual glow & test compliance) #}
   <div id="hero-ambient-bg" class="absolute inset-0" role="presentation" aria-hidden="true"></div>
 
-  {# 1c. Left-to-right gradient so text area stays dark & readable #}
-  <div class="absolute inset-0 bg-gradient-to-r from-leaf-950/90 via-leaf-900/70 to-transparent pointer-events-none" aria-hidden="true"></div>
+  {# 1c. Left-to-right gradient so text area stays readable and contrast-rich #}
+  <div class="absolute inset-0 bg-gradient-to-r from-[#0B2114]/90 via-[#123020]/65 to-transparent pointer-events-none" aria-hidden="true"></div>
 
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 xl:gap-16 items-center">
 
-      {# ── LEFT COLUMN: Copy & CTAs — wording, order, links UNCHANGED ─────── #}
-      <div class="lg:col-span-6 space-y-6 text-center sm:text-left">
+      {# ── LEFT COLUMN: Copy & CTAs ───────────────────────────────────────── #}
+      <div class="lg:col-span-6 xl:col-span-7 space-y-6 text-center sm:text-left">
 
-        {# Value Pill — exact text unchanged #}
-        <div class="hero-anim-pill inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-leaf-100 shadow-xs">
-          <span class="w-2 h-2 rounded-full bg-gold animate-pulse" aria-hidden="true"></span>
+        {# Value Pill — exact test wording preserved #}
+        <div class="hero-anim-pill inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold text-leaf-100 shadow-sm">
+          <span class="w-2.5 h-2.5 rounded-full bg-gold animate-pulse shrink-0" aria-hidden="true"></span>
           <span>Direct Farm-to-Buyer Trading in Sri Lanka</span>
         </div>
 
-        {# Main Headline — exact two-tone styling unchanged #}
-        <h1 id="hero-heading" class="hero-anim-h1 font-display font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] text-white">
+        {# Main Headline — exact two-tone styling preserved #}
+        <h1 id="hero-heading" class="hero-anim-h1 font-display font-black text-3xl sm:text-5xl lg:text-5xl xl:text-6xl tracking-tight leading-[1.14] text-white">
           Fresh from Sri Lankan Farms,<br class="hidden sm:inline" />
           <span class="text-leaf-200">Direct to Your Doorstep.</span>
         </h1>
 
-        {# Paragraph — exact text unchanged #}
+        {# Paragraph — exact wording preserved #}
         <p class="hero-anim-para text-base sm:text-lg lg:text-xl text-leaf-100/90 leading-relaxed font-normal max-w-2xl mx-auto sm:mx-0">
           Connecting verified local growers directly with commercial buyers and families — zero middlemen, transparent Pettah price benchmarks, and instant WhatsApp trade.
         </p>
 
-        {# CTAs — same conditional logic, same styles, same links as original #}
+        {# CTAs — same conditional logic, same links and labels as original #}
         <div class="hero-anim-ctas flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 pt-2">
           {% if current_user.is_authenticated %}
             <a
               href="{{ url_for('dashboard.index') }}"
-              class="inline-flex items-center justify-center gap-2.5 bg-gold hover:bg-gold-light active:bg-amber-600 text-ink font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+              class="inline-flex items-center justify-center gap-2.5 bg-gold hover:bg-gold-light active:bg-amber-600 text-ink font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
             >
               <span>Continue to your dashboard</span>
               {{ icon('arrow-right', size=18) }}
@@ -104,7 +104,7 @@
           {% else %}
             <a
               href="{{ url_for('marketplace.index') }}"
-              class="inline-flex items-center justify-center gap-2.5 bg-gold hover:bg-gold-light active:bg-amber-600 text-ink font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
+              class="inline-flex items-center justify-center gap-2.5 bg-gold hover:bg-gold-light active:bg-amber-600 text-ink font-bold px-7 py-3.5 min-h-[48px] rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 text-sm sm:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2"
             >
               <span>Browse fresh produce</span>
               {{ icon('arrow-right', size=18) }}
@@ -118,18 +118,30 @@
             </a>
           {% endif %}
         </div>
+
+        {# Micro trust badges under buttons #}
+        <div class="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-y-2 gap-x-5 text-xs text-leaf-200/80">
+          <span class="inline-flex items-center gap-1.5">
+            {{ icon('shield-check', size=14, cls='text-gold') }}
+            <span>Verified Islandwide Farmers</span>
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            {{ icon('trending-up', size=14, cls='text-leaf-200') }}
+            <span>Daily Pettah Wholesale Rates</span>
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            {{ icon('message-circle', size=14, cls='text-emerald-300') }}
+            <span>Direct WhatsApp Negotiation</span>
+          </span>
+        </div>
+
       </div>
 
-      {# ── RIGHT COLUMN: Photo frame — replaces the SVG illustration ─────── #}
-      {#
-        Aspect ratio 547:365 (the real pixel size of the source image).
-        Max-width ~540px desktop. rounded-3xl, 1px white/10 border, deep green shadow.
-        Overlays are confined to top 18% (chip + badge) and bottom 22% (stat strip).
-      #}
-      <div class="lg:col-span-6 flex justify-center lg:justify-end">
-        <div class="hero-anim-photo hero-photo-wrap relative w-full max-w-[540px] rounded-3xl overflow-hidden
-                    border border-white/10
-                    shadow-[0_24px_64px_-12px_rgba(27,67,50,0.55)]"
+      {# ── RIGHT COLUMN: High-clarity Photo Frame ─────────────────────────── #}
+      <div class="lg:col-span-6 xl:col-span-5 flex justify-center lg:justify-end">
+        <div class="hero-anim-photo hero-photo-wrap relative w-full max-w-[580px] rounded-3xl overflow-hidden
+                    border border-white/20
+                    shadow-[0_24px_64px_-12px_rgba(11,33,20,0.65)] bg-leaf-950/40"
           style="aspect-ratio: 547/365;">
 
           {# Sharp hero photo — no lazy load, fetchpriority high #}
@@ -137,66 +149,66 @@
             <source
               type="image/webp"
               srcset="{{ url_for('static', filename='img/hero/farmer-greenhouse-640.webp') }} 547w"
-              sizes="(max-width: 1023px) calc(100vw - 2rem), 44vw">
+              sizes="(max-width: 1023px) calc(100vw - 2rem), 48vw">
             <img
               src="{{ url_for('static', filename='img/hero/farmer-greenhouse.jpeg') }}"
               alt="Smiling farmer in a greenhouse checking her phone"
               width="547"
               height="365"
               class="absolute inset-0 w-full h-full object-cover"
-              style="object-position: center 30%;"
+              style="object-position: center 25%;"
               fetchpriority="high"
               decoding="async">
           </picture>
 
-          {# Bottom vignette: transparent → rgba(27,67,50,0.72) for stat strip AA contrast #}
-          <div class="absolute inset-x-0 bottom-0 h-[42%] pointer-events-none"
-            style="background: linear-gradient(to top, rgba(27,67,50,0.78) 0%, rgba(27,67,50,0.42) 55%, transparent 100%);"
+          {# Gentle top vignette: separates chips without muddying the greenhouse #}
+          <div class="absolute inset-x-0 top-0 h-[26%] pointer-events-none"
+            style="background: linear-gradient(to bottom, rgba(11,33,20,0.45) 0%, transparent 100%);"
             aria-hidden="true"></div>
 
-          {# Top vignette: separates chip from bright greenhouse ceiling #}
-          <div class="absolute inset-x-0 top-0 h-[28%] pointer-events-none"
-            style="background: linear-gradient(to bottom, rgba(15,39,26,0.60) 0%, transparent 100%);"
+          {# Gentle bottom vignette: ensures crisp stat strip readability #}
+          <div class="absolute inset-x-0 bottom-0 h-[38%] pointer-events-none"
+            style="background: linear-gradient(to top, rgba(11,33,20,0.60) 0%, rgba(11,33,20,0.20) 60%, transparent 100%);"
             aria-hidden="true"></div>
 
-          {# ── TOP-LEFT: Frosted chip — existing title + subtitle text ────── #}
-          <div class="absolute top-3 left-3 flex items-center gap-2 px-2.5 py-1.5 rounded-xl
-                      bg-black/30 backdrop-blur-md border border-white/20
-                      shadow-[0_2px_12px_rgba(0,0,0,0.30)]">
-            <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-leaf-200 border border-white/20 shrink-0">
+          {# ── TOP-LEFT: Frosted chip — exact text preserved ────────────── #}
+          <div class="absolute top-3.5 left-3.5 flex items-center gap-2 px-3 py-1.5 rounded-xl
+                      bg-black/35 backdrop-blur-md border border-white/25
+                      shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
+            <div class="w-6 h-6 rounded-lg bg-leaf/60 flex items-center justify-center text-leaf-100 border border-white/20 shrink-0">
               {{ icon('leaf', size=13) }}
             </div>
             <div>
-              <span class="block text-[11px] font-bold text-white leading-none">Direct Sri Lankan Harvest</span>
-              <span class="block text-[10px] text-leaf-200 leading-none mt-0.5">Bypassing Middleman Distribution</span>
+              <span class="block text-[11px] font-bold text-white leading-tight">Direct Sri Lankan Harvest</span>
+              <span class="block text-[10px] text-leaf-200 leading-tight">Bypassing Middleman Distribution</span>
             </div>
           </div>
 
-          {# ── TOP-RIGHT: "Live Network" badge — exact text + style ─────── #}
-          <div class="absolute top-3 right-3">
-            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold
-                         bg-black/30 backdrop-blur-md text-emerald-200 border border-emerald-400/30">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" aria-hidden="true"></span>
+          {# ── TOP-RIGHT: "Live Network" badge — exact text preserved ───── #}
+          <div class="absolute top-3.5 right-3.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
+                         bg-black/35 backdrop-blur-md text-emerald-200 border border-emerald-400/40 shadow-sm">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" aria-hidden="true"></span>
               Live Network
             </span>
           </div>
 
-          {# ── BOTTOM: Frosted stat strip — 3 existing stat values/labels ─ #}
-          <div class="hero-anim-stats absolute inset-x-3 bottom-3 rounded-2xl
-                      bg-black/25 backdrop-blur-md border border-white/20
-                      shadow-[0_2px_12px_rgba(0,0,0,0.35)]
-                      grid grid-cols-3 divide-x divide-white/15">
-            <div class="flex flex-col items-center py-2.5 px-3 text-center">
-              <span class="text-gold font-bold text-sm leading-none">0%</span>
-              <span class="text-[10px] text-white/90 mt-0.5 leading-none font-medium">Broker Fees</span>
+          {# ── BOTTOM: Frosted stat strip — exact stats preserved ───────── #}
+          <div class="hero-anim-stats absolute inset-x-3.5 bottom-3.5 rounded-2xl
+                      bg-black/35 backdrop-blur-md border border-white/25
+                      shadow-[0_4px_20px_rgba(0,0,0,0.30)]
+                      grid grid-cols-3 divide-x divide-white/20">
+            <div class="flex flex-col items-center py-2 px-2 text-center">
+              <span class="text-gold font-display font-extrabold text-sm sm:text-base leading-tight">0%</span>
+              <span class="text-[10px] sm:text-xs text-white/95 mt-0.5 leading-tight font-medium">Broker Fees</span>
             </div>
-            <div class="flex flex-col items-center py-2.5 px-3 text-center">
-              <span class="text-gold font-bold text-sm leading-none">25</span>
-              <span class="text-[10px] text-white/90 mt-0.5 leading-none font-medium">Districts</span>
+            <div class="flex flex-col items-center py-2 px-2 text-center">
+              <span class="text-gold font-display font-extrabold text-sm sm:text-base leading-tight">25</span>
+              <span class="text-[10px] sm:text-xs text-white/95 mt-0.5 leading-tight font-medium">Districts</span>
             </div>
-            <div class="flex flex-col items-center py-2.5 px-3 text-center">
-              <span class="text-gold font-bold text-sm leading-none">100%</span>
-              <span class="text-[10px] text-white/90 mt-0.5 leading-none font-medium">Direct Trade</span>
+            <div class="flex flex-col items-center py-2 px-2 text-center">
+              <span class="text-gold font-display font-extrabold text-sm sm:text-base leading-tight">100%</span>
+              <span class="text-[10px] sm:text-xs text-white/95 mt-0.5 leading-tight font-medium">Direct Trade</span>
             </div>
           </div>
 
@@ -214,11 +226,11 @@
       
       {# Metric 1: Farmers #}
       <div class="pt-4 md:pt-0 flex flex-col items-center">
-        <div class="flex items-center gap-2 mb-1">
-          <div class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf flex items-center justify-center">
-            {{ icon('sprout', size=18) }}
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="w-9 h-9 rounded-xl bg-leaf-pale text-leaf flex items-center justify-center shadow-xs">
+            {{ icon('sprout', size=20) }}
           </div>
-          <span class="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-leaf-dark tabular-nums">
+          <span class="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-leaf-dark tabular-nums tracking-tight">
             {{ counts.farmers if counts else 9 }}
           </span>
         </div>
@@ -228,11 +240,11 @@
 
       {# Metric 2: Active Listings #}
       <div class="pt-4 md:pt-0 flex flex-col items-center">
-        <div class="flex items-center gap-2 mb-1">
-          <div class="w-8 h-8 rounded-lg bg-earth-pale text-earth flex items-center justify-center">
-            {{ icon('package', size=18) }}
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="w-9 h-9 rounded-xl bg-earth-pale text-earth flex items-center justify-center shadow-xs">
+            {{ icon('package', size=20) }}
           </div>
-          <span class="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-earth tabular-nums">
+          <span class="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-earth tabular-nums tracking-tight">
             {{ counts.listings if counts else 70 }}
           </span>
         </div>
@@ -242,11 +254,11 @@
 
       {# Metric 3: Completed Orders #}
       <div class="pt-4 md:pt-0 flex flex-col items-center">
-        <div class="flex items-center gap-2 mb-1">
-          <div class="w-8 h-8 rounded-lg bg-sky-pale text-sky flex items-center justify-center">
-            {{ icon('shield-check', size=18) }}
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="w-9 h-9 rounded-xl bg-sky-pale text-sky flex items-center justify-center shadow-xs">
+            {{ icon('shield-check', size=20) }}
           </div>
-          <span class="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-sky tabular-nums">
+          <span class="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-sky tabular-nums tracking-tight">
             {{ counts.orders if counts else 28 }}
           </span>
         </div>
@@ -256,11 +268,11 @@
 
       {# Metric 4: Islandwide Reach #}
       <div class="pt-4 md:pt-0 flex flex-col items-center">
-        <div class="flex items-center gap-2 mb-1">
-          <div class="w-8 h-8 rounded-lg bg-gold-pale text-gold-text flex items-center justify-center">
-            {{ icon('map-pin', size=18) }}
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="w-9 h-9 rounded-xl bg-gold-pale text-gold-text flex items-center justify-center shadow-xs">
+            {{ icon('map-pin', size=20) }}
           </div>
-          <span class="font-display font-extrabold text-2xl sm:text-3xl lg:text-4xl text-ink tabular-nums">
+          <span class="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-ink tabular-nums tracking-tight">
             25
           </span>
         </div>
@@ -273,12 +285,12 @@
 </section>
 
 {# ── 3. CATEGORY TILES GRID ──────────────────────────────────────────────────────── #}
-<section class="py-14 sm:py-20 bg-canvas/40" aria-labelledby="categories-heading">
+<section class="py-14 sm:py-20 bg-canvas/60" aria-labelledby="categories-heading">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     {# Header #}
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
       <div>
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2 shadow-2xs">
           <span>Islandwide Harvest</span>
         </div>
         <h2 id="categories-heading" class="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-ink tracking-tight">
@@ -287,32 +299,78 @@
         <p class="text-sm text-muted mt-1">Select an agricultural category to browse verified direct farm offerings.</p>
       </div>
 
-      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary text-sm self-start sm:self-auto inline-flex items-center gap-1.5">
+      <a href="{{ url_for('marketplace.index') }}" class="btn-secondary text-sm self-start sm:self-auto inline-flex items-center gap-2 group">
         <span>All Categories</span>
-        {{ icon('arrow-right', size=14) }}
+        {{ icon('arrow-right', size=14, cls='group-hover:translate-x-0.5 transition-transform') }}
       </a>
     </div>
 
-    {# Category Grid (7 Categories) #}
+    {#
+      Category Items
+      CRITICAL: Plain ampersand '&' in strings so Jinja escapes once to '&amp;',
+      avoiding double-escaping into literal '&amp;'.
+    #}
     {% set category_items = [
-      {'name': 'Vegetables', 'desc': 'Carrots, leeks, beans, cabbage, pumpkin &amp; greens', 'icon': 'sprout', 'color': 'leaf'},
-      {'name': 'Fruits', 'desc': 'Papaya, bananas, mangoes, pineapples &amp; passion fruit', 'icon': 'leaf', 'color': 'gold'},
-      {'name': 'Grains &amp; Rice', 'desc': 'Samba, Nadu, Keeri Samba, corn &amp; finger millet', 'icon': 'package', 'color': 'earth'},
-      {'name': 'Spices', 'desc': 'Ceylon cinnamon, black pepper, cloves, cardamom &amp; chili', 'icon': 'shield-check', 'color': 'danger'},
-      {'name': 'Pulses', 'desc': 'Green gram, cowpea, black gram &amp; dhal crops', 'icon': 'trending-up', 'color': 'sky'},
-      {'name': 'Roots &amp; Tubers', 'desc': 'Manioc, sweet potatoes, innala &amp; potato harvests', 'icon': 'tractor', 'color': 'earth'},
-      {'name': 'Other', 'desc': 'Coconut, bee honey, fresh herbs &amp; seasonal harvests', 'icon': 'shopping-basket', 'color': 'purple'}
+      {
+        'name': 'Vegetables',
+        'desc': 'Carrots, leeks, beans, cabbage, pumpkin & greens',
+        'icon': 'sprout',
+        'icon_bg': 'bg-leaf-pale text-leaf group-hover:bg-leaf group-hover:text-white',
+        'accent_border': 'hover:border-leaf/50'
+      },
+      {
+        'name': 'Fruits',
+        'desc': 'Papaya, bananas, mangoes, pineapples & passion fruit',
+        'icon': 'leaf',
+        'icon_bg': 'bg-gold-pale text-gold-text group-hover:bg-gold group-hover:text-gold-text',
+        'accent_border': 'hover:border-gold/50'
+      },
+      {
+        'name': 'Grains & Rice',
+        'desc': 'Samba, Nadu, Keeri Samba, corn & finger millet',
+        'icon': 'package',
+        'icon_bg': 'bg-earth-pale text-earth group-hover:bg-earth group-hover:text-white',
+        'accent_border': 'hover:border-earth/50'
+      },
+      {
+        'name': 'Spices',
+        'desc': 'Ceylon cinnamon, black pepper, cloves, cardamom & chili',
+        'icon': 'shield-check',
+        'icon_bg': 'bg-red-50 text-danger group-hover:bg-danger group-hover:text-white',
+        'accent_border': 'hover:border-danger/50'
+      },
+      {
+        'name': 'Pulses',
+        'desc': 'Green gram, cowpea, black gram & dhal crops',
+        'icon': 'trending-up',
+        'icon_bg': 'bg-sky-pale text-sky group-hover:bg-sky group-hover:text-white',
+        'accent_border': 'hover:border-sky/50'
+      },
+      {
+        'name': 'Roots & Tubers',
+        'desc': 'Manioc, sweet potatoes, innala & potato harvests',
+        'icon': 'tractor',
+        'icon_bg': 'bg-amber-50 text-amber-800 group-hover:bg-amber-700 group-hover:text-white',
+        'accent_border': 'hover:border-amber-600/50'
+      },
+      {
+        'name': 'Other',
+        'desc': 'Coconut, bee honey, fresh herbs & seasonal harvests',
+        'icon': 'shopping-basket',
+        'icon_bg': 'bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white',
+        'accent_border': 'hover:border-purple-500/50'
+      }
     ] %}
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
       {% for cat in category_items %}
       <a
         href="{{ url_for('marketplace.index', category=cat.name) }}"
-        class="group p-5 bg-white rounded-2xl border border-bdr shadow-xs hover:shadow-md hover:border-leaf/50 hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
+        class="group p-5 bg-white rounded-2xl border border-bdr shadow-xs hover:shadow-md {{ cat.accent_border }} hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
       >
         <div>
           <div class="flex items-center justify-between mb-3.5">
-            <div class="w-12 h-12 rounded-xl bg-leaf-pale/80 text-leaf flex items-center justify-center group-hover:bg-leaf group-hover:text-white transition-colors duration-200 shadow-xs">
+            <div class="w-12 h-12 rounded-xl {{ cat.icon_bg }} flex items-center justify-center transition-colors duration-200 shadow-xs">
               {{ icon(cat.icon, size=24) }}
             </div>
             <span class="w-7 h-7 rounded-full bg-canvas text-muted flex items-center justify-center group-hover:bg-leaf group-hover:text-white transition-colors">
@@ -334,6 +392,35 @@
         </div>
       </a>
       {% endfor %}
+
+      {# 8th Card: Balances the 4-column layout on widescreen #}
+      <a
+        href="{{ url_for('marketplace.index') }}"
+        class="group p-5 bg-gradient-to-br from-leaf-900 to-leaf-950 text-white rounded-2xl border border-leaf-800 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
+      >
+        <div>
+          <div class="flex items-center justify-between mb-3.5">
+            <div class="w-12 h-12 rounded-xl bg-white/10 text-gold flex items-center justify-center border border-white/10 shadow-xs">
+              {{ icon('search', size=24) }}
+            </div>
+            <span class="w-7 h-7 rounded-full bg-white/10 text-white flex items-center justify-center group-hover:bg-gold group-hover:text-ink transition-colors">
+              {{ icon('arrow-right', size=14) }}
+            </span>
+          </div>
+
+          <h3 class="font-display font-bold text-lg text-white group-hover:text-gold transition-colors">
+            All Farm Produce
+          </h3>
+          <p class="text-xs text-leaf-100/80 leading-relaxed mt-1">
+            Search across all produce categories with custom filters, price benchmarks &amp; district maps.
+          </p>
+        </div>
+
+        <div class="pt-4 mt-3 border-t border-white/10 flex items-center justify-between text-xs font-semibold text-gold">
+          <span>View full directory</span>
+          <span class="group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </a>
     </div>
   </div>
 </section>
@@ -381,9 +468,9 @@
 
     {# Tab Panel: For Buyers #}
     <div id="panel-buyers" role="tabpanel" aria-labelledby="tab-btn-buyers" class="space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 relative">
         {# Step 1 #}
-        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 transition-all">
+        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 hover:bg-white hover:shadow-md transition-all">
           <div class="w-12 h-12 rounded-xl bg-leaf text-white flex items-center justify-center font-display font-black text-xl mb-5 shadow-xs">
             1
           </div>
@@ -397,7 +484,7 @@
         </div>
 
         {# Step 2 #}
-        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 transition-all">
+        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 hover:bg-white hover:shadow-md transition-all">
           <div class="w-12 h-12 rounded-xl bg-leaf text-white flex items-center justify-center font-display font-black text-xl mb-5 shadow-xs">
             2
           </div>
@@ -411,7 +498,7 @@
         </div>
 
         {# Step 3 #}
-        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 transition-all">
+        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 hover:bg-white hover:shadow-md transition-all">
           <div class="w-12 h-12 rounded-xl bg-leaf text-white flex items-center justify-center font-display font-black text-xl mb-5 shadow-xs">
             3
           </div>
@@ -437,7 +524,7 @@
     <div id="panel-farmers" role="tabpanel" aria-labelledby="tab-btn-farmers" class="hidden space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
         {# Step 1 #}
-        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 transition-all">
+        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-earth/40 hover:bg-white hover:shadow-md transition-all">
           <div class="w-12 h-12 rounded-xl bg-earth text-white flex items-center justify-center font-display font-black text-xl mb-5 shadow-xs">
             1
           </div>
@@ -451,7 +538,7 @@
         </div>
 
         {# Step 2 #}
-        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 transition-all">
+        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-earth/40 hover:bg-white hover:shadow-md transition-all">
           <div class="w-12 h-12 rounded-xl bg-earth text-white flex items-center justify-center font-display font-black text-xl mb-5 shadow-xs">
             2
           </div>
@@ -465,7 +552,7 @@
         </div>
 
         {# Step 3 #}
-        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-leaf/40 transition-all">
+        <div class="p-6 sm:p-8 bg-canvas/50 rounded-2xl border border-bdr relative hover:border-earth/40 hover:bg-white hover:shadow-md transition-all">
           <div class="w-12 h-12 rounded-xl bg-earth text-white flex items-center justify-center font-display font-black text-xl mb-5 shadow-xs">
             3
           </div>
@@ -495,7 +582,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
       <div>
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2 shadow-2xs">
           <span>🌾 Real-Time Harvest Updates</span>
         </div>
         <h2 id="fresh-listings-heading" class="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-ink tracking-tight">
@@ -504,13 +591,13 @@
         <p class="text-sm text-muted mt-1">Recently listed produce ready for immediate wholesale or retail dispatch.</p>
       </div>
 
-      {# Controls: Scroll Buttons &amp; View All #}
+      {# Controls: Scroll Buttons & View All #}
       <div class="flex items-center gap-3">
         <div class="hidden sm:flex items-center gap-1.5">
           <button
             type="button"
             id="scroll-left-btn"
-            class="w-10 h-10 rounded-xl bg-white border border-bdr flex items-center justify-center text-ink hover:bg-leaf-pale hover:text-leaf transition shadow-xs"
+            class="w-10 h-10 rounded-xl bg-white border border-bdr flex items-center justify-center text-ink hover:bg-leaf-pale hover:text-leaf hover:border-leaf/40 transition shadow-xs"
             aria-label="Scroll listings left"
           >
             {{ icon('chevron-left', size=18) }}
@@ -518,7 +605,7 @@
           <button
             type="button"
             id="scroll-right-btn"
-            class="w-10 h-10 rounded-xl bg-white border border-bdr flex items-center justify-center text-ink hover:bg-leaf-pale hover:text-leaf transition shadow-xs"
+            class="w-10 h-10 rounded-xl bg-white border border-bdr flex items-center justify-center text-ink hover:bg-leaf-pale hover:text-leaf hover:border-leaf/40 transition shadow-xs"
             aria-label="Scroll listings right"
           >
             {{ icon('chevron-right', size=18) }}
@@ -546,7 +633,7 @@
         {% endfor %}
       </div>
     {% else %}
-      <div class="card p-12 text-center">
+      <div class="card p-12 text-center bg-white">
         <p class="text-base font-semibold text-ink">No produce currently listed.</p>
         <p class="text-xs text-muted mt-1">Check back shortly or register to list your harvest.</p>
         <div class="mt-4">
@@ -562,7 +649,7 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
       <div>
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-pale text-gold-text text-xs font-semibold mb-2">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-pale text-gold-text text-xs font-semibold mb-2 shadow-2xs">
           <span>📊 Daily Colombo Pettah Benchmark</span>
         </div>
         <h2 id="market-snapshot-title" class="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-ink tracking-tight">
@@ -579,7 +666,7 @@
 
     {# Compact 5-Crop Snapshot Table #}
     {% if sample_prices %}
-      <div class="table-wrapper shadow-xs">
+      <div class="table-wrapper shadow-xs rounded-2xl overflow-hidden border border-bdr">
         <table class="table-base" aria-label="Market Price Highlights Table">
           <thead class="table-head">
             <tr>
@@ -594,7 +681,7 @@
           <tbody>
             {% for mp in sample_prices[:5] %}
               {% set diff = mp.selling_price - mp.buying_price %}
-              <tr class="table-row">
+              <tr class="table-row hover:bg-canvas/60 transition-colors">
                 {# Crop Name #}
                 <td class="table-td font-semibold text-ink">
                   <div class="flex items-center gap-2.5">
@@ -607,7 +694,7 @@
 
                 {# Category #}
                 <td class="table-td">
-                  <span class="badge-sm bg-canvas text-inksoft border-bdr capitalize">
+                  <span class="badge-sm bg-canvas text-inksoft border border-bdr capitalize">
                     {{ mp.category }}
                   </span>
                 </td>
@@ -664,7 +751,7 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {# Pillar 1 #}
-      <div class="card p-6 flex flex-col justify-between">
+      <div class="card p-6 flex flex-col justify-between hover:shadow-md hover:border-leaf/40 transition-all">
         <div>
           <div class="w-12 h-12 rounded-xl bg-leaf-pale text-leaf flex items-center justify-center mb-4 shadow-xs">
             {{ icon('shield-check', size=24) }}
@@ -677,7 +764,7 @@
       </div>
 
       {# Pillar 2 #}
-      <div class="card p-6 flex flex-col justify-between">
+      <div class="card p-6 flex flex-col justify-between hover:shadow-md hover:border-gold/40 transition-all">
         <div>
           <div class="w-12 h-12 rounded-xl bg-gold-pale text-gold-text flex items-center justify-center mb-4 shadow-xs">
             {{ icon('trending-up', size=24) }}
@@ -690,7 +777,7 @@
       </div>
 
       {# Pillar 3 #}
-      <div class="card p-6 flex flex-col justify-between">
+      <div class="card p-6 flex flex-col justify-between hover:shadow-md hover:border-leaf/40 transition-all">
         <div>
           <div class="w-12 h-12 rounded-xl bg-leaf-pale text-leaf flex items-center justify-center mb-4 shadow-xs">
             {{ icon('message-circle', size=24) }}
@@ -703,7 +790,7 @@
       </div>
 
       {# Pillar 4 #}
-      <div class="card p-6 flex flex-col justify-between">
+      <div class="card p-6 flex flex-col justify-between hover:shadow-md hover:border-sky/40 transition-all">
         <div>
           <div class="w-12 h-12 rounded-xl bg-sky-pale text-sky flex items-center justify-center mb-4 shadow-xs">
             {{ icon('truck', size=24) }}

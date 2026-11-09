@@ -73,6 +73,14 @@ class TestHomeHero(unittest.TestCase):
         self.assertIn(b'Explore Harvest Categories', response.data)
         self.assertIn(b'How AgroLink Works', response.data)
 
+    def test_category_ampersand_not_double_escaped(self):
+        """Category titles and descriptions must not render literal &amp; entities on screen."""
+        response = self.client.get('/')
+        html = response.data.decode('utf-8')
+        self.assertNotIn('&amp;amp;', html)
+        self.assertNotIn('Grains &amp;amp; Rice', html)
+        self.assertNotIn('Roots &amp;amp; Tubers', html)
+
     def test_authenticated_user_sees_dashboard_button(self):
         """Authenticated user sees dashboard CTA instead of guest CTA."""
         with self.app.app_context():
