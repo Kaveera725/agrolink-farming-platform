@@ -41,6 +41,11 @@ class Config:
     ROUTES_API_TIMEOUT_SECONDS = ROUTES_API_TIMEOUT_SECONDS
     ADMIN_SESSION_TIMEOUT_MINUTES = int(os.getenv('ADMIN_SESSION_TIMEOUT_MINUTES', '30'))
 
+    # Payment Gateway Configuration
+    PAYMENT_GATEWAY_SECRET = os.getenv('PAYMENT_GATEWAY_SECRET')
+    PAYMENT_SESSION_MINUTES = int(os.getenv('PAYMENT_SESSION_MINUTES', '15'))
+    MAX_PAYMENT_ATTEMPTS_PER_ORDER = int(os.getenv('MAX_PAYMENT_ATTEMPTS_PER_ORDER', '5'))
+
     @classmethod
     def init_app(cls, app):
         """Read and refresh environment values dynamically at app creation time."""
@@ -53,6 +58,27 @@ class Config:
         app.config['MAX_DELIVERY_KM'] = Decimal(os.getenv("MAX_DELIVERY_KM", "300"))
         app.config['ROUTE_FALLBACK_FACTOR'] = Decimal(os.getenv("ROUTE_FALLBACK_FACTOR", "1.3"))
         app.config['ROUTES_API_TIMEOUT_SECONDS'] = int(os.getenv("ROUTES_API_TIMEOUT_SECONDS", "5"))
+
+        # Payment gateway settings
+        app.config['PAYMENT_SESSION_MINUTES'] = int(os.getenv('PAYMENT_SESSION_MINUTES', '15'))
+        app.config['MAX_PAYMENT_ATTEMPTS_PER_ORDER'] = int(os.getenv('MAX_PAYMENT_ATTEMPTS_PER_ORDER', '5'))
+
+        env = os.getenv('FLASK_ENV', os.getenv('ENV', 'development')).lower()
+        gateway_secret = os.getenv('PAYMENT_GATEWAY_SECRET')
+        if not gateway_secret:
+            if env == 'production':
+                raise RuntimeError(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: PAYMENT_GATEWAY_SECRET environment variable is required in production mode."
+                )
+            import secrets
+            import warnings
+            gateway_secret = secrets.token_hex(32)
+            warnings.warn(
+                "PAYMENT_GATEWAY_SECRET is not set in development mode. Generated a temporary random secret.",
+                UserWarning,
+                stacklevel=2
+            )
+        app.config['PAYMENT_GATEWAY_SECRET'] = gateway_secret
 
     @property
     def MAPS_ENABLED(self) -> bool:

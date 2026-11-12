@@ -34,6 +34,7 @@ class User(UserMixin, db.Model):
     longitude = db.Column(db.Numeric(9, 6), nullable=True)
     address_text = db.Column(db.String(255), nullable=True)
     location_updated_at = db.Column(db.DateTime, nullable=True)
+    wallet_balance = db.Column(db.Numeric(12, 2), default=0.00, nullable=False)
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     is_verified = db.Column(db.Boolean, default=False, nullable=False)
     verified_at = db.Column(db.DateTime, nullable=True)
@@ -142,6 +143,7 @@ class Order(db.Model):
     quantity_kg = db.Column(db.Float, nullable=False)
     total_price = db.Column(db.Numeric(12, 2), nullable=False)
     status = db.Column(db.Enum('pending', 'confirmed', 'delivered', 'cancelled', 'rejected', name='order_status'), default='pending')
+    payment_status = db.Column(db.Enum('unpaid', 'pending', 'paid', 'failed', 'refunded', name='order_payment_status'), default='unpaid', nullable=False)
     fulfillment_type = db.Column(db.Enum('pickup', 'delivery', name='fulfillment_type'), default='pickup', nullable=False)
     delivery_lat = db.Column(db.Numeric(9, 6), nullable=True)
     delivery_lng = db.Column(db.Numeric(9, 6), nullable=True)
@@ -328,6 +330,58 @@ class DataRequest(db.Model):
 
     def __repr__(self):
         return f'<DataRequest #{self.id} user={self.user_id} type={self.type} status={self.status}>'
+
+
+class Payment(db.Model):
+    __tablename__ = 'payments'
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id', ondelete='CASCADE'), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    method = db.Column(db.String(20), default='card', nullable=False)
+    status = db.Column(db.Enum('initiated', 'success', 'failed', 'expired', 'refunded', name='payment_status'), default='initiated', nullable=False)
+    txn_ref = db.Column(db.String(40), unique=True, nullable=False, index=True)
+    failure_reason = db.Column(db.String(255), nullable=True)
+    card_brand = db.Column(db.String(20), nullable=True)
+    card_last4 = db.Column(db.String(4), nullable=True)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    completed_at = db.Column(db.DateTime, nullable=True)
+
+    __table_args__ = (
+        db.Index('ix_payments_order_id_status', 'order_id', 'status'),
+    )
+
+    order = db.relationship('Order', backref=db.backref('payments', lazy='dynamic', cascade='all, delete-orphan'))
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f'<Payment {self.id} ref={self.txn_ref} status={self.status}>'
+
+
+class WalletTransaction(db.Model):
+    __tablename__ = 'wallet_transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id', ondelete='SET NULL'), nullable=True)
+    payment_id = db.Column(db.Integer, db.ForeignKey('payments.id', ondelete='SET NULL'), nullable=True)
+    type = db.Column(db.Enum('credit', 'reversal', name='wallet_transaction_type'), nullable=False)
+    amount = db.Column(db.Numeric(12, 2), nullable=False)
+    balance_after = db.Column(db.Numeric(12, 2), nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    user = db.relationship('User', foreign_keys=[user_id], backref=db.backref('wallet_transactions', lazy='dynamic'))
+    order = db.relationship('Order', foreign_keys=[order_id], backref=db.backref('wallet_transactions', lazy='dynamic'))
+    payment = db.relationship('Payment', foreign_keys=[payment_id], backref=db.backref('wallet_transactions', lazy='dynamic'))
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f'<WalletTransaction {self.id} user={self.user_id} {self.type} {self.amount}>'
+
 
 
 
