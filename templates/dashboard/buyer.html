@@ -14,27 +14,40 @@
     letter-spacing: -.03em;
     line-height: 1.05;
   }
+
   .price-num {
     font-family: 'Poppins', sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: -.02em;
   }
+
   .kpi-card {
-    transition: transform 180ms cubic-bezier(.4,0,.2,1),
-                box-shadow 180ms cubic-bezier(.4,0,.2,1);
+    transition: transform 180ms cubic-bezier(.4, 0, .2, 1),
+      box-shadow 180ms cubic-bezier(.4, 0, .2, 1);
     overflow: hidden;
   }
+
   .kpi-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(14,86,141,.09), 0 1px 4px rgba(14,86,141,.05);
+    box-shadow: 0 8px 24px rgba(14, 86, 141, .09), 0 1px 4px rgba(14, 86, 141, .05);
   }
+
   .kpi-card-bar {
     height: 3px;
     border-radius: 9999px 9999px 0 0;
     margin: -1.25rem -1.5rem 1.25rem;
   }
-  .order-price { font-family: 'Poppins', sans-serif; font-weight: 700; letter-spacing: -.02em; }
-  .order-qty   { font-family: 'Poppins', sans-serif; font-weight: 600; }
+
+  .order-price {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+
+  .order-qty {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+  }
 </style>
 {% endblock %}
 
@@ -45,7 +58,8 @@
     {# ─── 7. GREETING & HEADER ────────────────────────────────────────────── #}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-pale text-sky text-xs font-semibold mb-2">
+        <div
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-pale text-sky text-xs font-semibold mb-2">
           <span class="w-2 h-2 rounded-full bg-sky animate-pulse"></span>
           <span>Commercial Buyer Dashboard</span>
         </div>
@@ -53,15 +67,14 @@
           {{ greeting }}, {{ current_user.name.split()[0] }}!
         </h1>
         <p class="text-xs sm:text-sm text-muted mt-1 max-w-2xl">
-          Track active direct-from-farm purchase orders, delivery statuses, and discover today's best wholesale harvest rates.
+          Track active direct-from-farm purchase orders, delivery statuses, and discover today's best wholesale harvest
+          rates.
         </p>
       </div>
 
       <div class="flex items-center gap-3">
-        <a
-          href="{{ url_for('marketplace.index') }}"
-          class="btn-primary text-xs sm:text-sm py-2.5 px-4 shadow-sm inline-flex items-center gap-1.5"
-        >
+        <a href="{{ url_for('marketplace.index') }}"
+          class="btn-primary text-xs sm:text-sm py-2.5 px-4 shadow-sm inline-flex items-center gap-1.5">
           <span>Browse Marketplace</span>
           {{ icon('arrow-right', size=15) }}
         </a>
@@ -84,18 +97,24 @@
       </div>
 
       {# KPI 2: Active Orders #}
-      {% set active_count = active_orders|length if active_orders is defined else (orders|selectattr('status', 'in', ['pending', 'confirmed'])|list|length) %}
-      <div class="card kpi-card p-5 sm:p-6 rounded-2xl shadow-xs transition {{ 'bg-sky-50/80 border-2 border-sky/40' if active_count > 0 else 'bg-white border border-bdr' }}">
-        <div class="kpi-card-bar" style="background:{{ 'linear-gradient(90deg,#0E568D,#7DD3FC)' if active_count > 0 else 'linear-gradient(90deg,#E2E8E0,#F0F4EF)' }}"></div>
+      {% set active_count = active_orders|length if active_orders is defined else (orders|selectattr('status', 'in',
+      ['pending', 'confirmed'])|list|length) %}
+      <div
+        class="card kpi-card p-5 sm:p-6 rounded-2xl shadow-xs transition {{ 'bg-sky-50/80 border-2 border-sky/40' if active_count > 0 else 'bg-white border border-bdr' }}">
+        <div class="kpi-card-bar"
+          style="background:{{ 'linear-gradient(90deg,#0E568D,#7DD3FC)' if active_count > 0 else 'linear-gradient(90deg,#E2E8E0,#F0F4EF)' }}">
+        </div>
         <div class="flex items-center justify-between mb-1">
-          <span class="text-xs font-semibold uppercase tracking-wider block {{ 'text-sky-dark font-bold' if active_count > 0 else 'text-muted' }}">
+          <span
+            class="text-xs font-semibold uppercase tracking-wider block {{ 'text-sky-dark font-bold' if active_count > 0 else 'text-muted' }}">
             Active Orders
           </span>
           {% if active_count > 0 %}
-            <span class="w-2.5 h-2.5 rounded-full bg-sky animate-ping"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-sky animate-ping"></span>
           {% endif %}
         </div>
-        <p class="kpi-num font-extrabold text-2xl sm:text-3xl {{ 'text-sky-dark' if active_count > 0 else 'text-ink' }}">
+        <p
+          class="kpi-num font-extrabold text-2xl sm:text-3xl {{ 'text-sky-dark' if active_count > 0 else 'text-ink' }}">
           {{ active_count }}
         </p>
         <p class="text-[11px] {{ 'text-sky font-semibold' if active_count > 0 else 'text-muted' }} pt-1.5">
@@ -104,7 +123,8 @@
       </div>
 
       {# KPI 3: Completed Orders #}
-      {% set completed_count = completed_orders|length if completed_orders is defined else (orders|selectattr('status', 'equalto', 'delivered')|list|length) %}
+      {% set completed_count = completed_orders|length if completed_orders is defined else (orders|selectattr('status',
+      'equalto', 'delivered')|list|length) %}
       <div class="card kpi-card p-5 sm:p-6 bg-white rounded-2xl border border-bdr shadow-xs">
         <div class="kpi-card-bar" style="background:linear-gradient(90deg,#2D6A4F,#B7E4C7)"></div>
         <span class="text-xs font-semibold text-muted uppercase tracking-wider block mb-1">Completed Orders</span>
@@ -118,7 +138,8 @@
     </div>
 
     {# ─── 8. ACTIVE ORDERS WITH STEPPER & RESERVED PAY NOW SPOT ──────────── #}
-    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6" aria-labelledby="active-orders-heading">
+    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6"
+      aria-labelledby="active-orders-heading">
       <div class="flex items-center justify-between pb-4 border-b border-bdr">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-lg bg-sky-pale text-sky flex items-center justify-center font-bold text-xs">
@@ -133,153 +154,159 @@
         </div>
 
         {% if active_count > 0 %}
-          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-pale text-sky border border-sky/30">
-            {{ active_count }} Active
-          </span>
+        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-pale text-sky border border-sky/30">
+          {{ active_count }} Active
+        </span>
         {% endif %}
       </div>
 
-      {% set display_active = active_orders if active_orders is defined else (orders|selectattr('status', 'in', ['pending', 'confirmed'])|list) %}
+      {% set display_active = active_orders if active_orders is defined else (orders|selectattr('status', 'in',
+      ['pending', 'confirmed'])|list) %}
       {% if display_active %}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {% for order in display_active %}
-            <article class="p-5 sm:p-6 rounded-2xl border border-bdr bg-canvas/30 hover:bg-canvas/60 transition shadow-2xs flex flex-col justify-between space-y-5">
-              <div class="space-y-4">
-                {# Header: Produce & Farmer info #}
-                <div class="flex items-start justify-between gap-3">
-                  <div class="flex items-center gap-3.5 min-w-0">
-                    <div class="w-12 h-12 rounded-xl bg-white border border-bdr overflow-hidden shrink-0">
-                      <img
-                        src="{{ order.product.thumbnail_url }}"
-                        alt="{{ order.product.name }}"
-                        class="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div class="min-w-0">
-                      <h3 class="font-display font-bold text-base text-ink truncate">
-                        {{ order.product.name }}
-                      </h3>
-                      <p class="text-xs text-muted truncate">
-                        Grown by <strong>{{ order.product.farmer.name }}</strong> ({{ order.product.farmer.district or order.product.farmer.location or 'Sri Lanka' }})
-                      </p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-1.5 flex-wrap justify-end">
-                    {{ badges.fulfillment_badge(order.fulfillment_type, size='sm') }}
-                    {{ badges.order_status_badge(order.status) }}
-                  </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% for order in display_active %}
+        <article
+          class="p-5 sm:p-6 rounded-2xl border border-bdr bg-canvas/30 hover:bg-canvas/60 transition shadow-2xs flex flex-col justify-between space-y-5">
+          <div class="space-y-4">
+            {# Header: Produce & Farmer info #}
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3.5 min-w-0">
+                <div class="w-12 h-12 rounded-xl bg-white border border-bdr overflow-hidden shrink-0">
+                  <img src="{{ order.product.thumbnail_url }}" alt="{{ order.product.name }}"
+                    class="w-full h-full object-cover" />
                 </div>
-
-                {# Quantity & Price Highlight #}
-                <div class="p-3 bg-white rounded-xl border border-bdr/60 flex items-center justify-between text-xs">
-                  <div>
-                    <span class="text-muted block">Quantity</span>
-                    <span class="font-bold text-ink text-sm">{{ "{:,.0f}".format(order.quantity_kg) }} kg</span>
-                  </div>
-                  <div class="text-right">
-                    <span class="text-muted block">Grand Total</span>
-                    <span class="font-display font-extrabold text-leaf-dark text-base">
-                      Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}
-                    </span>
-                  </div>
-                </div>
-
-                {# ── STEPPER: Pending -> Confirmed -> Delivered ───────────── #}
-                <div class="py-2" aria-label="Order progress">
-                  <div class="flex items-center justify-between relative">
-                    {# Track line #}
-                    <div class="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-0.5 bg-bdr z-0"></div>
-                    {% set step_w = 'w-0' if order.status == 'pending' else ('w-1/2' if order.status == 'confirmed' else 'right-4') %}
-                    <div
-                      class="absolute left-4 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500 {{ step_w }}"
-                    ></div>
-
-                    {# Step 1: Pending #}
-                    <div class="relative z-10 flex flex-col items-center text-center">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status in ['pending', 'confirmed', 'delivered'] else 'bg-canvas text-muted border border-bdr' }}">
-                        {{ icon('check', size=14) if order.status in ['confirmed', 'delivered'] else '1' }}
-                      </div>
-                      <span class="text-[11px] font-semibold text-ink mt-1">Pending</span>
-                    </div>
-
-                    {# Step 2: Confirmed #}
-                    <div class="relative z-10 flex flex-col items-center text-center">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status in ['confirmed', 'delivered'] else 'bg-canvas text-muted border border-bdr' }}">
-                        {{ icon('check', size=14) if order.status == 'delivered' else '2' }}
-                      </div>
-                      <span class="text-[11px] font-semibold {{ 'text-ink' if order.status in ['confirmed', 'delivered'] else 'text-muted' }} mt-1">Confirmed</span>
-                    </div>
-
-                    {# Step 3: Delivered #}
-                    <div class="relative z-10 flex flex-col items-center text-center">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status == 'delivered' else 'bg-canvas text-muted border border-bdr' }}">
-                        3
-                      </div>
-                      <span class="text-[11px] font-semibold {{ 'text-ink' if order.status == 'delivered' else 'text-muted' }} mt-1">Delivered</span>
-                    </div>
-                  </div>
-                </div>
-
-                {# ── RESERVED SPOT: "Pay now" button later ────────────────── #}
-                <div class="pt-1">
-                  <!-- Reserved: Pay Now button (online payment gateway integration) -->
-                  <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-white border border-bdr/80 shadow-2xs">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <svg class="w-4 h-4 text-leaf shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                      <span class="text-xs font-semibold text-ink truncate">Cash / Bank transfer on delivery</span>
-                    </div>
-                    <button
-                      type="button"
-                      disabled
-                      class="px-3 py-1.5 rounded-lg bg-canvas text-muted border border-bdr text-xs font-semibold cursor-not-allowed opacity-75 shrink-0"
-                      title="Online card payment gateway will be available in the next release"
-                    >
-                      Pay now (Soon)
-                    </button>
-                  </div>
+                <div class="min-w-0">
+                  <h3 class="font-display font-bold text-base text-ink truncate">
+                    {{ order.product.name }}
+                  </h3>
+                  <p class="text-xs text-muted truncate">
+                    Grown by <strong>{{ order.product.farmer.name }}</strong> ({{ order.product.farmer.district or
+                    order.product.farmer.location or 'Sri Lanka' }})
+                  </p>
                 </div>
               </div>
-
-              {# Order Footer Actions #}
-              <div class="pt-3 border-t border-bdr/60 flex items-center justify-between text-xs">
-                <span class="text-muted">Ordered {{ order.created_at.strftime('%d %b %Y') }}</span>
-                <a
-                  href="{{ url_for('orders.order_detail', order_id=order.id) }}"
-                  class="font-bold text-leaf hover:underline inline-flex items-center gap-1"
-                >
-                  <span>View Details</span>
-                  {{ icon('arrow-right', size=13) }}
-                </a>
+              <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                {{ badges.fulfillment_badge(order.fulfillment_type, size='sm') }}
+                {{ badges.order_status_badge(order.status) }}
               </div>
-            </article>
-          {% endfor %}
-        </div>
+            </div>
+
+            {# Quantity & Price Highlight #}
+            <div class="p-3 bg-white rounded-xl border border-bdr/60 flex items-center justify-between text-xs">
+              <div>
+                <span class="text-muted block">Quantity</span>
+                <span class="font-bold text-ink text-sm">{{ "{:,.0f}".format(order.quantity_kg) }} kg</span>
+              </div>
+              <div class="text-right">
+                <span class="text-muted block">Grand Total</span>
+                <span class="font-display font-extrabold text-leaf-dark text-base">
+                  Rs. {{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else
+                  "{:,.0f}".format(order.total_price) }}
+                </span>
+              </div>
+            </div>
+
+            {# ── STEPPER: Pending -> Confirmed -> Delivered ───────────── #}
+            <div class="py-2" aria-label="Order progress">
+              <div class="flex items-center justify-between relative">
+                {# Track line #}
+                <div class="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-0.5 bg-bdr z-0"></div>
+                {% set step_w = 'w-0' if order.status == 'pending' else ('w-1/2' if order.status == 'confirmed' else
+                'right-4') %}
+                <div
+                  class="absolute left-4 top-1/2 -translate-y-1/2 h-0.5 bg-leaf z-0 transition-all duration-500 {{ step_w }}">
+                </div>
+
+                {# Step 1: Pending #}
+                <div class="relative z-10 flex flex-col items-center text-center">
+                  <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status in ['pending', 'confirmed', 'delivered'] else 'bg-canvas text-muted border border-bdr' }}">
+                    {{ icon('check', size=14) if order.status in ['confirmed', 'delivered'] else '1' }}
+                  </div>
+                  <span class="text-[11px] font-semibold text-ink mt-1">Pending</span>
+                </div>
+
+                {# Step 2: Confirmed #}
+                <div class="relative z-10 flex flex-col items-center text-center">
+                  <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status in ['confirmed', 'delivered'] else 'bg-canvas text-muted border border-bdr' }}">
+                    {{ icon('check', size=14) if order.status == 'delivered' else '2' }}
+                  </div>
+                  <span
+                    class="text-[11px] font-semibold {{ 'text-ink' if order.status in ['confirmed', 'delivered'] else 'text-muted' }} mt-1">Confirmed</span>
+                </div>
+
+                {# Step 3: Delivered #}
+                <div class="relative z-10 flex flex-col items-center text-center">
+                  <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs {{ 'bg-leaf text-white shadow-xs' if order.status == 'delivered' else 'bg-canvas text-muted border border-bdr' }}">
+                    3
+                  </div>
+                  <span
+                    class="text-[11px] font-semibold {{ 'text-ink' if order.status == 'delivered' else 'text-muted' }} mt-1">Delivered</span>
+                </div>
+              </div>
+            </div>
+
+            {# ── RESERVED SPOT: "Pay now" button later ────────────────── #}
+            <div class="pt-1">
+              <!-- Reserved: Pay Now button (online payment gateway integration) -->
+              <div
+                class="flex items-center justify-between gap-3 p-3 rounded-xl bg-white border border-bdr/80 shadow-2xs">
+                <div class="flex items-center gap-2 min-w-0">
+                  <svg class="w-4 h-4 text-leaf shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <span class="text-xs font-semibold text-ink truncate">Cash / Bank transfer on delivery</span>
+                </div>
+                <button type="button" disabled
+                  class="px-3 py-1.5 rounded-lg bg-canvas text-muted border border-bdr text-xs font-semibold cursor-not-allowed opacity-75 shrink-0"
+                  title="Online card payment gateway will be available in the next release">
+                  Pay now (Soon)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {# Order Footer Actions #}
+          <div class="pt-3 border-t border-bdr/60 flex items-center justify-between text-xs">
+            <span class="text-muted">Ordered {{ order.created_at.strftime('%d %b %Y') }}</span>
+            <a href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+              class="font-bold text-leaf hover:underline inline-flex items-center gap-1">
+              <span>View Details</span>
+              {{ icon('arrow-right', size=13) }}
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
       {% else %}
-        {# Meaningful Empty State for Active Orders #}
-        <div class="py-12 text-center space-y-3">
-          <div class="w-12 h-12 mx-auto rounded-full bg-sky-pale text-sky flex items-center justify-center">
-            {{ icon('package', size=24) }}
-          </div>
-          <div>
-            <h3 class="font-display font-bold text-base text-ink">No active orders in progress</h3>
-            <p class="text-xs text-muted max-w-sm mx-auto mt-0.5">
-              You don't have any purchase orders awaiting dispatch or confirmation right now.
-            </p>
-          </div>
-          <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-xs py-2.5 px-5 inline-block">
-            Browse Produce Catalog
-          </a>
+      {# Meaningful Empty State for Active Orders #}
+      <div class="py-12 text-center space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-full bg-sky-pale text-sky flex items-center justify-center">
+          {{ icon('package', size=24) }}
         </div>
+        <div>
+          <h3 class="font-display font-bold text-base text-ink">No active orders in progress</h3>
+          <p class="text-xs text-muted max-w-sm mx-auto mt-0.5">
+            You don't have any purchase orders awaiting dispatch or confirmation right now.
+          </p>
+        </div>
+        <a href="{{ url_for('marketplace.index') }}" class="btn-primary text-xs py-2.5 px-5 inline-block">
+          Browse Produce Catalog
+        </a>
+      </div>
       {% endif %}
     </section>
 
     {# ─── 9. "BEST DEALS TODAY" STRIP ─────────────────────────────────────── #}
-    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6" aria-labelledby="deals-heading">
+    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6"
+      aria-labelledby="deals-heading">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-bdr">
         <div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold mb-1.5">
+          <div
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold mb-1.5">
             {{ icon('star', size=12, cls='fill-current text-amber-600') }}
             <span>Sourcing Opportunities</span>
           </div>
@@ -290,17 +317,13 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <a
-            href="{{ url_for('prices.index') }}"
-            class="text-xs font-semibold text-leaf hover:underline flex items-center gap-1"
-          >
+          <a href="{{ url_for('prices.index') }}"
+            class="text-xs font-semibold text-leaf hover:underline flex items-center gap-1">
             <span>Compare Market Prices</span>
             {{ icon('trending-up', size=13) }}
           </a>
-          <a
-            href="{{ url_for('marketplace.index') }}"
-            class="btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1"
-          >
+          <a href="{{ url_for('marketplace.index') }}"
+            class="btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1">
             <span>Browse All</span>
             {{ icon('arrow-right', size=13) }}
           </a>
@@ -308,32 +331,36 @@
       </div>
 
       {% if best_deals %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {% for deal in best_deals[:4] %}
-            <div class="h-full">
-              {{ cards.product_card(deal, compact=true) }}
-            </div>
-          {% endfor %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        {% for deal in best_deals[:4] %}
+        <div class="h-full">
+          {{ cards.product_card(deal, compact=true) }}
+        </div>
+        {% endfor %}
 
-        </div>
+      </div>
       {% else %}
-        <div class="py-10 text-center text-xs text-muted">
-          <p>No featured discount deals at this moment.</p>
-          <a href="{{ url_for('marketplace.index') }}" class="text-leaf font-bold hover:underline mt-1 inline-block">
-            Explore standard marketplace listings →
-          </a>
-        </div>
+      <div class="py-10 text-center text-xs text-muted">
+        <p>No featured discount deals at this moment.</p>
+        <a href="{{ url_for('marketplace.index') }}" class="text-leaf font-bold hover:underline mt-1 inline-block">
+          Explore standard marketplace listings →
+        </a>
+      </div>
       {% endif %}
     </section>
 
     {# ─── 9. COLLAPSIBLE ORDER HISTORY ────────────────────────────────────── #}
-    <section class="card bg-white rounded-3xl border border-bdr shadow-xs overflow-hidden" aria-labelledby="history-heading">
-      {% set history_orders = past_orders if past_orders is defined else (orders|selectattr('status', 'in', ['delivered', 'cancelled'])|list) %}
-      
+    <section class="card bg-white rounded-3xl border border-bdr shadow-xs overflow-hidden"
+      aria-labelledby="history-heading">
+      {% set history_orders = past_orders if past_orders is defined else (orders|selectattr('status', 'in',
+      ['delivered', 'cancelled'])|list) %}
+
       <details class="group" {% if not display_active and history_orders %}open{% endif %}>
-        <summary class="flex items-center justify-between p-6 sm:p-7 cursor-pointer hover:bg-canvas/50 transition list-none select-none">
+        <summary
+          class="flex items-center justify-between p-6 sm:p-7 cursor-pointer hover:bg-canvas/50 transition list-none select-none">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-canvas border border-bdr text-muted flex items-center justify-center font-bold text-xs shrink-0">
+            <div
+              class="w-9 h-9 rounded-xl bg-canvas border border-bdr text-muted flex items-center justify-center font-bold text-xs shrink-0">
               {{ icon('clock', size=18) }}
             </div>
             <div>
@@ -348,7 +375,8 @@
             <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-canvas border border-bdr text-muted">
               {{ history_orders|length }} records
             </span>
-            <div class="w-7 h-7 rounded-lg bg-canvas text-muted flex items-center justify-center group-open:rotate-180 transition-transform">
+            <div
+              class="w-7 h-7 rounded-lg bg-canvas text-muted flex items-center justify-center group-open:rotate-180 transition-transform">
               {{ icon('chevron-down', size=16) }}
             </div>
           </div>
@@ -356,59 +384,61 @@
 
         <div class="border-t border-bdr">
           {% if history_orders %}
-            <div class="overflow-x-auto w-full">
-              <table class="w-full text-left text-xs sm:text-sm divide-y divide-bdr/60 min-w-[640px]">
-                <thead class="bg-canvas/60 text-xs font-bold text-muted uppercase tracking-wider">
-                  <tr>
-                    <th scope="col" class="py-3 px-6">Produce Item</th>
-                    <th scope="col" class="py-3 px-4">Farmer / Origin</th>
-                    <th scope="col" class="py-3 px-4">Quantity</th>
-                    <th scope="col" class="py-3 px-4 text-leaf-dark font-bold">Total</th>
-                    <th scope="col" class="py-3 px-4">Status</th>
-                    <th scope="col" class="py-3 px-4">Date</th>
-                    <th scope="col" class="py-3 px-6 text-right">Details</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-bdr/50 bg-white">
-                  {% for order in history_orders %}
-                    <tr class="hover:bg-canvas/40 transition">
-                      <td class="py-3.5 px-6 font-semibold text-ink">
-                        <div class="flex items-center gap-3">
-                          <div class="w-9 h-9 rounded-lg overflow-hidden bg-canvas border border-bdr shrink-0">
-                            <img src="{{ order.product.thumbnail_url }}" alt="{{ order.product.name }}" class="w-full h-full object-cover" />
-                          </div>
-                          <span class="truncate max-w-[180px]">{{ order.product.name }}</span>
-                        </div>
-                      </td>
-                      <td class="py-3.5 px-4 text-muted">
-                        {{ order.product.farmer.name }}
-                      </td>
-                      <td class="py-3.5 px-4 text-ink font-medium">
-                        {{ "{:,.0f}".format(order.quantity_kg) }} kg
-                      </td>
-                      <td class="py-3.5 px-4 font-display font-bold text-leaf-dark">
-                        Rs. {{ "{:,.0f}".format(order.total_price) }}
-                      </td>
-                      <td class="py-3.5 px-4">
-                        {{ badges.order_status_badge(order.status) }}
-                      </td>
-                      <td class="py-3.5 px-4 text-xs text-muted">
-                        {{ order.created_at.strftime('%d %b %Y') }}
-                      </td>
-                      <td class="py-3.5 px-6 text-right">
-                        <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="btn-ghost py-1 px-2 text-xs text-leaf font-semibold hover:underline">
-                          View
-                        </a>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-xs sm:text-sm divide-y divide-bdr/60 min-w-[640px]">
+              <thead class="bg-canvas/60 text-xs font-bold text-muted uppercase tracking-wider">
+                <tr>
+                  <th scope="col" class="py-3 px-6">Produce Item</th>
+                  <th scope="col" class="py-3 px-4">Farmer / Origin</th>
+                  <th scope="col" class="py-3 px-4">Quantity</th>
+                  <th scope="col" class="py-3 px-4 text-leaf-dark font-bold">Total</th>
+                  <th scope="col" class="py-3 px-4">Status</th>
+                  <th scope="col" class="py-3 px-4">Date</th>
+                  <th scope="col" class="py-3 px-6 text-right">Details</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-bdr/50 bg-white">
+                {% for order in history_orders %}
+                <tr class="hover:bg-canvas/40 transition">
+                  <td class="py-3.5 px-6 font-semibold text-ink">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-lg overflow-hidden bg-canvas border border-bdr shrink-0">
+                        <img src="{{ order.product.thumbnail_url }}" alt="{{ order.product.name }}"
+                          class="w-full h-full object-cover" />
+                      </div>
+                      <span class="truncate max-w-[180px]">{{ order.product.name }}</span>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-4 text-muted">
+                    {{ order.product.farmer.name }}
+                  </td>
+                  <td class="py-3.5 px-4 text-ink font-medium">
+                    {{ "{:,.0f}".format(order.quantity_kg) }} kg
+                  </td>
+                  <td class="py-3.5 px-4 font-display font-bold text-leaf-dark">
+                    Rs. {{ "{:,.0f}".format(order.total_price) }}
+                  </td>
+                  <td class="py-3.5 px-4">
+                    {{ badges.order_status_badge(order.status) }}
+                  </td>
+                  <td class="py-3.5 px-4 text-xs text-muted">
+                    {{ order.created_at.strftime('%d %b %Y') }}
+                  </td>
+                  <td class="py-3.5 px-6 text-right">
+                    <a href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+                      class="btn-ghost py-1 px-2 text-xs text-leaf font-semibold hover:underline">
+                      View
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
           {% else %}
-            <div class="p-8 text-center text-xs text-muted">
-              <p>No past or fulfilled orders recorded yet.</p>
-            </div>
+          <div class="p-8 text-center text-xs text-muted">
+            <p>No past or fulfilled orders recorded yet.</p>
+          </div>
           {% endif %}
         </div>
       </details>
