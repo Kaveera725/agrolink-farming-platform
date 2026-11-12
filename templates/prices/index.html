@@ -7,496 +7,934 @@
 
 {% block extra_head %}
 <style>
-  .price-num{font-family:'Poppins',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-  .prices-page{background:#F4F8F2;min-height:100vh}
+  .price-num {
+    font-family: 'Poppins', sans-serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -.02em
+  }
+
+  .prices-page {
+    background: #F4F8F2;
+    min-height: 100vh
+  }
+
   /* HERO */
-  .pr-hero{background:linear-gradient(135deg,#0a1f14 0%,#1B4332 32%,#2D6A4F 62%,#40916C 86%,#52B788 100%);
-    position:relative;overflow:hidden;padding:2.75rem 0 4rem;}
-  .pr-hero::before{content:'';position:absolute;inset:0;
-    background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='0.04'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");}
-  .pr-bubble{position:absolute;border-radius:50%;pointer-events:none;
-    background:radial-gradient(circle,rgba(183,228,199,.1),transparent);
-    animation:prfloat 10s ease-in-out infinite;}
-  @keyframes prfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
-  .pr-hero h1{color:#fff;text-shadow:0 2px 20px rgba(0,0,0,.2);}
-  .pr-hero p{color:rgba(255,255,255,.76);}
-  .hero-badge{display:inline-flex;align-items:center;gap:.5rem;
-    padding:.3rem .9rem;border-radius:9999px;
-    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
-    backdrop-filter:blur(6px);font-size:.7rem;font-weight:800;
-    color:#D8F3DC;letter-spacing:.08em;text-transform:uppercase;}
-  .hero-stat{display:flex;align-items:center;gap:.625rem;
-    padding:.625rem 1rem;border-radius:.75rem;
-    background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
-    backdrop-filter:blur(8px);}
-  .hero-stat-n{font-size:1.125rem;font-weight:800;color:#fff;line-height:1.1;}
-  .hero-stat-l{font-size:.6875rem;color:rgba(255,255,255,.68);font-weight:500;}
+  .pr-hero {
+    background: linear-gradient(135deg, #0a1f14 0%, #1B4332 32%, #2D6A4F 62%, #40916C 86%, #52B788 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 2.75rem 0 4rem;
+  }
+
+  .pr-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='0.04'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  .pr-bubble {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(183, 228, 199, .1), transparent);
+    animation: prfloat 10s ease-in-out infinite;
+  }
+
+  @keyframes prfloat {
+
+    0%,
+    100% {
+      transform: translateY(0)
+    }
+
+    50% {
+      transform: translateY(-20px)
+    }
+  }
+
+  .pr-hero h1 {
+    color: #fff;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, .2);
+  }
+
+  .pr-hero p {
+    color: rgba(255, 255, 255, .76);
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .3rem .9rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .2);
+    backdrop-filter: blur(6px);
+    font-size: .7rem;
+    font-weight: 800;
+    color: #D8F3DC;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .hero-stat {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    padding: .625rem 1rem;
+    border-radius: .75rem;
+    background: rgba(255, 255, 255, .1);
+    border: 1px solid rgba(255, 255, 255, .15);
+    backdrop-filter: blur(8px);
+  }
+
+  .hero-stat-n {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+  }
+
+  .hero-stat-l {
+    font-size: .6875rem;
+    color: rgba(255, 255, 255, .68);
+    font-weight: 500;
+  }
+
   /* INFO */
-  .info-card{border-radius:.875rem;border:1.5px solid #BBE0FA;
-    background:linear-gradient(135deg,#EBF4FB 0%,#F0FAF4 100%);
-    padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:.875rem;}
-  .info-icon{width:36px;height:36px;border-radius:.5rem;
-    background:rgba(26,101,158,.15);flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;color:#1A659E;}
+  .info-card {
+    border-radius: .875rem;
+    border: 1.5px solid #BBE0FA;
+    background: linear-gradient(135deg, #EBF4FB 0%, #F0FAF4 100%);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .875rem;
+  }
+
+  .info-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: .5rem;
+    background: rgba(26, 101, 158, .15);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1A659E;
+  }
+
   /* DEAL CARD */
-  .deal-card{background:#fff;border:1.5px solid #E2E8E0;border-radius:1rem;
-    overflow:hidden;box-shadow:0 1px 4px rgba(27,67,50,.05);
-    transition:transform 200ms,box-shadow 200ms,border-color 200ms;
-    display:flex;flex-direction:column;}
-  .deal-card:hover{transform:translateY(-5px);
-    box-shadow:0 14px 36px rgba(27,67,50,.12),0 2px 6px rgba(27,67,50,.06);
-    border-color:#B7E4C7;}
-  .deal-card-bar{height:4px;background:linear-gradient(90deg,#1B4332,#40916C,#52B788);}
-  .deal-save-badge{display:inline-flex;align-items:center;gap:.3rem;
-    padding:.3rem .75rem;border-radius:9999px;font-size:.75rem;font-weight:800;
-    background:linear-gradient(135deg,#FFFBEB,#FEF3C7);
-    color:#92400E;border:1px solid #FCD34D;box-shadow:0 1px 4px rgba(251,191,36,.2);}
-  .price-block{background:linear-gradient(135deg,#F7FAF5,#F0FAF4);
-    border:1.5px solid #E2E8E0;border-radius:.75rem;padding:1rem;}
-  .retail-strike{font-family:'Poppins',sans-serif;font-size:.8rem;
-    color:#9DB5A0;text-decoration:line-through;}
-  .farmer-big{font-family:'Poppins',sans-serif;
-    font-size:1.625rem;font-weight:700;color:#1B4332;
-    line-height:1;letter-spacing:-.03em;}
-  .savings-line{font-size:.75rem;font-weight:700;color:#2D6A4F;
-    border-top:1px solid #E2E8E0;margin-top:.625rem;padding-top:.625rem;
-    display:flex;justify-content:space-between;}
+  .deal-card {
+    background: #fff;
+    border: 1.5px solid #E2E8E0;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(27, 67, 50, .05);
+    transition: transform 200ms, box-shadow 200ms, border-color 200ms;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .deal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 14px 36px rgba(27, 67, 50, .12), 0 2px 6px rgba(27, 67, 50, .06);
+    border-color: #B7E4C7;
+  }
+
+  .deal-card-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #1B4332, #40916C, #52B788);
+  }
+
+  .deal-save-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .3rem .75rem;
+    border-radius: 9999px;
+    font-size: .75rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #FFFBEB, #FEF3C7);
+    color: #92400E;
+    border: 1px solid #FCD34D;
+    box-shadow: 0 1px 4px rgba(251, 191, 36, .2);
+  }
+
+  .price-block {
+    background: linear-gradient(135deg, #F7FAF5, #F0FAF4);
+    border: 1.5px solid #E2E8E0;
+    border-radius: .75rem;
+    padding: 1rem;
+  }
+
+  .retail-strike {
+    font-family: 'Poppins', sans-serif;
+    font-size: .8rem;
+    color: #9DB5A0;
+    text-decoration: line-through;
+  }
+
+  .farmer-big {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: #1B4332;
+    line-height: 1;
+    letter-spacing: -.03em;
+  }
+
+  .savings-line {
+    font-size: .75rem;
+    font-weight: 700;
+    color: #2D6A4F;
+    border-top: 1px solid #E2E8E0;
+    margin-top: .625rem;
+    padding-top: .625rem;
+    display: flex;
+    justify-content: space-between;
+  }
+
   /* CATEGORY PILLS */
-  .cat-pill{display:inline-flex;align-items:center;gap:.375rem;
-    padding:.5rem 1rem;border-radius:9999px;font-size:.8125rem;font-weight:600;
-    border:1.5px solid transparent;cursor:pointer;white-space:nowrap;transition:all 160ms;}
-  .cat-pill.off{background:#F7FAF5;color:#3D4F44;border-color:#E2E8E0;}
-  .cat-pill.off:hover{background:#D8F3DC;border-color:#B7E4C7;color:#1B4332;
-    transform:translateY(-1px);box-shadow:0 2px 8px rgba(27,67,50,.1);}
-  .cat-pill.on{background:linear-gradient(135deg,#1B4332,#2D6A4F);
-    color:#fff;box-shadow:0 2px 10px rgba(27,67,50,.22);}
+  .cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .375rem;
+    padding: .5rem 1rem;
+    border-radius: 9999px;
+    font-size: .8125rem;
+    font-weight: 600;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 160ms;
+  }
+
+  .cat-pill.off {
+    background: #F7FAF5;
+    color: #3D4F44;
+    border-color: #E2E8E0;
+  }
+
+  .cat-pill.off:hover {
+    background: #D8F3DC;
+    border-color: #B7E4C7;
+    color: #1B4332;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(27, 67, 50, .1);
+  }
+
+  .cat-pill.on {
+    background: linear-gradient(135deg, #1B4332, #2D6A4F);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(27, 67, 50, .22);
+  }
+
   /* BENCHMARK TABLE */
-  .bench-card{background:#fff;border:1.5px solid #E2E8E0;
-    border-radius:1rem;overflow:hidden;box-shadow:0 1px 6px rgba(27,67,50,.05);}
-  .bench-head{padding:.875rem 1.5rem;
-    background:linear-gradient(90deg,#F0FAF4 0%,#fff 100%);
-    border-bottom:1.5px solid #E2E8E0;
-    display:flex;align-items:center;justify-content:space-between;}
-  .bench-cat-lbl{font-size:.9375rem;font-weight:800;color:#1B4332;
-    display:flex;align-items:center;gap:.5rem;}
-  .bench-n-badge{font-size:.6875rem;font-weight:700;padding:.15rem .5rem;
-    border-radius:9999px;background:#D8F3DC;color:#1B4332;}
-  .bench-table{width:100%;border-collapse:collapse;}
-  .bench-table thead th{font-size:.6875rem;font-weight:800;letter-spacing:.07em;
-    text-transform:uppercase;color:#7A9A87;padding:.75rem 1.25rem;
-    background:#FAFCF9;border-bottom:1.5px solid #EEF3EC;white-space:nowrap;}
-  .bench-table tbody tr{border-bottom:1px solid #F0F4EF;transition:background 140ms;}
-  .bench-table tbody tr:last-child{border-bottom:none;}
-  .bench-table tbody tr:hover{background:#F7FAF5;}
-  .bench-table td{padding:.875rem 1.25rem;vertical-align:middle;}
-  .crop-nm{font-weight:700;color:#1B4332;font-size:.9375rem;}
-  .buy-p{color:#1A659E;font-family:'Poppins',sans-serif;font-weight:700;font-size:.9375rem;}
-  .sell-p{color:#1B4332;font-family:'Poppins',sans-serif;font-weight:700;font-size:.9375rem;}
-  .loc-cell{font-size:.8125rem;color:#9DB5A0;}
-  .mpill{display:inline-flex;align-items:center;gap:.375rem;
-    padding:.25rem .625rem;border-radius:9999px;
-    font-size:.75rem;font-weight:700;font-family:'Poppins',sans-serif;}
-  .mpill.low{background:#DBEAFE;color:#1E40AF;}
-  .mpill.mid{background:#D8F3DC;color:#1B4332;}
-  .mpill.high{background:#FEF3C7;color:#92400E;}
-  .mbar{width:48px;height:5px;border-radius:9999px;background:#E2E8E0;overflow:hidden;flex-shrink:0;}
-  .mbar-fill{height:100%;border-radius:9999px;}
+  .bench-card {
+    background: #fff;
+    border: 1.5px solid #E2E8E0;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(27, 67, 50, .05);
+  }
+
+  .bench-head {
+    padding: .875rem 1.5rem;
+    background: linear-gradient(90deg, #F0FAF4 0%, #fff 100%);
+    border-bottom: 1.5px solid #E2E8E0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bench-cat-lbl {
+    font-size: .9375rem;
+    font-weight: 800;
+    color: #1B4332;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .bench-n-badge {
+    font-size: .6875rem;
+    font-weight: 700;
+    padding: .15rem .5rem;
+    border-radius: 9999px;
+    background: #D8F3DC;
+    color: #1B4332;
+  }
+
+  .bench-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .bench-table thead th {
+    font-size: .6875rem;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #7A9A87;
+    padding: .75rem 1.25rem;
+    background: #FAFCF9;
+    border-bottom: 1.5px solid #EEF3EC;
+    white-space: nowrap;
+  }
+
+  .bench-table tbody tr {
+    border-bottom: 1px solid #F0F4EF;
+    transition: background 140ms;
+  }
+
+  .bench-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .bench-table tbody tr:hover {
+    background: #F7FAF5;
+  }
+
+  .bench-table td {
+    padding: .875rem 1.25rem;
+    vertical-align: middle;
+  }
+
+  .crop-nm {
+    font-weight: 700;
+    color: #1B4332;
+    font-size: .9375rem;
+  }
+
+  .buy-p {
+    color: #1A659E;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: .9375rem;
+  }
+
+  .sell-p {
+    color: #1B4332;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: .9375rem;
+  }
+
+  .loc-cell {
+    font-size: .8125rem;
+    color: #9DB5A0;
+  }
+
+  .mpill {
+    display: inline-flex;
+    align-items: center;
+    gap: .375rem;
+    padding: .25rem .625rem;
+    border-radius: 9999px;
+    font-size: .75rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .mpill.low {
+    background: #DBEAFE;
+    color: #1E40AF;
+  }
+
+  .mpill.mid {
+    background: #D8F3DC;
+    color: #1B4332;
+  }
+
+  .mpill.high {
+    background: #FEF3C7;
+    color: #92400E;
+  }
+
+  .mbar {
+    width: 48px;
+    height: 5px;
+    border-radius: 9999px;
+    background: #E2E8E0;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .mbar-fill {
+    height: 100%;
+    border-radius: 9999px;
+  }
+
   /* SELLERS */
-  .sel-acc{background:#fff;border:1.5px solid #E2E8E0;border-radius:1rem;
-    overflow:hidden;box-shadow:0 1px 4px rgba(27,67,50,.04);transition:box-shadow 200ms;}
-  .sel-acc:hover{box-shadow:0 4px 18px rgba(27,67,50,.08);}
-  .sel-acc summary{padding:1rem 1.375rem;
-    background:linear-gradient(90deg,#F0FAF4,#fff);
-    border-bottom:1px solid #EEF3EC;cursor:pointer;list-style:none;
-    display:flex;align-items:center;justify-content:space-between;transition:background 150ms;}
-  .sel-acc summary:hover{background:#EAF7EE;}
-  .sel-acc[open] summary{background:#E4F5EB;}
-  .sel-table{width:100%;border-collapse:collapse;}
-  .sel-table thead th{font-size:.6875rem;font-weight:800;letter-spacing:.07em;
-    text-transform:uppercase;color:#7A9A87;padding:.75rem 1.25rem;
-    background:#FAFCF9;border-bottom:1.5px solid #EEF3EC;}
-  .sel-table tbody tr{border-bottom:1px solid #F0F4EF;transition:background 140ms;}
-  .sel-table tbody tr:last-child{border-bottom:none;}
-  .sel-table tbody tr:hover{background:#F7FAF5;}
-  .sel-table td{padding:.875rem 1.25rem;vertical-align:middle;}
+  .sel-acc {
+    background: #fff;
+    border: 1.5px solid #E2E8E0;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(27, 67, 50, .04);
+    transition: box-shadow 200ms;
+  }
+
+  .sel-acc:hover {
+    box-shadow: 0 4px 18px rgba(27, 67, 50, .08);
+  }
+
+  .sel-acc summary {
+    padding: 1rem 1.375rem;
+    background: linear-gradient(90deg, #F0FAF4, #fff);
+    border-bottom: 1px solid #EEF3EC;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background 150ms;
+  }
+
+  .sel-acc summary:hover {
+    background: #EAF7EE;
+  }
+
+  .sel-acc[open] summary {
+    background: #E4F5EB;
+  }
+
+  .sel-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .sel-table thead th {
+    font-size: .6875rem;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: #7A9A87;
+    padding: .75rem 1.25rem;
+    background: #FAFCF9;
+    border-bottom: 1.5px solid #EEF3EC;
+  }
+
+  .sel-table tbody tr {
+    border-bottom: 1px solid #F0F4EF;
+    transition: background 140ms;
+  }
+
+  .sel-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .sel-table tbody tr:hover {
+    background: #F7FAF5;
+  }
+
+  .sel-table td {
+    padding: .875rem 1.25rem;
+    vertical-align: middle;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="prices-page">
 
-{# HERO #}
-<header class="pr-hero">
-  <div class="pr-bubble" style="width:360px;height:360px;top:-100px;right:-80px;animation-delay:0s"></div>
-  <div class="pr-bubble" style="width:200px;height:200px;bottom:-60px;left:3%;animation-delay:4s"></div>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative" style="z-index:2">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
-      <div class="max-w-2xl">
-        <div class="hero-badge mb-4">
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-          Official Wholesale &amp; Retail Intelligence
-        </div>
-        <h1 id="prices-title" class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-2">
-          Market Prices
-        </h1>
-        <p class="text-base sm:text-lg leading-relaxed mb-6">
-          Official benchmarks from <strong style="color:rgba(183,228,199,.95)">Colombo Pettah</strong>
-          and major commercial regional hubs.
-          {% if last_updated %}
-          <span class="inline-flex items-center gap-1 ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.18)">
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            Updated {{ last_updated.strftime('%d %b %Y') }}
-          </span>
-          {% endif %}
-        </p>
-        <div class="flex flex-wrap gap-3">
-          <div class="hero-stat"><div><div class="hero-stat-n price-num">{{ prices|length }}</div><div class="hero-stat-l">Tracked commodities</div></div></div>
-          <div class="hero-stat"><div><div class="hero-stat-n">{{ best_deals|length }}</div><div class="hero-stat-l">Live below-market deals</div></div></div>
-          <div class="hero-stat"><div><div class="hero-stat-n">25</div><div class="hero-stat-l">Districts covered</div></div></div>
-        </div>
-      </div>
-      <div class="flex flex-col items-start lg:items-end gap-3 shrink-0">
-        <a href="{{ url_for('prices.bids') }}"
-           class="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-leaf-dark bg-white hover:bg-green-50 transition-all shadow-lg hover:shadow-xl">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          Best Price Comparison
-        </a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
-
-  {# HOW TO READ #}
-  <div class="info-card">
-    <div class="info-icon">
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    </div>
-    <div>
-      <p class="font-bold text-xs uppercase tracking-wider mb-1" style="color:#1A659E">How to read market rates</p>
-      <p class="text-sm leading-relaxed" style="color:#1F3A5A">
-        <strong style="color:#1A659E">Buying price</strong> = what dealers pay farmers &middot;
-        <strong style="color:#1B4332">Selling price</strong> = retail price.
-        Compare with direct farmer listings to capture savings without middlemen markups.
-      </p>
-    </div>
-  </div>
-
-  {# BEST DEALS #}
-  <section aria-labelledby="best-deals-title" class="space-y-5">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3" style="border-bottom:2px solid #D8F3DC">
-      <div>
-        <div class="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest mb-1.5" style="color:#B7791F">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Direct Farmer Savings
-        </div>
-        <h2 id="best-deals-title" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight" style="color:#1B4332">Best Deals</h2>
-        <p class="text-sm mt-0.5" style="color:#567361">Active farmer produce priced strictly below official retail market rates.</p>
-      </div>
-      {% if best_deals %}
-      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold" style="background:#FFFBEB;color:#92400E;border:1.5px solid #FCD34D">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-        {{ best_deals|length }} discounted deals
-      </span>
-      {% endif %}
-    </div>
-
-    {% if best_deals %}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-      {% for deal in best_deals %}
-      <article class="deal-card">
-        <div class="deal-card-bar"></div>
-        <div class="p-5 flex flex-col flex-1 gap-3">
-          <div class="flex items-start justify-between gap-2">
-            <div class="min-w-0">
-              <span class="text-[10px] font-bold uppercase tracking-widest mb-0.5 block" style="color:#9DB5A0">{{ deal.category }}</span>
-              <h3 class="font-display font-bold text-lg leading-tight truncate" style="color:#1B4332">
-                <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}" class="hover:underline">{{ deal.product_name }}</a>
-              </h3>
-            </div>
-            <span class="deal-save-badge flex-shrink-0">
-              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-              Save {{ deal.saving_pct }}%
+  {# HERO #}
+  <header class="pr-hero">
+    <div class="pr-bubble" style="width:360px;height:360px;top:-100px;right:-80px;animation-delay:0s"></div>
+    <div class="pr-bubble" style="width:200px;height:200px;bottom:-60px;left:3%;animation-delay:4s"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative" style="z-index:2">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-7">
+        <div class="max-w-2xl">
+          <div class="hero-badge mb-4">
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            Official Wholesale &amp; Retail Intelligence
+          </div>
+          <h1 id="prices-title"
+            class="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl tracking-tight mb-2">
+            Market Prices
+          </h1>
+          <p class="text-base sm:text-lg leading-relaxed mb-6">
+            Official benchmarks from <strong style="color:rgba(183,228,199,.95)">Colombo Pettah</strong>
+            and major commercial regional hubs.
+            {% if last_updated %}
+            <span class="inline-flex items-center gap-1 ml-2 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+              style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.18)">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Updated {{ last_updated.strftime('%d %b %Y') }}
             </span>
-          </div>
-          <div class="flex items-center gap-1.5 text-xs" style="color:#7A9A87">
-            <span class="w-5 h-5 rounded-full font-bold text-[10px] flex items-center justify-center flex-shrink-0" style="background:#F0E8DC;color:#9C4221">{{ deal.seller[0].upper() }}</span>
-            <span class="font-medium truncate" style="color:#3D4F44">{{ deal.seller }}</span>
-            <span>&bull;</span>
-            <span class="truncate">{{ deal.seller_location }}</span>
-          </div>
-          <div class="price-block">
-            <div class="flex items-baseline justify-between mb-1.5">
-              <span class="text-xs font-medium" style="color:#9DB5A0">Retail market rate</span>
-              <span class="retail-strike">LKR {{ "{:,.0f}".format(deal.market_price) }}/kg</span>
-            </div>
-            <div class="flex items-baseline justify-between">
-              <span class="text-xs font-bold" style="color:#1F2A24">Direct farmer price</span>
-              <span class="farmer-big">LKR {{ "{:,.0f}".format(deal.price) }}<span class="text-sm font-normal" style="color:#9DB5A0">/kg</span></span>
-            </div>
-            <div class="pt-1">{{ price_compare_bar(deal.price, deal.buying_price, deal.market_price, compact=true, show_labels=false) }}</div>
-            <div class="savings-line">
-              <span>Direct savings</span>
-              <span class="price-num">LKR {{ "{:,.0f}".format(deal.saving) }} / kg</span>
-            </div>
-          </div>
-          {% if deal.quantity_kg %}
-          <p class="text-xs text-right" style="color:#9DB5A0"><span class="price-num">{{ "{:,.0f}".format(deal.quantity_kg) }}</span> kg ready in stock</p>
-          {% endif %}
-          <div class="pt-1 mt-auto border-t border-gray-100 flex items-center gap-2">
-            <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}" class="btn-secondary text-xs py-2 px-3">Details</a>
-            <a href="{{ url_for('orders.place_order', product_id=deal.product_id) }}" class="btn-primary text-xs py-2 px-4 flex-1 text-center font-semibold inline-flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-              Order now
-            </a>
-          </div>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-    {% else %}
-    {{ empty_state(title='No Active Below-Market Deals',
-        description='All active farmer produce is currently priced at or above wholesale benchmarks. Check back soon or explore the open marketplace.',
-        icon_name='package', action_url=url_for('marketplace.index'), action_text='Explore Marketplace') }}
-    {% endif %}
-  </section>
-
-  {# DAILY BENCHMARK RATES #}
-  <section aria-labelledby="benchmark-tables-title" class="space-y-5">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3" style="border-bottom:2px solid #D8F3DC">
-      <div>
-        <h2 id="benchmark-tables-title" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight" style="color:#1B4332">Daily Benchmark Rates</h2>
-        <p class="text-sm mt-0.5" style="color:#567361">Track wholesale dealer buying vs retail selling spreads across Sri Lanka.</p>
-      </div>
-      <span class="text-sm font-semibold" style="color:#9DB5A0"><span class="price-num">{{ prices|length }}</span> tracked commodities</span>
-    </div>
-
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-      <div class="relative" style="max-width:320px;width:100%">
-        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#9DB5A0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="search" id="crop-search-input" placeholder="Search crops (Tomato, Carrot, Rice)…" aria-label="Search crops"
-               style="border:1.5px solid #E2E8E0;border-radius:.875rem;background:#fff;padding:.625rem 1rem .625rem 2.5rem;font-size:.875rem;color:#1F2A24;outline:none;width:100%;transition:border-color 200ms,box-shadow 200ms"
-               onfocus="this.style.borderColor='#2D6A4F';this.style.boxShadow='0 0 0 3px rgba(45,106,79,.12)'"
-               onblur="this.style.borderColor='#E2E8E0';this.style.boxShadow='none'">
-      </div>
-      <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter by category">
-        <button type="button" onclick="filterCategory('all')" data-cat="all" class="cat-pill on">All</button>
-        {% for cat in categories %}
-        <button type="button" onclick="filterCategory('{{ cat }}')" data-cat="{{ cat }}" class="cat-pill off">{{ cat }}</button>
-        {% endfor %}
-      </div>
-    </div>
-
-    {# Desktop tables #}
-    <div class="hidden md:block space-y-5" id="desktop-benchmark-tables">
-      {% for cat, items in grouped.items() %}
-      <div class="bench-card category-block" data-category="{{ cat }}">
-        <div class="bench-head">
-          <span class="bench-cat-lbl">{{ cat }}<span class="bench-n-badge">{{ items|length }} items</span></span>
-          <span class="text-xs font-semibold" style="color:#9DB5A0">Colombo Wholesale Benchmark</span>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="bench-table" style="min-width:600px">
-            <thead>
-              <tr>
-                <th class="text-left" style="padding:.75rem 1.5rem">Crop</th>
-                <th class="text-right" style="color:#1A659E">Buying</th>
-                <th class="text-right" style="color:#1B4332">Selling</th>
-                <th class="text-right">Dealer Margin</th>
-                <th class="text-right" style="padding-right:1.5rem">Market Location</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for price in items %}
-              {% set mpct = (((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1)) if price.buying_price > 0 else 0 %}
-              <tr class="crop-row" data-crop-name="{{ price.crop_name|lower }}" data-crop-category="{{ cat|lower }}">
-                <td style="padding:.875rem 1.5rem">
-                  <div class="flex flex-col">
-                    <div class="flex items-center gap-2">
-                      <span class="crop-nm">{{ price.crop_name }}</span>
-                      {% if price.trend_direction == 'up' %}
-                        <span class="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded" title="Increased by {{ price.trend_pct }}%">↗ +{{ price.trend_pct }}%</span>
-                      {% elif price.trend_direction == 'down' %}
-                        <span class="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded" title="Decreased by {{ price.trend_pct }}%">↘ -{{ price.trend_pct }}%</span>
-                      {% else %}
-                        <span class="inline-flex items-center text-[10px] font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded" title="No change">─</span>
-                      {% endif %}
-                    </div>
-                    <span class="text-[11px] text-gray-400 mt-0.5">Last updated {{ price.last_updated_date }}</span>
-                  </div>
-                </td>
-                <td class="text-right"><span class="buy-p">LKR {{ "{:,.0f}".format(price.buying_price) }}</span></td>
-                <td class="text-right"><span class="sell-p">LKR {{ "{:,.0f}".format(price.selling_price) }}</span></td>
-                <td class="text-right" style="padding-right:1.25rem">
-                  <div class="inline-flex items-center gap-2">
-                    <div class="mbar"><div class="mbar-fill" style="width:{{ [mpct,100]|min }}%;background:{% if mpct > 50 %}#F59E0B{% elif mpct > 30 %}#2D6A4F{% else %}#1A659E{% endif %}"></div></div>
-                    <span class="mpill {% if mpct > 50 %}high{% elif mpct > 30 %}mid{% else %}low{% endif %}">+{{ mpct }}%</span>
-                  </div>
-                </td>
-                <td class="text-right loc-cell" style="padding-right:1.5rem">{{ price.market_location }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    {# Mobile cards #}
-    <div class="md:hidden space-y-4" id="mobile-benchmark-cards">
-      {% for cat, items in grouped.items() %}
-      <div class="category-block space-y-2.5" data-category="{{ cat }}">
-        <div class="flex items-center gap-2 px-1 mb-1">
-          <span class="font-bold text-sm" style="color:#1B4332">{{ cat }}</span>
-          <span class="bench-n-badge">{{ items|length }}</span>
-        </div>
-        {% for price in items %}
-        {% set mpct = (((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1)) if price.buying_price > 0 else 0 %}
-        <div class="crop-row bench-card p-4 space-y-2" data-crop-name="{{ price.crop_name|lower }}" data-crop-category="{{ cat|lower }}">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="font-bold text-sm" style="color:#1B4332">{{ price.crop_name }}</span>
-                {% if price.trend_direction == 'up' %}
-                  <span class="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">↗ +{{ price.trend_pct }}%</span>
-                {% elif price.trend_direction == 'down' %}
-                  <span class="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 px-1 py-0.5 rounded">↘ -{{ price.trend_pct }}%</span>
-                {% else %}
-                  <span class="inline-flex items-center text-[10px] font-semibold text-gray-400 px-1 py-0.5">─</span>
-                {% endif %}
+            {% endif %}
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <div class="hero-stat">
+              <div>
+                <div class="hero-stat-n price-num">{{ prices|length }}</div>
+                <div class="hero-stat-l">Tracked commodities</div>
               </div>
-              <span class="text-[10px] text-gray-400 block mt-0.5">Last updated {{ price.last_updated_date }}</span>
             </div>
-            <span class="text-xs px-2 py-0.5 rounded" style="color:#9DB5A0;border:1px solid #E2E8E0;background:#F7FAF5">{{ price.market_location }}</span>
+            <div class="hero-stat">
+              <div>
+                <div class="hero-stat-n">{{ best_deals|length }}</div>
+                <div class="hero-stat-l">Live below-market deals</div>
+              </div>
+            </div>
+            <div class="hero-stat">
+              <div>
+                <div class="hero-stat-n">25</div>
+                <div class="hero-stat-l">Districts covered</div>
+              </div>
+            </div>
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="p-2 rounded-xl" style="background:#EBF4FB;border:1px solid #BBE0FA">
-              <span class="block text-[10px] font-bold uppercase tracking-wider mb-0.5" style="color:#1A659E">Buying</span>
-              <span class="buy-p text-sm">LKR {{ "{:,.0f}".format(price.buying_price) }}</span>
+        </div>
+        <div class="flex flex-col items-start lg:items-end gap-3 shrink-0">
+          <a href="{{ url_for('prices.bids') }}"
+            class="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-leaf-dark bg-white hover:bg-green-50 transition-all shadow-lg hover:shadow-xl">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Best Price Comparison
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+    {# HOW TO READ #}
+    <div class="info-card">
+      <div class="info-icon">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <p class="font-bold text-xs uppercase tracking-wider mb-1" style="color:#1A659E">How to read market rates</p>
+        <p class="text-sm leading-relaxed" style="color:#1F3A5A">
+          <strong style="color:#1A659E">Buying price</strong> = what dealers pay farmers &middot;
+          <strong style="color:#1B4332">Selling price</strong> = retail price.
+          Compare with direct farmer listings to capture savings without middlemen markups.
+        </p>
+      </div>
+    </div>
+
+    {# BEST DEALS #}
+    <section aria-labelledby="best-deals-title" class="space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3"
+        style="border-bottom:2px solid #D8F3DC">
+        <div>
+          <div class="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest mb-1.5"
+            style="color:#B7791F">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Direct Farmer Savings
+          </div>
+          <h2 id="best-deals-title" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight"
+            style="color:#1B4332">Best Deals</h2>
+          <p class="text-sm mt-0.5" style="color:#567361">Active farmer produce priced strictly below official retail
+            market rates.</p>
+        </div>
+        {% if best_deals %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold"
+          style="background:#FFFBEB;color:#92400E;border:1.5px solid #FCD34D">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+          {{ best_deals|length }} discounted deals
+        </span>
+        {% endif %}
+      </div>
+
+      {% if best_deals %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for deal in best_deals %}
+        <article class="deal-card">
+          <div class="deal-card-bar"></div>
+          <div class="p-5 flex flex-col flex-1 gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <span class="text-[10px] font-bold uppercase tracking-widest mb-0.5 block" style="color:#9DB5A0">{{
+                  deal.category }}</span>
+                <h3 class="font-display font-bold text-lg leading-tight truncate" style="color:#1B4332">
+                  <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}"
+                    class="hover:underline">{{ deal.product_name }}</a>
+                </h3>
+              </div>
+              <span class="deal-save-badge flex-shrink-0">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                </svg>
+                Save {{ deal.saving_pct }}%
+              </span>
             </div>
-            <div class="p-2 rounded-xl" style="background:#F0FAF4;border:1px solid #B7E4C7">
-              <span class="block text-[10px] font-bold uppercase tracking-wider mb-0.5" style="color:#1B4332">Selling</span>
-              <span class="sell-p text-sm">LKR {{ "{:,.0f}".format(price.selling_price) }}</span>
+            <div class="flex items-center gap-1.5 text-xs" style="color:#7A9A87">
+              <span class="w-5 h-5 rounded-full font-bold text-[10px] flex items-center justify-center flex-shrink-0"
+                style="background:#F0E8DC;color:#9C4221">{{ deal.seller[0].upper() }}</span>
+              <span class="font-medium truncate" style="color:#3D4F44">{{ deal.seller }}</span>
+              <span>&bull;</span>
+              <span class="truncate">{{ deal.seller_location }}</span>
+            </div>
+            <div class="price-block">
+              <div class="flex items-baseline justify-between mb-1.5">
+                <span class="text-xs font-medium" style="color:#9DB5A0">Retail market rate</span>
+                <span class="retail-strike">LKR {{ "{:,.0f}".format(deal.market_price) }}/kg</span>
+              </div>
+              <div class="flex items-baseline justify-between">
+                <span class="text-xs font-bold" style="color:#1F2A24">Direct farmer price</span>
+                <span class="farmer-big">LKR {{ "{:,.0f}".format(deal.price) }}<span class="text-sm font-normal"
+                    style="color:#9DB5A0">/kg</span></span>
+              </div>
+              <div class="pt-1">{{ price_compare_bar(deal.price, deal.buying_price, deal.market_price, compact=true,
+                show_labels=false) }}</div>
+              <div class="savings-line">
+                <span>Direct savings</span>
+                <span class="price-num">LKR {{ "{:,.0f}".format(deal.saving) }} / kg</span>
+              </div>
+            </div>
+            {% if deal.quantity_kg %}
+            <p class="text-xs text-right" style="color:#9DB5A0"><span class="price-num">{{
+                "{:,.0f}".format(deal.quantity_kg) }}</span> kg ready in stock</p>
+            {% endif %}
+            <div class="pt-1 mt-auto border-t border-gray-100 flex items-center gap-2">
+              <a href="{{ url_for('marketplace.product_detail', product_id=deal.product_id) }}"
+                class="btn-secondary text-xs py-2 px-3">Details</a>
+              <a href="{{ url_for('orders.place_order', product_id=deal.product_id) }}"
+                class="btn-primary text-xs py-2 px-4 flex-1 text-center font-semibold inline-flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Order now
+              </a>
             </div>
           </div>
-          <div class="flex items-center justify-between pt-2" style="border-top:1px solid #EEF3EC">
-            <span class="text-xs" style="color:#9DB5A0">Dealer margin</span>
-            <div class="inline-flex items-center gap-2">
-              <div class="mbar"><div class="mbar-fill" style="width:{{ [mpct,100]|min }}%;background:{% if mpct > 50 %}#F59E0B{% elif mpct > 30 %}#2D6A4F{% else %}#1A659E{% endif %}"></div></div>
-              <span class="mpill {% if mpct > 50 %}high{% elif mpct > 30 %}mid{% else %}low{% endif %}">+{{ mpct }}%</span>
-            </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      {{ empty_state(title='No Active Below-Market Deals',
+      description='All active farmer produce is currently priced at or above wholesale benchmarks. Check back soon or
+      explore the open marketplace.',
+      icon_name='package', action_url=url_for('marketplace.index'), action_text='Explore Marketplace') }}
+      {% endif %}
+    </section>
+
+    {# DAILY BENCHMARK RATES #}
+    <section aria-labelledby="benchmark-tables-title" class="space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3"
+        style="border-bottom:2px solid #D8F3DC">
+        <div>
+          <h2 id="benchmark-tables-title" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight"
+            style="color:#1B4332">Daily Benchmark Rates</h2>
+          <p class="text-sm mt-0.5" style="color:#567361">Track wholesale dealer buying vs retail selling spreads across
+            Sri Lanka.</p>
+        </div>
+        <span class="text-sm font-semibold" style="color:#9DB5A0"><span class="price-num">{{ prices|length }}</span>
+          tracked commodities</span>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="relative" style="max-width:320px;width:100%">
+          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color:#9DB5A0"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input type="search" id="crop-search-input" placeholder="Search crops (Tomato, Carrot, Rice)…"
+            aria-label="Search crops"
+            style="border:1.5px solid #E2E8E0;border-radius:.875rem;background:#fff;padding:.625rem 1rem .625rem 2.5rem;font-size:.875rem;color:#1F2A24;outline:none;width:100%;transition:border-color 200ms,box-shadow 200ms"
+            onfocus="this.style.borderColor='#2D6A4F';this.style.boxShadow='0 0 0 3px rgba(45,106,79,.12)'"
+            onblur="this.style.borderColor='#E2E8E0';this.style.boxShadow='none'">
+        </div>
+        <div class="flex flex-wrap gap-2" role="tablist" aria-label="Filter by category">
+          <button type="button" onclick="filterCategory('all')" data-cat="all" class="cat-pill on">All</button>
+          {% for cat in categories %}
+          <button type="button" onclick="filterCategory('{{ cat }}')" data-cat="{{ cat }}" class="cat-pill off">{{ cat
+            }}</button>
+          {% endfor %}
+        </div>
+      </div>
+
+      {# Desktop tables #}
+      <div class="hidden md:block space-y-5" id="desktop-benchmark-tables">
+        {% for cat, items in grouped.items() %}
+        <div class="bench-card category-block" data-category="{{ cat }}">
+          <div class="bench-head">
+            <span class="bench-cat-lbl">{{ cat }}<span class="bench-n-badge">{{ items|length }} items</span></span>
+            <span class="text-xs font-semibold" style="color:#9DB5A0">Colombo Wholesale Benchmark</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="bench-table" style="min-width:600px">
+              <thead>
+                <tr>
+                  <th class="text-left" style="padding:.75rem 1.5rem">Crop</th>
+                  <th class="text-right" style="color:#1A659E">Buying</th>
+                  <th class="text-right" style="color:#1B4332">Selling</th>
+                  <th class="text-right">Dealer Margin</th>
+                  <th class="text-right" style="padding-right:1.5rem">Market Location</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for price in items %}
+                {% set mpct = (((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1)) if
+                price.buying_price > 0 else 0 %}
+                <tr class="crop-row" data-crop-name="{{ price.crop_name|lower }}" data-crop-category="{{ cat|lower }}">
+                  <td style="padding:.875rem 1.5rem">
+                    <div class="flex flex-col">
+                      <div class="flex items-center gap-2">
+                        <span class="crop-nm">{{ price.crop_name }}</span>
+                        {% if price.trend_direction == 'up' %}
+                        <span
+                          class="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded"
+                          title="Increased by {{ price.trend_pct }}%">↗ +{{ price.trend_pct }}%</span>
+                        {% elif price.trend_direction == 'down' %}
+                        <span
+                          class="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded"
+                          title="Decreased by {{ price.trend_pct }}%">↘ -{{ price.trend_pct }}%</span>
+                        {% else %}
+                        <span
+                          class="inline-flex items-center text-[10px] font-semibold text-gray-500 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded"
+                          title="No change">─</span>
+                        {% endif %}
+                      </div>
+                      <span class="text-[11px] text-gray-400 mt-0.5">Last updated {{ price.last_updated_date }}</span>
+                    </div>
+                  </td>
+                  <td class="text-right"><span class="buy-p">LKR {{ "{:,.0f}".format(price.buying_price) }}</span></td>
+                  <td class="text-right"><span class="sell-p">LKR {{ "{:,.0f}".format(price.selling_price) }}</span>
+                  </td>
+                  <td class="text-right" style="padding-right:1.25rem">
+                    <div class="inline-flex items-center gap-2">
+                      <div class="mbar">
+                        <div class="mbar-fill"
+                          style="width:{{ [mpct,100]|min }}%;background:{% if mpct > 50 %}#F59E0B{% elif mpct > 30 %}#2D6A4F{% else %}#1A659E{% endif %}">
+                        </div>
+                      </div>
+                      <span class="mpill {% if mpct > 50 %}high{% elif mpct > 30 %}mid{% else %}low{% endif %}">+{{ mpct
+                        }}%</span>
+                    </div>
+                  </td>
+                  <td class="text-right loc-cell" style="padding-right:1.5rem">{{ price.market_location }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
         </div>
         {% endfor %}
       </div>
-      {% endfor %}
-    </div>
 
-    <div id="no-crops-search-state" class="hidden">
-      {{ empty_state(title='No matching crops found',
-          description='No commodities match your search. Try clearing the search or selecting a different category.',
-          icon_name='search') }}
-    </div>
-  </section>
-
-  {# CHEAPEST SELLERS #}
-  <section aria-labelledby="sellers-title" class="space-y-5">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3" style="border-bottom:2px solid #D8F3DC">
-      <div>
-        <div class="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest mb-1.5" style="color:#9C4221">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          Direct Grower Directory
-        </div>
-        <h2 id="sellers-title" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight" style="color:#1B4332">Cheapest Sellers</h2>
-        <p class="text-sm mt-0.5" style="color:#567361">Compare active produce by seller. Prices above market benchmarks are presented neutrally.</p>
-      </div>
-    </div>
-    {% if seller_map %}
-    <div class="space-y-3">
-      {% for cat, items in seller_map.items() %}
-      {% if items %}
-      <details class="sel-acc group" open>
-        <summary>
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:#D8F3DC;color:#1B4332">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
-            </div>
-            <div>
-              <span class="font-bold text-base" style="color:#1B4332">{{ cat }}</span>
-              <span class="ml-2 text-xs font-bold px-2 py-0.5 rounded-full" style="background:#F0F4EF;color:#567361;border:1px solid #E2E8E0">{{ items|length }} listings</span>
-            </div>
+      {# Mobile cards #}
+      <div class="md:hidden space-y-4" id="mobile-benchmark-cards">
+        {% for cat, items in grouped.items() %}
+        <div class="category-block space-y-2.5" data-category="{{ cat }}">
+          <div class="flex items-center gap-2 px-1 mb-1">
+            <span class="font-bold text-sm" style="color:#1B4332">{{ cat }}</span>
+            <span class="bench-n-badge">{{ items|length }}</span>
           </div>
-          <div class="flex items-center gap-3">
-            {% set ci = items[0] %}
-            <span class="hidden sm:inline text-xs font-bold px-3 py-1 rounded-full" style="background:#D8F3DC;color:#1B4332;border:1px solid #B7E4C7">
-              Lowest: <span class="price-num">LKR {{ "{:,.0f}".format(ci.product.price_per_kg) }}</span>/kg ({{ ci.product.name }})
-            </span>
-            <div class="w-6 h-6 rounded-full border flex items-center justify-center" style="background:#fff;border-color:#E2E8E0;color:#9DB5A0">
-              <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+          {% for price in items %}
+          {% set mpct = (((price.selling_price - price.buying_price) / price.buying_price * 100)|round(1)) if
+          price.buying_price > 0 else 0 %}
+          <div class="crop-row bench-card p-4 space-y-2" data-crop-name="{{ price.crop_name|lower }}"
+            data-crop-category="{{ cat|lower }}">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-bold text-sm" style="color:#1B4332">{{ price.crop_name }}</span>
+                  {% if price.trend_direction == 'up' %}
+                  <span
+                    class="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded">↗
+                    +{{ price.trend_pct }}%</span>
+                  {% elif price.trend_direction == 'down' %}
+                  <span
+                    class="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 px-1 py-0.5 rounded">↘
+                    -{{ price.trend_pct }}%</span>
+                  {% else %}
+                  <span class="inline-flex items-center text-[10px] font-semibold text-gray-400 px-1 py-0.5">─</span>
+                  {% endif %}
+                </div>
+                <span class="text-[10px] text-gray-400 block mt-0.5">Last updated {{ price.last_updated_date }}</span>
+              </div>
+              <span class="text-xs px-2 py-0.5 rounded"
+                style="color:#9DB5A0;border:1px solid #E2E8E0;background:#F7FAF5">{{ price.market_location }}</span>
             </div>
-          </div>
-        </summary>
-        <div class="overflow-x-auto">
-          <table class="sel-table" style="min-width:600px">
-            <thead>
-              <tr>
-                <th class="text-left">Produce</th>
-                <th class="text-left">Seller</th>
-                <th class="text-left">Location</th>
-                <th class="text-right" style="color:#1B4332">Price</th>
-                <th class="text-right">Saving vs Market</th>
-                <th class="text-right" style="padding-right:1.5rem">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in items %}
-              <tr>
-                <td><a href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}" class="font-semibold hover:underline" style="color:#1B4332">{{ item.product.name }}</a></td>
-                <td>
-                  <div class="flex items-center gap-1.5">
-                    <span class="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0" style="background:#F0E8DC;color:#9C4221">{{ item.product.farmer.name[0].upper() if item.product.farmer else 'F' }}</span>
-                    <span class="text-sm truncate" style="max-width:130px;color:#3D4F44">{{ item.product.farmer.name if item.product.farmer else 'Farmer' }}</span>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="p-2 rounded-xl" style="background:#EBF4FB;border:1px solid #BBE0FA">
+                <span class="block text-[10px] font-bold uppercase tracking-wider mb-0.5"
+                  style="color:#1A659E">Buying</span>
+                <span class="buy-p text-sm">LKR {{ "{:,.0f}".format(price.buying_price) }}</span>
+              </div>
+              <div class="p-2 rounded-xl" style="background:#F0FAF4;border:1px solid #B7E4C7">
+                <span class="block text-[10px] font-bold uppercase tracking-wider mb-0.5"
+                  style="color:#1B4332">Selling</span>
+                <span class="sell-p text-sm">LKR {{ "{:,.0f}".format(price.selling_price) }}</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-2" style="border-top:1px solid #EEF3EC">
+              <span class="text-xs" style="color:#9DB5A0">Dealer margin</span>
+              <div class="inline-flex items-center gap-2">
+                <div class="mbar">
+                  <div class="mbar-fill"
+                    style="width:{{ [mpct,100]|min }}%;background:{% if mpct > 50 %}#F59E0B{% elif mpct > 30 %}#2D6A4F{% else %}#1A659E{% endif %}">
                   </div>
-                </td>
-                <td class="loc-cell truncate" style="max-width:120px">{{ item.product.location or (item.product.farmer.location if item.product.farmer else '') or 'Sri Lanka' }}</td>
-                <td class="text-right"><span class="sell-p">LKR {{ "{:,.0f}".format(item.product.price_per_kg) }}</span><span class="text-xs" style="color:#9DB5A0">/kg</span></td>
-                <td class="text-right">
-                  {% if item.diff is not none %}
+                </div>
+                <span class="mpill {% if mpct > 50 %}high{% elif mpct > 30 %}mid{% else %}low{% endif %}">+{{ mpct
+                  }}%</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div id="no-crops-search-state" class="hidden">
+        {{ empty_state(title='No matching crops found',
+        description='No commodities match your search. Try clearing the search or selecting a different category.',
+        icon_name='search') }}
+      </div>
+    </section>
+
+    {# CHEAPEST SELLERS #}
+    <section aria-labelledby="sellers-title" class="space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3"
+        style="border-bottom:2px solid #D8F3DC">
+        <div>
+          <div class="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest mb-1.5"
+            style="color:#9C4221">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Direct Grower Directory
+          </div>
+          <h2 id="sellers-title" class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight"
+            style="color:#1B4332">Cheapest Sellers</h2>
+          <p class="text-sm mt-0.5" style="color:#567361">Compare active produce by seller. Prices above market
+            benchmarks are presented neutrally.</p>
+        </div>
+      </div>
+      {% if seller_map %}
+      <div class="space-y-3">
+        {% for cat, items in seller_map.items() %}
+        {% if items %}
+        <details class="sel-acc group" open>
+          <summary>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                style="background:#D8F3DC;color:#1B4332">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              </div>
+              <div>
+                <span class="font-bold text-base" style="color:#1B4332">{{ cat }}</span>
+                <span class="ml-2 text-xs font-bold px-2 py-0.5 rounded-full"
+                  style="background:#F0F4EF;color:#567361;border:1px solid #E2E8E0">{{ items|length }} listings</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              {% set ci = items[0] %}
+              <span class="hidden sm:inline text-xs font-bold px-3 py-1 rounded-full"
+                style="background:#D8F3DC;color:#1B4332;border:1px solid #B7E4C7">
+                Lowest: <span class="price-num">LKR {{ "{:,.0f}".format(ci.product.price_per_kg) }}</span>/kg ({{
+                ci.product.name }})
+              </span>
+              <div class="w-6 h-6 rounded-full border flex items-center justify-center"
+                style="background:#fff;border-color:#E2E8E0;color:#9DB5A0">
+                <svg class="w-3.5 h-3.5 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </summary>
+          <div class="overflow-x-auto">
+            <table class="sel-table" style="min-width:600px">
+              <thead>
+                <tr>
+                  <th class="text-left">Produce</th>
+                  <th class="text-left">Seller</th>
+                  <th class="text-left">Location</th>
+                  <th class="text-right" style="color:#1B4332">Price</th>
+                  <th class="text-right">Saving vs Market</th>
+                  <th class="text-right" style="padding-right:1.5rem">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in items %}
+                <tr>
+                  <td><a href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}"
+                      class="font-semibold hover:underline" style="color:#1B4332">{{ item.product.name }}</a></td>
+                  <td>
+                    <div class="flex items-center gap-1.5">
+                      <span
+                        class="w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center flex-shrink-0"
+                        style="background:#F0E8DC;color:#9C4221">{{ item.product.farmer.name[0].upper() if
+                        item.product.farmer else 'F' }}</span>
+                      <span class="text-sm truncate" style="max-width:130px;color:#3D4F44">{{ item.product.farmer.name
+                        if item.product.farmer else 'Farmer' }}</span>
+                    </div>
+                  </td>
+                  <td class="loc-cell truncate" style="max-width:120px">{{ item.product.location or
+                    (item.product.farmer.location if item.product.farmer else '') or 'Sri Lanka' }}</td>
+                  <td class="text-right"><span class="sell-p">LKR {{ "{:,.0f}".format(item.product.price_per_kg)
+                      }}</span><span class="text-xs" style="color:#9DB5A0">/kg</span></td>
+                  <td class="text-right">
+                    {% if item.diff is not none %}
                     {% if item.diff > 0 %}
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold" style="background:#D8F3DC;color:#1B4332;border:1px solid #B7E4C7">
-                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                      Save <span class="price-num ml-0.5">{{ "{:,.0f}".format(item.diff) }}</span> ({{ item.saving_pct }}%)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold"
+                      style="background:#D8F3DC;color:#1B4332;border:1px solid #B7E4C7">
+                      <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                      </svg>
+                      Save <span class="price-num ml-0.5">{{ "{:,.0f}".format(item.diff) }}</span> ({{ item.saving_pct
+                      }}%)
                     </span>
                     {% elif item.diff == 0 %}
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium" style="background:#F0F4EF;color:#567361;border:1px solid #E2E8E0">Market Rate</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                      style="background:#F0F4EF;color:#567361;border:1px solid #E2E8E0">Market Rate</span>
                     {% else %}
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style="background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB" title="Priced higher than retail benchmark">Above market</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                      style="background:#F3F4F6;color:#6B7280;border:1px solid #E5E7EB"
+                      title="Priced higher than retail benchmark">Above market</span>
                     {% endif %}
-                  {% else %}
-                  <span class="text-xs" style="color:#9DB5A0">&mdash;</span>
-                  {% endif %}
-                </td>
-                <td class="text-right" style="padding-right:1.5rem">
-                  <a href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}" class="btn-secondary text-xs py-1.5 px-3">View</a>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </details>
+                    {% else %}
+                    <span class="text-xs" style="color:#9DB5A0">&mdash;</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-right" style="padding-right:1.5rem">
+                    <a href="{{ url_for('marketplace.product_detail', product_id=item.product.id) }}"
+                      class="btn-secondary text-xs py-1.5 px-3">View</a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </details>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% else %}
+      {{ empty_state(title='No active farmer listings', description='There are currently no active produce listings from
+      growers.', icon_name='package') }}
       {% endif %}
-      {% endfor %}
-    </div>
-    {% else %}
-    {{ empty_state(title='No active farmer listings', description='There are currently no active produce listings from growers.', icon_name='package') }}
-    {% endif %}
-  </section>
+    </section>
 
-</div>
+  </div>
 </div>
 
 <script>
@@ -511,15 +949,15 @@
   function applyFilters() {
     const q = document.getElementById('crop-search-input')?.value.toLowerCase().trim() || '';
     let vis = 0;
-    ['#desktop-benchmark-tables','#mobile-benchmark-cards'].forEach(sel => {
+    ['#desktop-benchmark-tables', '#mobile-benchmark-cards'].forEach(sel => {
       const w = document.querySelector(sel); if (!w) return;
       w.querySelectorAll('.crop-row').forEach(row => {
-        const show = (activeCategory==='all'||row.dataset.cropCategory===activeCategory.toLowerCase()) && (!q||row.dataset.cropName.includes(q));
+        const show = (activeCategory === 'all' || row.dataset.cropCategory === activeCategory.toLowerCase()) && (!q || row.dataset.cropName.includes(q));
         row.style.display = show ? '' : 'none';
-        if (show && sel==='#desktop-benchmark-tables') vis++;
+        if (show && sel === '#desktop-benchmark-tables') vis++;
       });
       w.querySelectorAll('.category-block').forEach(blk => {
-        blk.style.display = blk.querySelectorAll('.crop-row:not([style*="display: none"])').length>0?'':'none';
+        blk.style.display = blk.querySelectorAll('.crop-row:not([style*="display: none"])').length > 0 ? '' : 'none';
       });
     });
     const es = document.getElementById('no-crops-search-state');

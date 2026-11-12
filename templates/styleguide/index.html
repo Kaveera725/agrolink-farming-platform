@@ -1,9 +1,12 @@
 {% extends "base.html" %}
-{% from 'components/icons.html'  import icon %}
+{% from 'components/icons.html' import icon %}
 {% from 'components/buttons.html' import button, link_button, icon_button %}
-{% from 'components/forms.html'  import field, password_field, textarea_field, select_field, checkbox, radio_card, switch, file_field, quantity_stepper %}
-{% from 'components/badges.html' import badge, order_status_badge, crop_status_badge, role_badge, stock_badge, payment_badge, deal_badge, verified_badge %}
-{% from 'components/ui.html'     import alert, empty_state, page_header, skeleton, avatar, price_breakdown, timeline, map_container, tabs, pagination, stat_card, stat_metric_card %}
+{% from 'components/forms.html' import field, password_field, textarea_field, select_field, checkbox, radio_card,
+switch, file_field, quantity_stepper %}
+{% from 'components/badges.html' import badge, order_status_badge, crop_status_badge, role_badge, stock_badge,
+payment_badge, deal_badge, verified_badge %}
+{% from 'components/ui.html' import alert, empty_state, page_header, skeleton, avatar, price_breakdown, timeline,
+map_container, tabs, pagination, stat_card, stat_metric_card %}
 
 {% block title %}Design Styleguide{% endblock %}
 
@@ -12,7 +15,8 @@
 
   <!-- Header -->
   <div class="border-b border-bdr pb-8">
-    <div class="inline-flex items-center gap-2 px-3 py-1 bg-gold-pale text-gold-text text-xs font-bold rounded-full border border-gold/30 mb-4">
+    <div
+      class="inline-flex items-center gap-2 px-3 py-1 bg-gold-pale text-gold-text text-xs font-bold rounded-full border border-gold/30 mb-4">
       {{ icon('shield-check', size=13) }} DEV ONLY — /_styleguide
     </div>
     <h1 class="text-h1 text-ink">AgroLink Design System</h1>
@@ -32,18 +36,18 @@
     <h3 class="mb-3">Leaf Green (Primary Brand)</h3>
     <div class="flex flex-wrap gap-2 mb-6">
       {% for swatch in [
-        ('#F0FAF4', 'leaf-50',  'text-ink'),
-        ('#D8F3DC', 'leaf-100', 'text-ink'),
-        ('#B3E7BF', 'leaf-200', 'text-ink'),
-        ('#84D49E', 'leaf-300', 'text-ink'),
-        ('#40916C', 'leaf-light / 500', 'text-white'),
-        ('#2D6A4F', 'leaf / DEFAULT', 'text-white'),
-        ('#1B4332', 'leaf-dark / 700', 'text-white'),
-        ('#163526', 'leaf-800', 'text-white'),
+      ('#F0FAF4', 'leaf-50', 'text-ink'),
+      ('#D8F3DC', 'leaf-100', 'text-ink'),
+      ('#B3E7BF', 'leaf-200', 'text-ink'),
+      ('#84D49E', 'leaf-300', 'text-ink'),
+      ('#40916C', 'leaf-light / 500', 'text-white'),
+      ('#2D6A4F', 'leaf / DEFAULT', 'text-white'),
+      ('#1B4332', 'leaf-dark / 700', 'text-white'),
+      ('#163526', 'leaf-800', 'text-white'),
       ] %}
       <div class="flex flex-col items-center gap-1.5">
         <div class="w-16 h-16 rounded-xl shadow-xs border border-bdr/20 flex items-end justify-center pb-1.5"
-             style="background:{{ swatch[0] }}">
+          style="background:{{ swatch[0] }}">
         </div>
         <span class="text-[10px] font-mono text-muted">{{ swatch[1] }}</span>
         <span class="text-[10px] font-mono text-muted/70">{{ swatch[0] }}</span>
@@ -55,19 +59,19 @@
     <h3 class="mb-3">Semantic Colors</h3>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
       {% for group in [
-        ('Earth (Farmer)', '#A0522D', '#FDF1E8', 'text-white', 'text-ink'),
-        ('Sky (Buyer)',    '#1A659E', '#EBF4FB', 'text-white', 'text-ink'),
-        ('Gold (Price)',   '#F4A226', '#FFF8E7', 'text-gold-text', 'text-ink'),
-        ('Danger (Error)', '#B42318', '#FEF3F2', 'text-white', 'text-ink'),
+      ('Earth (Farmer)', '#A0522D', '#FDF1E8', 'text-white', 'text-ink'),
+      ('Sky (Buyer)', '#1A659E', '#EBF4FB', 'text-white', 'text-ink'),
+      ('Gold (Price)', '#F4A226', '#FFF8E7', 'text-gold-text', 'text-ink'),
+      ('Danger (Error)', '#B42318', '#FEF3F2', 'text-white', 'text-ink'),
       ] %}
       <div class="space-y-2">
         <p class="text-xs font-semibold text-muted">{{ group[0] }}</p>
         <div class="h-12 rounded-xl flex items-center justify-center text-xs font-bold shadow-xs"
-             style="background:{{ group[1] }}" >
+          style="background:{{ group[1] }}">
           <span class="{{ group[3] }}">DEFAULT {{ group[1] }}</span>
         </div>
         <div class="h-10 rounded-xl flex items-center justify-center text-xs font-semibold border border-bdr"
-             style="background:{{ group[2] }}">
+          style="background:{{ group[2] }}">
           <span class="{{ group[4] }}">Pale {{ group[2] }}</span>
         </div>
       </div>
@@ -78,16 +82,16 @@
     <h3 class="mb-3">Neutrals (Green-tinted)</h3>
     <div class="flex flex-wrap gap-2">
       {% for swatch in [
-        ('#F7FAF5', 'canvas',  'text-ink'),
-        ('#FFFFFF', 'surface', 'text-ink'),
-        ('#E2E8E0', 'border',  'text-ink'),
-        ('#1F2A24', 'ink',     'text-white'),
-        ('#3D4F44', 'inksoft', 'text-white'),
-        ('#567361', 'muted',   'text-white'),
+      ('#F7FAF5', 'canvas', 'text-ink'),
+      ('#FFFFFF', 'surface', 'text-ink'),
+      ('#E2E8E0', 'border', 'text-ink'),
+      ('#1F2A24', 'ink', 'text-white'),
+      ('#3D4F44', 'inksoft', 'text-white'),
+      ('#567361', 'muted', 'text-white'),
       ] %}
       <div class="flex flex-col items-center gap-1.5">
         <div class="w-20 h-10 rounded-xl border border-bdr flex items-center justify-center text-[10px] font-mono"
-             style="background:{{ swatch[0] }}">
+          style="background:{{ swatch[0] }}">
           <span class="{{ swatch[2] }}">{{ swatch[0] }}</span>
         </div>
         <span class="text-[10px] font-mono text-muted">{{ swatch[1] }}</span>
@@ -120,7 +124,8 @@
       </div>
       <div>
         <p class="text-[10px] font-mono text-muted mb-1">body — Poppins 16px, 1.6 leading</p>
-        <p>Fresh tomatoes harvested from our family farm in Matale district. Grown without pesticides and ready for immediate delivery to Colombo.</p>
+        <p>Fresh tomatoes harvested from our family farm in Matale district. Grown without pesticides and ready for
+          immediate delivery to Colombo.</p>
       </div>
       <div>
         <p class="text-[10px] font-mono text-muted mb-1">sm body — Poppins 14px</p>
@@ -145,13 +150,13 @@
     <h2 class="text-h2 text-ink mb-6">3. Icons</h2>
     <div class="flex flex-wrap gap-6 p-6 border border-bdr rounded-xl bg-white">
       {% for name in ['leaf','sprout','tractor','shopping-basket','store','map-pin','phone',
-                      'message-circle','truck','wallet','credit-card','clock','check','check-circle',
-                      'x','x-circle','alert-triangle','info','search','filter','user','users',
-                      'bell','menu','chevron-up','chevron-down','chevron-left','chevron-right',
-                      'plus','minus','edit','trash','eye','eye-off','upload','image','package',
-                      'receipt','shield-check','trending-up','trending-down','arrow-right',
-                      'arrow-left','star','lock','mail','calendar','refresh','loader','home',
-                      'grid','list','external-link'] %}
+      'message-circle','truck','wallet','credit-card','clock','check','check-circle',
+      'x','x-circle','alert-triangle','info','search','filter','user','users',
+      'bell','menu','chevron-up','chevron-down','chevron-left','chevron-right',
+      'plus','minus','edit','trash','eye','eye-off','upload','image','package',
+      'receipt','shield-check','trending-up','trending-down','arrow-right',
+      'arrow-left','star','lock','mail','calendar','refresh','loader','home',
+      'grid','list','external-link'] %}
       <div class="flex flex-col items-center gap-2 text-inksoft">
         {{ icon(name, size=24) }}
         <span class="text-[9px] font-mono text-muted">{{ name }}</span>
@@ -171,9 +176,9 @@
     <div class="mb-6">
       <p class="text-xs font-mono text-muted mb-3">{{ variant }}</p>
       <div class="flex flex-wrap items-center gap-3">
-        {{ button('Small',  variant=variant, size='sm') }}
+        {{ button('Small', variant=variant, size='sm') }}
         {{ button('Medium (default)', variant=variant, size='md') }}
-        {{ button('Large',  variant=variant, size='lg') }}
+        {{ button('Large', variant=variant, size='lg') }}
         {{ button('With Icon', variant=variant, size='md', icon_name='leaf') }}
         {{ button('Loading', variant=variant, size='md', loading=true) }}
         {{ button('Disabled', variant=variant, size='md', disabled=true) }}
@@ -194,10 +199,10 @@
     <div class="mb-6">
       <p class="text-xs font-mono text-muted mb-3">icon_button (44px touch target)</p>
       <div class="flex flex-wrap items-center gap-3">
-        {{ icon_button('edit',    'Edit',   variant='soft') }}
-        {{ icon_button('trash',   'Delete', variant='danger-soft') }}
-        {{ icon_button('search',  'Search', variant='ghost') }}
-        {{ icon_button('filter',  'Filter', variant='secondary', size='sm') }}
+        {{ icon_button('edit', 'Edit', variant='soft') }}
+        {{ icon_button('trash', 'Delete', variant='danger-soft') }}
+        {{ icon_button('search', 'Search', variant='ghost') }}
+        {{ icon_button('filter', 'Filter', variant='secondary', size='sm') }}
       </div>
     </div>
   </section>
@@ -208,16 +213,21 @@
   <section id="forms">
     <h2 class="text-h2 text-ink mb-6">5. Form Fields</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border border-bdr rounded-xl bg-white">
-      {{ field('name',  'name',  'Full Name', type='text',  required=true, placeholder='e.g. Kamal Perera', autocomplete='name') }}
-      {{ field('email', 'email', 'Email Address', type='email', required=true, placeholder='farmer@example.lk', autocomplete='email') }}
-      {{ field('phone', 'phone', 'Phone Number', type='tel', placeholder='+94 77 123 4567', inputmode='tel', autocomplete='tel') }}
-      {{ field('price', 'price', 'Price per kg', type='number', required=true, prefix='LKR', suffix='/kg', step='0.01', min='0') }}
+      {{ field('name', 'name', 'Full Name', type='text', required=true, placeholder='e.g. Kamal Perera',
+      autocomplete='name') }}
+      {{ field('email', 'email', 'Email Address', type='email', required=true, placeholder='farmer@example.lk',
+      autocomplete='email') }}
+      {{ field('phone', 'phone', 'Phone Number', type='tel', placeholder='+94 77 123 4567', inputmode='tel',
+      autocomplete='tel') }}
+      {{ field('price', 'price', 'Price per kg', type='number', required=true, prefix='LKR', suffix='/kg', step='0.01',
+      min='0') }}
       {{ password_field('pass', 'password', 'Password', required=true, hint='Minimum 8 characters') }}
-      {{ field('qty', 'qty', 'Quantity', type='number', required=true, suffix='kg', min='1', error='Please enter a valid quantity above 0.') }}
+      {{ field('qty', 'qty', 'Quantity', type='number', required=true, suffix='kg', min='1', error='Please enter a valid
+      quantity above 0.') }}
       {{ textarea_field('bio', 'bio', 'Farm Bio', optional=true, placeholder='Describe your farm…', rows=3) }}
       {{ select_field('category', 'category', 'Category', required=true,
-          options=[['vegetables','Vegetables'],['fruits','Fruits'],['grains','Grains'],['dairy','Dairy']],
-          placeholder_opt='Select category…') }}
+      options=[['vegetables','Vegetables'],['fruits','Fruits'],['grains','Grains'],['dairy','Dairy']],
+      placeholder_opt='Select category…') }}
       {{ checkbox('organic', 'organic', 'Certified organic produce', hint='We verify organic certificates') }}
       {{ switch('notify', 'notify', 'Email notifications', checked=true, hint='Get order alerts via email') }}
     </div>
@@ -227,7 +237,7 @@
       <p class="field-label mb-3">Account Type <span class="text-danger">*</span></p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {{ radio_card('role-farmer', 'role', 'farmer', 'Farmer', 'I grow and sell produce', checked=true) }}
-        {{ radio_card('role-buyer',  'role', 'buyer',  'Buyer',  'I source produce in bulk') }}
+        {{ radio_card('role-buyer', 'role', 'buyer', 'Buyer', 'I source produce in bulk') }}
       </div>
     </div>
 
@@ -253,15 +263,15 @@
       <div>
         <p class="text-xs font-mono text-muted mb-2">Generic badge variants</p>
         <div class="flex flex-wrap gap-2">
-          {{ badge('Success',  'success') }}
-          {{ badge('Warning',  'warning') }}
-          {{ badge('Danger',   'danger') }}
-          {{ badge('Info',     'info') }}
-          {{ badge('Neutral',  'neutral') }}
-          {{ badge('Gold',     'gold') }}
-          {{ badge('Earth',    'earth') }}
-          {{ badge('Sky',      'sky') }}
-          {{ badge('Purple',   'purple') }}
+          {{ badge('Success', 'success') }}
+          {{ badge('Warning', 'warning') }}
+          {{ badge('Danger', 'danger') }}
+          {{ badge('Info', 'info') }}
+          {{ badge('Neutral', 'neutral') }}
+          {{ badge('Gold', 'gold') }}
+          {{ badge('Earth', 'earth') }}
+          {{ badge('Sky', 'sky') }}
+          {{ badge('Purple', 'purple') }}
         </div>
       </div>
 
@@ -348,10 +358,10 @@
     <h2 class="text-h2 text-ink mb-6">8. Stat Cards</h2>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {{ stat_card('Total Revenue', 'LKR 48,500', subtitle='This month', icon_name='wallet',
-          trend={'direction':'up','text':'+12% from last month'}) }}
-      {{ stat_card('Active Listings', '7',  subtitle='3 low stock', icon_name='package') }}
-      {{ stat_card('Pending Orders', '3',   subtitle='2 new today',  icon_name='clock',
-          trend={'direction':'up','text':'+2 since yesterday'}) }}
+      trend={'direction':'up','text':'+12% from last month'}) }}
+      {{ stat_card('Active Listings', '7', subtitle='3 low stock', icon_name='package') }}
+      {{ stat_card('Pending Orders', '3', subtitle='2 new today', icon_name='clock',
+      trend={'direction':'up','text':'+2 since yesterday'}) }}
       {{ stat_card('Avg. Price / kg', 'LKR 185', subtitle='Across all products', icon_name='trending-up') }}
     </div>
   </section>
@@ -364,12 +374,12 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="border border-bdr rounded-xl bg-white">
         {{ empty_state('No listings yet', 'Add your first crop listing to start selling on AgroLink.',
-            icon_name='package', action_url='#', action_text='Add First Listing') }}
+        icon_name='package', action_url='#', action_text='Add First Listing') }}
       </div>
       <div class="border border-bdr rounded-xl bg-white">
         {{ empty_state('No orders found', 'Browse the marketplace to place your first order.',
-            icon_name='shopping-basket', action_url='#', action_text='Browse Marketplace',
-            secondary_url='#', secondary_text='Learn more') }}
+        icon_name='shopping-basket', action_url='#', action_text='Browse Marketplace',
+        secondary_url='#', secondary_text='Learn more') }}
       </div>
     </div>
   </section>
@@ -381,13 +391,13 @@
     <h2 class="text-h2 text-ink mb-6">10. Page Header with Breadcrumbs</h2>
     <div class="border border-bdr rounded-xl bg-white p-6">
       {{ page_header(
-          'Edit Crop Listing',
-          subtitle='Update the details of your tomato listing.',
-          breadcrumbs=[
-            {'text':'Dashboard','url':'#'},
-            {'text':'My Crops','url':'#'},
-            {'text':'Edit Tomatoes'}
-          ]
+      'Edit Crop Listing',
+      subtitle='Update the details of your tomato listing.',
+      breadcrumbs=[
+      {'text':'Dashboard','url':'#'},
+      {'text':'My Crops','url':'#'},
+      {'text':'Edit Tomatoes'}
+      ]
       ) }}
     </div>
   </section>
@@ -421,7 +431,7 @@
     <h2 class="text-h2 text-ink mb-6">12. Avatars</h2>
     <div class="p-6 border border-bdr rounded-xl bg-white flex items-end gap-5 flex-wrap">
       {{ avatar('Kamal Perera', size='sm') }}
-      {{ avatar('Nimal Silva',  size='md') }}
+      {{ avatar('Nimal Silva', size='md') }}
       {{ avatar('Amali Perera', size='lg') }}
       {{ avatar('Saman Fernando', size='xl') }}
       {{ avatar('Admin User', image_url='https://i.pravatar.cc/150?img=5', size='lg') }}
@@ -435,12 +445,12 @@
     <h2 class="text-h2 text-ink mb-6">13. Price Breakdown</h2>
     <div class="max-w-sm border border-bdr rounded-xl bg-white p-6">
       {{ price_breakdown(
-          rows=[
-            {'label': 'Tomatoes × 25 kg', 'value': '3,125.00'},
-            {'label': 'Delivery (Kandy → Colombo)', 'value': '450.00'},
-          ],
-          total_label='Total to Pay',
-          total_value='3,575.00'
+      rows=[
+      {'label': 'Tomatoes × 25 kg', 'value': '3,125.00'},
+      {'label': 'Delivery (Kandy → Colombo)', 'value': '450.00'},
+      ],
+      total_label='Total to Pay',
+      total_value='3,575.00'
       ) }}
     </div>
   </section>
@@ -452,10 +462,10 @@
     <h2 class="text-h2 text-ink mb-6">14. Order Timeline</h2>
     <div class="max-w-sm border border-bdr rounded-xl bg-white p-6">
       {{ timeline([
-        {'label':'Order Placed',     'description':'Oct 19, 2024 at 10:32 AM', 'status':'done'},
-        {'label':'Farmer Confirmed', 'description':'Oct 19, 2024 at 2:15 PM',  'status':'done'},
-        {'label':'Out for Delivery', 'description':'Expected Oct 21',           'status':'active'},
-        {'label':'Delivered',        'description':'Awaiting confirmation',      'status':'pending'},
+      {'label':'Order Placed', 'description':'Oct 19, 2024 at 10:32 AM', 'status':'done'},
+      {'label':'Farmer Confirmed', 'description':'Oct 19, 2024 at 2:15 PM', 'status':'done'},
+      {'label':'Out for Delivery', 'description':'Expected Oct 21', 'status':'active'},
+      {'label':'Delivered', 'description':'Awaiting confirmation', 'status':'pending'},
       ]) }}
     </div>
   </section>
@@ -478,17 +488,20 @@
     <h2 class="text-h2 text-ink mb-6">16. Tabs / Segmented Control</h2>
     <div data-tabs-container>
       {{ tabs([
-        {'label':'Active Orders',     'id':'active',    'active':true},
-        {'label':'Completed',         'id':'completed'},
-        {'label':'Cancelled',         'id':'cancelled'},
+      {'label':'Active Orders', 'id':'active', 'active':true},
+      {'label':'Completed', 'id':'completed'},
+      {'label':'Cancelled', 'id':'cancelled'},
       ]) }}
-      <div id="panel-active"    role="tabpanel" aria-labelledby="tab-active"    class="p-4 border border-t-0 border-bdr rounded-b-xl bg-white">
+      <div id="panel-active" role="tabpanel" aria-labelledby="tab-active"
+        class="p-4 border border-t-0 border-bdr rounded-b-xl bg-white">
         <p class="text-sm text-muted">Active order content here.</p>
       </div>
-      <div id="panel-completed" role="tabpanel" aria-labelledby="tab-completed" class="p-4 border border-t-0 border-bdr rounded-b-xl bg-white" hidden>
+      <div id="panel-completed" role="tabpanel" aria-labelledby="tab-completed"
+        class="p-4 border border-t-0 border-bdr rounded-b-xl bg-white" hidden>
         <p class="text-sm text-muted">Completed order content here.</p>
       </div>
-      <div id="panel-cancelled" role="tabpanel" aria-labelledby="tab-cancelled" class="p-4 border border-t-0 border-bdr rounded-b-xl bg-white" hidden>
+      <div id="panel-cancelled" role="tabpanel" aria-labelledby="tab-cancelled"
+        class="p-4 border border-t-0 border-bdr rounded-b-xl bg-white" hidden>
         <p class="text-sm text-muted">Cancelled order content here.</p>
       </div>
     </div>
@@ -508,22 +521,14 @@
   <section id="confirm">
     <h2 class="text-h2 text-ink mb-6">18. Confirm Dialog (replaces browser confirm)</h2>
     <div class="flex flex-wrap gap-3">
-      <button
-        type="button"
-        class="btn-danger"
-        data-confirm="Are you sure you want to delete this listing? This cannot be undone."
-        data-confirm-danger
-        data-confirm-href="#"
-      >
+      <button type="button" class="btn-danger"
+        data-confirm="Are you sure you want to delete this listing? This cannot be undone." data-confirm-danger
+        data-confirm-href="#">
         {{ icon('trash', size=18) }} Delete Listing (with confirm)
       </button>
-      <button
-        type="button"
-        class="btn-secondary"
-        onclick="window.AgroConfirm('Mark this order as delivered?', false, function(){
+      <button type="button" class="btn-secondary" onclick="window.AgroConfirm('Mark this order as delivered?', false, function(){
           alert('Confirmed!');
-        })"
-      >
+        })">
         Confirm Action
       </button>
     </div>
@@ -549,8 +554,8 @@
     <p class="text-xs font-mono text-muted mb-3">Sections on this page</p>
     <div class="flex flex-wrap gap-2">
       {% for s in ['colors','typography','icons','buttons','forms','badges','alerts',
-                   'stat-cards','empty-states','page-header','skeletons','avatars',
-                   'price-breakdown','timeline','map','tabs','pagination','confirm','shadows'] %}
+      'stat-cards','empty-states','page-header','skeletons','avatars',
+      'price-breakdown','timeline','map','tabs','pagination','confirm','shadows'] %}
       <a href="#{{ s }}" class="btn-soft btn-sm text-xs">{{ s }}</a>
       {% endfor %}
     </div>

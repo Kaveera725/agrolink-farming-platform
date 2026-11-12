@@ -14,39 +14,54 @@
     letter-spacing: -.03em;
     line-height: 1.05;
   }
+
   .price-num {
     font-family: 'Poppins', sans-serif;
     font-variant-numeric: tabular-nums;
     letter-spacing: -.02em;
   }
+
   /* ── KPI card hover lift ───────────────────────────────────────────── */
   .kpi-card {
-    transition: transform 180ms cubic-bezier(.4,0,.2,1),
-                box-shadow 180ms cubic-bezier(.4,0,.2,1);
+    transition: transform 180ms cubic-bezier(.4, 0, .2, 1),
+      box-shadow 180ms cubic-bezier(.4, 0, .2, 1);
   }
+
   .kpi-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(27,67,50,.10), 0 1px 4px rgba(27,67,50,.06);
+    box-shadow: 0 8px 24px rgba(27, 67, 50, .10), 0 1px 4px rgba(27, 67, 50, .06);
   }
+
   .kpi-card-bar {
     height: 3px;
     border-radius: 9999px 9999px 0 0;
     margin: -1.25rem -1.5rem 1.25rem;
   }
+
   /* ── Mobile Crop Tracker Tabs ─────────────────────────────────────── */
   .crop-tab-btn[aria-selected="true"] {
     background-color: var(--color-leaf, #2d7a4f);
     color: #ffffff;
     font-weight: 700;
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
   }
+
   .crop-tab-btn[aria-selected="false"] {
     background-color: transparent;
     color: var(--color-muted, #64748b);
   }
+
   /* ── Order price / qty in cards ───────────────────────────────────── */
-  .order-price { font-family: 'Poppins', sans-serif; font-weight: 700; letter-spacing: -.02em; }
-  .order-qty   { font-family: 'Poppins', sans-serif; font-weight: 600; }
+  .order-price {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+
+  .order-qty {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+  }
 </style>
 {% endblock %}
 
@@ -56,10 +71,12 @@
 
     {# ─── DISMISSIBLE FARM LOCATION NOTICE FOR FARMERS WITHOUT PIN ───────── #}
     {% if current_user.role == 'farmer' and (current_user.latitude is none or current_user.longitude is none) %}
-    <div id="missing-location-banner" class="rounded-2xl border border-amber-200 bg-amber-50/90 p-4 sm:p-5 shadow-xs transition-all duration-300">
+    <div id="missing-location-banner"
+      class="rounded-2xl border border-amber-200 bg-amber-50/90 p-4 sm:p-5 shadow-xs transition-all duration-300">
       <div class="flex items-start justify-between gap-3">
         <div class="flex items-start gap-3.5">
-          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200">
+          <div
+            class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200">
             {{ icon('map-pin', size=20) }}
           </div>
           <div>
@@ -67,31 +84,26 @@
               Add your farm location so buyers can find you
             </h2>
             <p class="text-xs sm:text-sm text-amber-900/80 mt-0.5 leading-relaxed">
-              Wholesale buyers and transport drivers use your exact farm pin to calculate direct collection mileage and delivery schedules.
+              Wholesale buyers and transport drivers use your exact farm pin to calculate direct collection mileage and
+              delivery schedules.
             </p>
             <div class="mt-2.5">
-              <a
-                href="{{ url_for('profile.edit') }}"
-                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition"
-              >
+              <a href="{{ url_for('profile.edit') }}"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition">
                 <span>Add Farm Location</span>
                 {{ icon('arrow-right', size=14) }}
               </a>
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          id="dismiss-location-banner"
-          aria-label="Dismiss banner"
-          class="text-amber-800/60 hover:text-amber-900 p-1 rounded-lg hover:bg-amber-100/60 transition"
-        >
+        <button type="button" id="dismiss-location-banner" aria-label="Dismiss banner"
+          class="text-amber-800/60 hover:text-amber-900 p-1 rounded-lg hover:bg-amber-100/60 transition">
           {{ icon('x', size=18) }}
         </button>
       </div>
     </div>
     <script>
-      (function() {
+      (function () {
         const banner = document.getElementById('missing-location-banner');
         const dismissBtn = document.getElementById('dismiss-location-banner');
         if (!banner || !dismissBtn) return;
@@ -99,7 +111,7 @@
         if (sessionStorage.getItem(storageKey) === 'true') {
           banner.style.display = 'none';
         }
-        dismissBtn.addEventListener('click', function() {
+        dismissBtn.addEventListener('click', function () {
           banner.style.display = 'none';
           sessionStorage.setItem(storageKey, 'true');
         });
@@ -111,7 +123,8 @@
     <div class="space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
+          <div
+            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-pale text-leaf-dark text-xs font-semibold mb-2">
             <span class="w-2 h-2 rounded-full bg-leaf animate-pulse"></span>
             <span>Farmer Control Center</span>
           </div>
@@ -124,10 +137,8 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <a
-            href="{{ url_for('marketplace.list_product') }}"
-            class="btn-primary text-xs sm:text-sm py-2.5 px-4 shadow-sm inline-flex items-center gap-1.5"
-          >
+          <a href="{{ url_for('marketplace.list_product') }}"
+            class="btn-primary text-xs sm:text-sm py-2.5 px-4 shadow-sm inline-flex items-center gap-1.5">
             {{ icon('plus', size=16) }}
             <span>List Produce</span>
           </a>
@@ -137,39 +148,38 @@
       {# Quick Actions Row (Large Tiles / Buttons) #}
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {# Tile 1: Add Listing #}
-        <a
-          href="{{ url_for('marketplace.list_product') }}"
-          class="card p-4 sm:p-5 bg-white hover:bg-leaf-pale/20 border border-bdr hover:border-leaf/40 rounded-2xl shadow-xs transition group flex items-start gap-3.5"
-        >
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+        <a href="{{ url_for('marketplace.list_product') }}"
+          class="card p-4 sm:p-5 bg-white hover:bg-leaf-pale/20 border border-bdr hover:border-leaf/40 rounded-2xl shadow-xs transition group flex items-start gap-3.5">
+          <div
+            class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-leaf-pale text-leaf-dark flex items-center justify-center shrink-0 group-hover:scale-105 transition">
             {{ icon('tag', size=20) }}
           </div>
           <div class="min-w-0">
-            <span class="block text-sm font-bold text-ink group-hover:text-leaf-dark transition truncate">Add Listing</span>
+            <span class="block text-sm font-bold text-ink group-hover:text-leaf-dark transition truncate">Add
+              Listing</span>
             <span class="block text-[11px] text-muted truncate">Post produce for sale</span>
           </div>
         </a>
 
         {# Tile 2: Add Crop #}
-        <a
-          href="{{ url_for('dashboard.add_crop') }}"
-          class="card p-4 sm:p-5 bg-white hover:bg-emerald-50/40 border border-bdr hover:border-emerald-300 rounded-2xl shadow-xs transition group flex items-start gap-3.5"
-        >
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+        <a href="{{ url_for('dashboard.add_crop') }}"
+          class="card p-4 sm:p-5 bg-white hover:bg-emerald-50/40 border border-bdr hover:border-emerald-300 rounded-2xl shadow-xs transition group flex items-start gap-3.5">
+          <div
+            class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition">
             {{ icon('calendar', size=20) }}
           </div>
           <div class="min-w-0">
-            <span class="block text-sm font-bold text-ink group-hover:text-emerald-900 transition truncate">Add Crop</span>
+            <span class="block text-sm font-bold text-ink group-hover:text-emerald-900 transition truncate">Add
+              Crop</span>
             <span class="block text-[11px] text-muted truncate">Log planting schedule</span>
           </div>
         </a>
 
         {# Tile 3: View Orders #}
-        <a
-          href="{{ url_for('orders.index') }}"
-          class="card p-4 sm:p-5 bg-white hover:bg-sky-pale/30 border border-bdr hover:border-sky/40 rounded-2xl shadow-xs transition group flex items-start gap-3.5"
-        >
-          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-sky-pale text-sky flex items-center justify-center shrink-0 group-hover:scale-105 transition">
+        <a href="{{ url_for('orders.index') }}"
+          class="card p-4 sm:p-5 bg-white hover:bg-sky-pale/30 border border-bdr hover:border-sky/40 rounded-2xl shadow-xs transition group flex items-start gap-3.5">
+          <div
+            class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-sky-pale text-sky flex items-center justify-center shrink-0 group-hover:scale-105 transition">
             {{ icon('package', size=20) }}
           </div>
           <div class="min-w-0">
@@ -179,38 +189,33 @@
         </a>
 
         {# Tile 4: "Update my current location" #}
-        <div class="card p-4 sm:p-5 bg-white border border-bdr rounded-2xl shadow-xs transition flex flex-col justify-between gap-3">
+        <div
+          class="card p-4 sm:p-5 bg-white border border-bdr rounded-2xl shadow-xs transition flex flex-col justify-between gap-3">
           <div class="flex items-start gap-3.5">
-            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-earth-pale text-earth flex items-center justify-center shrink-0">
+            <div
+              class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-earth-pale text-earth flex items-center justify-center shrink-0">
               {{ icon('map-pin', size=20) }}
             </div>
             <div class="min-w-0 flex-1">
               <span class="block text-sm font-bold text-ink truncate">Farm Location</span>
               <span class="block text-[11px] text-muted leading-tight mt-0.5" id="farmer-last-updated-text">
                 {% if current_user.location_updated_at %}
-                  Location last updated: {{ time_ago(current_user.location_updated_at) }}
+                Location last updated: {{ time_ago(current_user.location_updated_at) }}
                 {% else %}
-                  Location not set yet
+                Location not set yet
                 {% endif %}
               </span>
             </div>
           </div>
           <div class="flex items-center gap-2 pt-1 border-t border-bdr/60">
-            <button
-              type="button"
-              id="btn-update-current-location"
-              class="btn-primary text-xs py-1.5 px-3 flex-1 justify-center inline-flex items-center gap-1.5 shadow-2xs"
-            >
+            <button type="button" id="btn-update-current-location"
+              class="btn-primary text-xs py-1.5 px-3 flex-1 justify-center inline-flex items-center gap-1.5 shadow-2xs">
               <span id="update-loc-spinner" class="hidden">{{ icon('loader', size=14, cls='animate-spin') }}</span>
               <span id="update-loc-icon">{{ icon('crosshair', size=14) }}</span>
               <span id="update-loc-label">Update my current location</span>
             </button>
-            <a
-              href="{{ url_for('profile.edit') }}"
-              class="btn-ghost text-xs p-1.5 text-muted hover:text-ink rounded-lg"
-              title="Edit on map in profile"
-              aria-label="Edit location on map"
-            >
+            <a href="{{ url_for('profile.edit') }}" class="btn-ghost text-xs p-1.5 text-muted hover:text-ink rounded-lg"
+              title="Edit on map in profile" aria-label="Edit location on map">
               {{ icon('edit', size=14) }}
             </a>
           </div>
@@ -248,17 +253,22 @@
 
       {# KPI 3: Pending Orders (HIGHLIGHTED in gold-pale if > 0) #}
       {% set pending_count = pending_orders|length %}
-      <div class="card kpi-card p-5 sm:p-6 rounded-2xl shadow-xs overflow-hidden transition {{ 'bg-amber-50/90 border-2 border-amber-300 ring-2 ring-amber-400/20' if pending_count > 0 else 'bg-white border border-bdr' }}">
-        <div class="kpi-card-bar" style="background:{{ 'linear-gradient(90deg,#D97706,#FCD34D)' if pending_count > 0 else 'linear-gradient(90deg,#E2E8E0,#F0F4EF)' }}"></div>
+      <div
+        class="card kpi-card p-5 sm:p-6 rounded-2xl shadow-xs overflow-hidden transition {{ 'bg-amber-50/90 border-2 border-amber-300 ring-2 ring-amber-400/20' if pending_count > 0 else 'bg-white border border-bdr' }}">
+        <div class="kpi-card-bar"
+          style="background:{{ 'linear-gradient(90deg,#D97706,#FCD34D)' if pending_count > 0 else 'linear-gradient(90deg,#E2E8E0,#F0F4EF)' }}">
+        </div>
         <div class="flex items-center justify-between mb-1">
-          <span class="text-xs font-semibold uppercase tracking-wider block {{ 'text-amber-900 font-bold' if pending_count > 0 else 'text-muted' }}">
+          <span
+            class="text-xs font-semibold uppercase tracking-wider block {{ 'text-amber-900 font-bold' if pending_count > 0 else 'text-muted' }}">
             Pending Orders
           </span>
           {% if pending_count > 0 %}
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping"></span>
           {% endif %}
         </div>
-        <p class="kpi-num font-extrabold text-2xl sm:text-3xl {{ 'text-amber-800' if pending_count > 0 else 'text-ink' }}">
+        <p
+          class="kpi-num font-extrabold text-2xl sm:text-3xl {{ 'text-amber-800' if pending_count > 0 else 'text-ink' }}">
           {{ pending_count }}
         </p>
         <p class="text-[11px] {{ 'text-amber-900 font-semibold' if pending_count > 0 else 'text-muted' }} pt-1.5">
@@ -281,10 +291,12 @@
     </div>
 
     {# ─── 3. "NEEDS YOUR ACTION" PANEL (Pending Orders) ──────────────────── #}
-    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6" aria-labelledby="action-panel-heading">
+    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6"
+      aria-labelledby="action-panel-heading">
       <div class="flex items-center justify-between pb-4 border-b border-bdr">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg {{ 'bg-amber-100 text-amber-800' if pending_count > 0 else 'bg-leaf-pale text-leaf-dark' }} flex items-center justify-center font-bold text-xs">
+          <div
+            class="w-8 h-8 rounded-lg {{ 'bg-amber-100 text-amber-800' if pending_count > 0 else 'bg-leaf-pale text-leaf-dark' }} flex items-center justify-center font-bold text-xs">
             {{ icon('bell', size=16) }}
           </div>
           <div>
@@ -296,118 +308,117 @@
         </div>
 
         {% if pending_count > 0 %}
-          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-            {{ pending_count }} Awaiting Action
-          </span>
+        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+          {{ pending_count }} Awaiting Action
+        </span>
         {% endif %}
       </div>
 
       {% if pending_orders %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {% for order in pending_orders %}
-            <article class="p-5 rounded-2xl border border-amber-200/80 bg-amber-50/30 hover:bg-amber-50/60 shadow-2xs transition flex flex-col justify-between space-y-4">
-              <div class="space-y-3">
-                {# Header: Buyer info & date #}
-                <div class="flex items-start justify-between gap-2">
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <div class="w-9 h-9 rounded-full bg-sky-pale text-sky font-bold text-xs flex items-center justify-center shrink-0">
-                      {{ order.buyer.name[0].upper() }}
-                    </div>
-                    <div class="min-w-0">
-                      <p class="text-xs font-bold text-ink truncate">{{ order.buyer.name }}</p>
-                      <p class="text-[11px] text-muted">{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-1.5 flex-wrap justify-end">
-                    {{ badges.fulfillment_badge(order.fulfillment_type, size='sm') }}
-                    {{ badges.order_status_badge(order.status) }}
-                  </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        {% for order in pending_orders %}
+        <article
+          class="p-5 rounded-2xl border border-amber-200/80 bg-amber-50/30 hover:bg-amber-50/60 shadow-2xs transition flex flex-col justify-between space-y-4">
+          <div class="space-y-3">
+            {# Header: Buyer info & date #}
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div
+                  class="w-9 h-9 rounded-full bg-sky-pale text-sky font-bold text-xs flex items-center justify-center shrink-0">
+                  {{ order.buyer.name[0].upper() }}
                 </div>
-
-                {# Items & Pricing #}
-                <div class="p-3 bg-white rounded-xl border border-bdr/60 space-y-1">
-                  <p class="text-xs font-bold text-ink truncate">{{ order.product.name }}</p>
-                  <div class="flex items-center justify-between text-xs text-muted">
-                    <span><span class="order-qty">{{ "{:,.0f}".format(order.quantity_kg) }}</span> kg ordered</span>
-                    <span class="order-price text-leaf-dark text-sm">
-                      Rs.&thinsp;{{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else "{:,.0f}".format(order.total_price) }}
-                    </span>
-                  </div>
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-ink truncate">{{ order.buyer.name }}</p>
+                  <p class="text-[11px] text-muted">{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
                 </div>
-
-                {% if order.delivery_address %}
-                  <p class="text-[11px] text-muted truncate flex items-center gap-1">
-                    {{ icon('map-pin', size=12, cls='shrink-0 text-muted') }}
-                    <span class="truncate">{{ order.delivery_address }}</span>
-                  </p>
-                {% endif %}
               </div>
-
-              {# Inline Confirm / Reject Buttons #}
-              <div class="pt-3 border-t border-amber-200/60 flex items-center gap-2">
-                {# Confirm Action Form #}
-                <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex-1">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <input type="hidden" name="status" value="confirmed">
-                  <input type="hidden" name="next" value="{{ url_for('dashboard.index') }}">
-                  <button
-                    type="submit"
-                    class="btn-primary w-full py-2 px-3 text-xs font-semibold shadow-2xs inline-flex items-center justify-center gap-1"
-                  >
-                    {{ icon('check', size=14) }}
-                    <span>Confirm</span>
-                  </button>
-                </form>
-
-                {# Reject Action Button (Triggers Accessible Modal) #}
-                <button
-                  type="button"
-                  onclick="openRejectModal(this.dataset.orderId, this.dataset.productName, this.dataset.buyerName)"
-                  data-order-id="{{ order.id }}"
-                  data-product-name="{{ order.product.name }}"
-                  data-buyer-name="{{ order.buyer.name }}"
-                  class="btn-danger-outline py-2 px-3 text-xs font-semibold inline-flex items-center justify-center gap-1"
-                >
-                  {{ icon('x', size=14) }}
-                  <span>Reject</span>
-                </button>
-
-                <a
-                  href="{{ url_for('orders.order_detail', order_id=order.id) }}"
-                  class="p-2 text-muted hover:text-ink rounded-lg hover:bg-white"
-                  title="View full order details"
-                  aria-label="View order details"
-                >
-                  {{ icon('chevron-right', size=16) }}
-                </a>
+              <div class="flex items-center gap-1.5 flex-wrap justify-end">
+                {{ badges.fulfillment_badge(order.fulfillment_type, size='sm') }}
+                {{ badges.order_status_badge(order.status) }}
               </div>
-            </article>
-          {% endfor %}
-        </div>
-      {% else %}
-        {# Meaningful Empty State for Pending Orders #}
-        <div class="py-10 text-center space-y-3">
-          <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-leaf-dark flex items-center justify-center">
-            {{ icon('check-circle', size=26) }}
-          </div>
-          <div>
-            <h3 class="font-display font-bold text-base text-ink">All caught up!</h3>
-            <p class="text-xs text-muted max-w-sm mx-auto mt-0.5">
-              You have no pending buyer orders waiting for review. New wholesale purchase requests will appear here automatically.
+            </div>
+
+            {# Items & Pricing #}
+            <div class="p-3 bg-white rounded-xl border border-bdr/60 space-y-1">
+              <p class="text-xs font-bold text-ink truncate">{{ order.product.name }}</p>
+              <div class="flex items-center justify-between text-xs text-muted">
+                <span><span class="order-qty">{{ "{:,.0f}".format(order.quantity_kg) }}</span> kg ordered</span>
+                <span class="order-price text-leaf-dark text-sm">
+                  Rs.&thinsp;{{ "{:,.2f}".format(order.total_price) if (order.total_price % 1 != 0) else
+                  "{:,.0f}".format(order.total_price) }}
+                </span>
+              </div>
+            </div>
+
+            {% if order.delivery_address %}
+            <p class="text-[11px] text-muted truncate flex items-center gap-1">
+              {{ icon('map-pin', size=12, cls='shrink-0 text-muted') }}
+              <span class="truncate">{{ order.delivery_address }}</span>
             </p>
+            {% endif %}
           </div>
-          <a href="{{ url_for('orders.index') }}" class="btn-ghost text-xs text-leaf font-semibold hover:underline inline-block">
-            View All Order History →
-          </a>
+
+          {# Inline Confirm / Reject Buttons #}
+          <div class="pt-3 border-t border-amber-200/60 flex items-center gap-2">
+            {# Confirm Action Form #}
+            <form method="POST" action="{{ url_for('orders.update_status', order_id=order.id) }}" class="flex-1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="status" value="confirmed">
+              <input type="hidden" name="next" value="{{ url_for('dashboard.index') }}">
+              <button type="submit"
+                class="btn-primary w-full py-2 px-3 text-xs font-semibold shadow-2xs inline-flex items-center justify-center gap-1">
+                {{ icon('check', size=14) }}
+                <span>Confirm</span>
+              </button>
+            </form>
+
+            {# Reject Action Button (Triggers Accessible Modal) #}
+            <button type="button"
+              onclick="openRejectModal(this.dataset.orderId, this.dataset.productName, this.dataset.buyerName)"
+              data-order-id="{{ order.id }}" data-product-name="{{ order.product.name }}"
+              data-buyer-name="{{ order.buyer.name }}"
+              class="btn-danger-outline py-2 px-3 text-xs font-semibold inline-flex items-center justify-center gap-1">
+              {{ icon('x', size=14) }}
+              <span>Reject</span>
+            </button>
+
+            <a href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+              class="p-2 text-muted hover:text-ink rounded-lg hover:bg-white" title="View full order details"
+              aria-label="View order details">
+              {{ icon('chevron-right', size=16) }}
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      {# Meaningful Empty State for Pending Orders #}
+      <div class="py-10 text-center space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-full bg-emerald-100 text-leaf-dark flex items-center justify-center">
+          {{ icon('check-circle', size=26) }}
         </div>
+        <div>
+          <h3 class="font-display font-bold text-base text-ink">All caught up!</h3>
+          <p class="text-xs text-muted max-w-sm mx-auto mt-0.5">
+            You have no pending buyer orders waiting for review. New wholesale purchase requests will appear here
+            automatically.
+          </p>
+        </div>
+        <a href="{{ url_for('orders.index') }}"
+          class="btn-ghost text-xs text-leaf font-semibold hover:underline inline-block">
+          View All Order History →
+        </a>
+      </div>
       {% endif %}
     </section>
 
     {# ─── 4. CROP TRACKER (3 Columns on Desktop, Tabs on Mobile) ─────────── #}
-    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6" aria-labelledby="crop-tracker-heading">
+    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6"
+      aria-labelledby="crop-tracker-heading">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-bdr">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+          <div
+            class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
             🌱
           </div>
           <div>
@@ -419,10 +430,12 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <a href="{{ url_for('dashboard.crops') }}" class="text-xs font-semibold text-leaf hover:underline hidden sm:inline">
+          <a href="{{ url_for('dashboard.crops') }}"
+            class="text-xs font-semibold text-leaf hover:underline hidden sm:inline">
             Manage All Crops →
           </a>
-          <a href="{{ url_for('dashboard.add_crop') }}" class="btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1">
+          <a href="{{ url_for('dashboard.add_crop') }}"
+            class="btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1">
             {{ icon('plus', size=14) }}
             <span>Log Crop</span>
           </a>
@@ -430,319 +443,308 @@
       </div>
 
       {% if crops %}
-        {# Mobile Tabs Bar (sm:hidden) #}
-        <div class="sm:hidden flex items-center p-1 rounded-xl bg-canvas border border-bdr gap-1 text-xs" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            id="tab-btn-growing"
-            aria-selected="true"
-            data-target-col="col-growing"
-            class="crop-tab-btn flex-1 py-2 px-2 rounded-lg text-center font-semibold transition"
-          >
-            Growing ({{ crops|selectattr('status','equalto','growing')|list|length }})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="tab-btn-ready"
-            aria-selected="false"
-            data-target-col="col-ready"
-            class="crop-tab-btn flex-1 py-2 px-2 rounded-lg text-center font-semibold transition"
-          >
-            Ready ({{ crops|selectattr('status','equalto','ready')|list|length }})
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="tab-btn-harvested"
-            aria-selected="false"
-            data-target-col="col-harvested"
-            class="crop-tab-btn flex-1 py-2 px-2 rounded-lg text-center font-semibold transition"
-          >
-            Harvested ({{ crops|selectattr('status','equalto','harvested')|list|length }})
-          </button>
+      {# Mobile Tabs Bar (sm:hidden) #}
+      <div class="sm:hidden flex items-center p-1 rounded-xl bg-canvas border border-bdr gap-1 text-xs" role="tablist">
+        <button type="button" role="tab" id="tab-btn-growing" aria-selected="true" data-target-col="col-growing"
+          class="crop-tab-btn flex-1 py-2 px-2 rounded-lg text-center font-semibold transition">
+          Growing ({{ crops|selectattr('status','equalto','growing')|list|length }})
+        </button>
+        <button type="button" role="tab" id="tab-btn-ready" aria-selected="false" data-target-col="col-ready"
+          class="crop-tab-btn flex-1 py-2 px-2 rounded-lg text-center font-semibold transition">
+          Ready ({{ crops|selectattr('status','equalto','ready')|list|length }})
+        </button>
+        <button type="button" role="tab" id="tab-btn-harvested" aria-selected="false" data-target-col="col-harvested"
+          class="crop-tab-btn flex-1 py-2 px-2 rounded-lg text-center font-semibold transition">
+          Harvested ({{ crops|selectattr('status','equalto','harvested')|list|length }})
+        </button>
+      </div>
+
+      {# Three Columns Grid (Desktop 3 Cols, Mobile 1 Tab at a time) #}
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+
+        {# COLUMN 1: GROWING #}
+        {% set growing_crops = crops|selectattr('status','equalto','growing')|list %}
+        <div id="col-growing" class="crop-column space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
+            <span class="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-leaf"></span>
+              <span>Growing Stage</span>
+            </span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-canvas text-muted">
+              {{ growing_crops|length }}
+            </span>
+          </div>
+
+          {% if growing_crops %}
+          <div class="space-y-3">
+            {% for crop in growing_crops %}
+            <div
+              class="p-4 rounded-2xl bg-canvas/60 border border-bdr hover:border-leaf/30 transition shadow-2xs space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h4 class="text-sm font-bold text-ink leading-snug">{{ crop.crop_name }}</h4>
+                  <span class="text-[11px] text-muted">{{ crop.crop_type }}</span>
+                </div>
+                <a href="{{ url_for('dashboard.edit_crop', crop_id=crop.id) }}" class="text-muted hover:text-leaf p-1">
+                  {{ icon('edit', size=13) }}
+                </a>
+              </div>
+
+              <div class="flex items-center justify-between text-xs pt-1 border-t border-bdr/40">
+                <span class="font-semibold text-ink">{{ "{:,.0f}".format(crop.quantity_kg) }} kg</span>
+
+                {# Harvest Countdown Helper / Overdue Badge #}
+                {% if crop.is_overdue %}
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[10px]">
+                  ⚠️ {{ crop.days_remaining|abs }}d overdue
+                </span>
+                {% elif crop.days_remaining == 0 %}
+                <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                  Harvest today!
+                </span>
+                {% elif crop.days_remaining is not none and crop.days_remaining > 0 %}
+                <span class="text-leaf text-[11px] font-semibold">
+                  Ready in {{ crop.days_remaining }} day{{ 's' if crop.days_remaining != 1 else '' }}
+                </span>
+                {% else %}
+                <span class="text-muted text-[11px]">{{ crop.expected_harvest_date.strftime('%d %b') }}</span>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div
+            class="p-6 rounded-2xl bg-canvas/30 border border-dashed border-bdr text-center text-xs text-muted space-y-1">
+            <p>No crops currently in growing stage.</p>
+          </div>
+          {% endif %}
         </div>
 
-        {# Three Columns Grid (Desktop 3 Cols, Mobile 1 Tab at a time) #}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-
-          {# COLUMN 1: GROWING #}
-          {% set growing_crops = crops|selectattr('status','equalto','growing')|list %}
-          <div id="col-growing" class="crop-column space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
-              <span class="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-leaf"></span>
-                <span>Growing Stage</span>
-              </span>
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-canvas text-muted">
-                {{ growing_crops|length }}
-              </span>
-            </div>
-
-            {% if growing_crops %}
-              <div class="space-y-3">
-                {% for crop in growing_crops %}
-                  <div class="p-4 rounded-2xl bg-canvas/60 border border-bdr hover:border-leaf/30 transition shadow-2xs space-y-2.5">
-                    <div class="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 class="text-sm font-bold text-ink leading-snug">{{ crop.crop_name }}</h4>
-                        <span class="text-[11px] text-muted">{{ crop.crop_type }}</span>
-                      </div>
-                      <a href="{{ url_for('dashboard.edit_crop', crop_id=crop.id) }}" class="text-muted hover:text-leaf p-1">
-                        {{ icon('edit', size=13) }}
-                      </a>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-bdr/40">
-                      <span class="font-semibold text-ink">{{ "{:,.0f}".format(crop.quantity_kg) }} kg</span>
-
-                      {# Harvest Countdown Helper / Overdue Badge #}
-                      {% if crop.is_overdue %}
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[10px]">
-                          ⚠️ {{ crop.days_remaining|abs }}d overdue
-                        </span>
-                      {% elif crop.days_remaining == 0 %}
-                        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px]">
-                          Harvest today!
-                        </span>
-                      {% elif crop.days_remaining is not none and crop.days_remaining > 0 %}
-                        <span class="text-leaf text-[11px] font-semibold">
-                          Ready in {{ crop.days_remaining }} day{{ 's' if crop.days_remaining != 1 else '' }}
-                        </span>
-                      {% else %}
-                        <span class="text-muted text-[11px]">{{ crop.expected_harvest_date.strftime('%d %b') }}</span>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="p-6 rounded-2xl bg-canvas/30 border border-dashed border-bdr text-center text-xs text-muted space-y-1">
-                <p>No crops currently in growing stage.</p>
-              </div>
-            {% endif %}
+        {# COLUMN 2: READY #}
+        {% set ready_crops = crops|selectattr('status','equalto','ready')|list %}
+        <div id="col-ready" class="crop-column space-y-3 sm:block hidden">
+          <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
+            <span class="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+              <span>Ready to Harvest</span>
+            </span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800">
+              {{ ready_crops|length }}
+            </span>
           </div>
 
-          {# COLUMN 2: READY #}
-          {% set ready_crops = crops|selectattr('status','equalto','ready')|list %}
-          <div id="col-ready" class="crop-column space-y-3 sm:block hidden">
-            <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
-              <span class="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-                <span>Ready to Harvest</span>
-              </span>
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800">
-                {{ ready_crops|length }}
-              </span>
+          {% if ready_crops %}
+          <div class="space-y-3">
+            {% for crop in ready_crops %}
+            <div
+              class="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200/70 hover:border-emerald-300 transition shadow-2xs space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h4 class="text-sm font-bold text-ink leading-snug">{{ crop.crop_name }}</h4>
+                  <span class="text-[11px] text-muted">{{ crop.crop_type }}</span>
+                </div>
+                <a href="{{ url_for('dashboard.edit_crop', crop_id=crop.id) }}" class="text-muted hover:text-leaf p-1">
+                  {{ icon('edit', size=13) }}
+                </a>
+              </div>
+
+              <div class="flex items-center justify-between text-xs pt-1 border-t border-emerald-200/50">
+                <span class="font-semibold text-ink">{{ "{:,.0f}".format(crop.quantity_kg) }} kg</span>
+                <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px]">
+                  ✓ Ready
+                </span>
+              </div>
             </div>
-
-            {% if ready_crops %}
-              <div class="space-y-3">
-                {% for crop in ready_crops %}
-                  <div class="p-4 rounded-2xl bg-emerald-50/40 border border-emerald-200/70 hover:border-emerald-300 transition shadow-2xs space-y-2.5">
-                    <div class="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 class="text-sm font-bold text-ink leading-snug">{{ crop.crop_name }}</h4>
-                        <span class="text-[11px] text-muted">{{ crop.crop_type }}</span>
-                      </div>
-                      <a href="{{ url_for('dashboard.edit_crop', crop_id=crop.id) }}" class="text-muted hover:text-leaf p-1">
-                        {{ icon('edit', size=13) }}
-                      </a>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-emerald-200/50">
-                      <span class="font-semibold text-ink">{{ "{:,.0f}".format(crop.quantity_kg) }} kg</span>
-                      <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900 font-bold text-[10px]">
-                        ✓ Ready
-                      </span>
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="p-6 rounded-2xl bg-canvas/30 border border-dashed border-bdr text-center text-xs text-muted space-y-1">
-                <p>No crops currently marked ready.</p>
-              </div>
-            {% endif %}
+            {% endfor %}
           </div>
-
-          {# COLUMN 3: HARVESTED #}
-          {% set harvested_crops = crops|selectattr('status','equalto','harvested')|list %}
-          <div id="col-harvested" class="crop-column space-y-3 sm:block hidden">
-            <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
-              <span class="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-earth"></span>
-                <span>Harvested</span>
-              </span>
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-canvas text-muted">
-                {{ harvested_crops|length }}
-              </span>
-            </div>
-
-            {% if harvested_crops %}
-              <div class="space-y-3">
-                {% for crop in harvested_crops %}
-                  <div class="p-4 rounded-2xl bg-canvas/40 border border-bdr hover:border-earth/30 transition shadow-2xs space-y-2.5">
-                    <div class="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 class="text-sm font-bold text-ink leading-snug">{{ crop.crop_name }}</h4>
-                        <span class="text-[11px] text-muted">{{ crop.crop_type }}</span>
-                      </div>
-                      <a href="{{ url_for('dashboard.edit_crop', crop_id=crop.id) }}" class="text-muted hover:text-earth p-1">
-                        {{ icon('edit', size=13) }}
-                      </a>
-                    </div>
-
-                    <div class="flex items-center justify-between text-xs pt-1 border-t border-bdr/40">
-                      <span class="font-semibold text-ink">{{ "{:,.0f}".format(crop.quantity_kg) }} kg</span>
-                      <span class="px-2 py-0.5 rounded-md bg-earth-pale text-earth font-bold text-[10px]">
-                        Harvested
-                      </span>
-                    </div>
-                  </div>
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="p-6 rounded-2xl bg-canvas/30 border border-dashed border-bdr text-center text-xs text-muted space-y-1">
-                <p>No completed harvest logs.</p>
-              </div>
-            {% endif %}
+          {% else %}
+          <div
+            class="p-6 rounded-2xl bg-canvas/30 border border-dashed border-bdr text-center text-xs text-muted space-y-1">
+            <p>No crops currently marked ready.</p>
           </div>
-
+          {% endif %}
         </div>
+
+        {# COLUMN 3: HARVESTED #}
+        {% set harvested_crops = crops|selectattr('status','equalto','harvested')|list %}
+        <div id="col-harvested" class="crop-column space-y-3 sm:block hidden">
+          <div class="flex items-center justify-between pb-2 border-b border-bdr/60">
+            <span class="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-earth"></span>
+              <span>Harvested</span>
+            </span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-canvas text-muted">
+              {{ harvested_crops|length }}
+            </span>
+          </div>
+
+          {% if harvested_crops %}
+          <div class="space-y-3">
+            {% for crop in harvested_crops %}
+            <div
+              class="p-4 rounded-2xl bg-canvas/40 border border-bdr hover:border-earth/30 transition shadow-2xs space-y-2.5">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h4 class="text-sm font-bold text-ink leading-snug">{{ crop.crop_name }}</h4>
+                  <span class="text-[11px] text-muted">{{ crop.crop_type }}</span>
+                </div>
+                <a href="{{ url_for('dashboard.edit_crop', crop_id=crop.id) }}" class="text-muted hover:text-earth p-1">
+                  {{ icon('edit', size=13) }}
+                </a>
+              </div>
+
+              <div class="flex items-center justify-between text-xs pt-1 border-t border-bdr/40">
+                <span class="font-semibold text-ink">{{ "{:,.0f}".format(crop.quantity_kg) }} kg</span>
+                <span class="px-2 py-0.5 rounded-md bg-earth-pale text-earth font-bold text-[10px]">
+                  Harvested
+                </span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div
+            class="p-6 rounded-2xl bg-canvas/30 border border-dashed border-bdr text-center text-xs text-muted space-y-1">
+            <p>No completed harvest logs.</p>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
       {% else %}
-        {# Meaningful Empty State for Crops #}
-        <div class="py-12 text-center space-y-3">
-          <div class="text-4xl">🌾</div>
-          <h3 class="font-display font-bold text-base text-ink">No crops logged in tracker</h3>
-          <p class="text-xs text-muted max-w-sm mx-auto">
-            Plan your harvest cycles and predict future yields to list on the wholesale market ahead of time.
-          </p>
-          <a href="{{ url_for('dashboard.add_crop') }}" class="btn-primary text-xs py-2.5 px-5 inline-block">
-            + Log Your First Crop
-          </a>
-        </div>
+      {# Meaningful Empty State for Crops #}
+      <div class="py-12 text-center space-y-3">
+        <div class="text-4xl">🌾</div>
+        <h3 class="font-display font-bold text-base text-ink">No crops logged in tracker</h3>
+        <p class="text-xs text-muted max-w-sm mx-auto">
+          Plan your harvest cycles and predict future yields to list on the wholesale market ahead of time.
+        </p>
+        <a href="{{ url_for('dashboard.add_crop') }}" class="btn-primary text-xs py-2.5 px-5 inline-block">
+          + Log Your First Crop
+        </a>
+      </div>
       {% endif %}
     </section>
 
     {# ─── 5. MY LISTINGS (Cards with Stock Bar & Edit/Remove Actions) ──────── #}
-    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6" aria-labelledby="listings-heading">
+    <section class="card p-6 sm:p-8 bg-white rounded-3xl border border-bdr shadow-xs space-y-6"
+      aria-labelledby="listings-heading">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-bdr">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold text-xs">
+          <div
+            class="w-8 h-8 rounded-lg bg-leaf-pale text-leaf-dark flex items-center justify-center font-bold text-xs">
             🏪
           </div>
           <div>
             <h2 id="listings-heading" class="font-display font-bold text-lg sm:text-xl text-ink">
               My Marketplace Produce Listings
             </h2>
-            <p class="text-xs text-muted">Active produce visible to wholesale and commercial buyers across Sri Lanka.</p>
+            <p class="text-xs text-muted">Active produce visible to wholesale and commercial buyers across Sri Lanka.
+            </p>
           </div>
         </div>
 
-        <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-xs py-2 px-3 inline-flex items-center gap-1 self-start sm:self-auto">
+        <a href="{{ url_for('marketplace.list_product') }}"
+          class="btn-primary text-xs py-2 px-3 inline-flex items-center gap-1 self-start sm:self-auto">
           {{ icon('plus', size=14) }}
           <span>New Produce Listing</span>
         </a>
       </div>
 
       {% if products %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {% for product in products %}
-            <article class="rounded-2xl border border-bdr bg-white shadow-2xs hover:shadow-md transition overflow-hidden flex flex-col justify-between">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {% for product in products %}
+        <article
+          class="rounded-2xl border border-bdr bg-white shadow-2xs hover:shadow-md transition overflow-hidden flex flex-col justify-between">
+          <div>
+            {# 4:3 Image with Status Badge Overlay #}
+            <div class="relative w-full aspect-[4/3] bg-canvas overflow-hidden">
+              <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" loading="lazy"
+                class="w-full h-full object-cover" />
+              <div class="absolute top-2.5 right-2.5">
+                {% if product.quantity_kg <= 0 %} <span
+                  class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-danger-50 text-danger border border-danger/30">
+                  Out of Stock
+                  </span>
+                  {% elif product.is_available %}
+                  <span
+                    class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    Active
+                  </span>
+                  {% else %}
+                  <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-canvas text-muted border border-bdr">
+                    Paused
+                  </span>
+                  {% endif %}
+              </div>
+            </div>
+
+            {# Content Details #}
+            <div class="p-4 space-y-3">
               <div>
-                {# 4:3 Image with Status Badge Overlay #}
-                <div class="relative w-full aspect-[4/3] bg-canvas overflow-hidden">
-                  <img
-                    src="{{ product.thumbnail_url }}"
-                    alt="{{ product.name }}"
-                    loading="lazy"
-                    class="w-full h-full object-cover"
-                  />
-                  <div class="absolute top-2.5 right-2.5">
-                    {% if product.quantity_kg <= 0 %}
-                      <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-danger-50 text-danger border border-danger/30">
-                        Out of Stock
-                      </span>
-                    {% elif product.is_available %}
-                      <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
-                        Active
-                      </span>
-                    {% else %}
-                      <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-canvas text-muted border border-bdr">
-                        Paused
-                      </span>
-                    {% endif %}
-                  </div>
+                <h3 class="font-display font-bold text-sm text-ink truncate" title="{{ product.name }}">
+                  {{ product.name }}
+                </h3>
+                <p class="text-[11px] text-muted">{{ product.category }} · {{ product.location or current_user.district
+                  or 'Sri Lanka' }}</p>
+              </div>
+
+              {# Stock Bar Indicator #}
+              <div class="space-y-1">
+                <div class="flex items-center justify-between text-[11px]">
+                  <span class="text-muted">Stock available:</span>
+                  <span class="font-bold text-ink">{{ "{:,.0f}".format(product.quantity_kg) }} kg</span>
                 </div>
-
-                {# Content Details #}
-                <div class="p-4 space-y-3">
-                  <div>
-                    <h3 class="font-display font-bold text-sm text-ink truncate" title="{{ product.name }}">
-                      {{ product.name }}
-                    </h3>
-                    <p class="text-[11px] text-muted">{{ product.category }} · {{ product.location or current_user.district or 'Sri Lanka' }}</p>
-                  </div>
-
-                  {# Stock Bar Indicator #}
-                  <div class="space-y-1">
-                    <div class="flex items-center justify-between text-[11px]">
-                      <span class="text-muted">Stock available:</span>
-                      <span class="font-bold text-ink">{{ "{:,.0f}".format(product.quantity_kg) }} kg</span>
-                    </div>
-                    {% set max_stock = 500.0 %}
-                    {% set pct = [((product.quantity_kg / max_stock) * 100)|round, 100]|min %}
-                    {% set bar_style = 'style="width: ' ~ pct ~ '%;"' %}
-                    <div class="w-full h-1.5 bg-canvas rounded-full overflow-hidden border border-bdr/50" role="progressbar" aria-valuenow="{{ product.quantity_kg }}" aria-valuemin="0" aria-valuemax="500">
-                      <div class="h-full rounded-full {{ 'bg-danger' if product.quantity_kg <= 50 else 'bg-leaf' }}" {{ bar_style|safe }}></div>
-                    </div>
-                  </div>
-
-                  {# Price Display #}
-                  <div class="pt-1">
-                    <span class="font-display font-extrabold text-base text-leaf-dark">
-                      Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else "{:,.0f}".format(product.price_per_kg) }}
-                    </span>
-                    <span class="text-xs text-muted">/ kg</span>
-                  </div>
+                {% set max_stock = 500.0 %}
+                {% set pct = [((product.quantity_kg / max_stock) * 100)|round, 100]|min %}
+                {% set bar_style = 'style="width: ' ~ pct ~ '%;"' %}
+                <div class="w-full h-1.5 bg-canvas rounded-full overflow-hidden border border-bdr/50" role="progressbar"
+                  aria-valuenow="{{ product.quantity_kg }}" aria-valuemin="0" aria-valuemax="500">
+                  <div class="h-full rounded-full {{ 'bg-danger' if product.quantity_kg <= 50 else 'bg-leaf' }}" {{
+                    bar_style|safe }}></div>
                 </div>
               </div>
 
-              {# Actions: Edit / Remove #}
-              <div class="p-3 bg-canvas/40 border-t border-bdr flex items-center gap-2">
-                <a
-                  href="{{ url_for('marketplace.edit_product', product_id=product.id) }}"
-                  class="btn-secondary flex-1 py-1.5 text-xs text-center font-semibold"
-                >
-                  Edit
-                </a>
-                <button
-                  type="button"
-                  onclick="openDeleteListingModal(this.dataset.productId, this.dataset.productName)"
-                  data-product-id="{{ product.id }}"
-                  data-product-name="{{ product.name }}"
-                  class="btn-danger-outline flex-1 py-1.5 text-xs text-center font-semibold"
-                >
-                  Remove
-                </button>
+              {# Price Display #}
+              <div class="pt-1">
+                <span class="font-display font-extrabold text-base text-leaf-dark">
+                  Rs. {{ "{:,.2f}".format(product.price_per_kg) if (product.price_per_kg % 1 != 0) else
+                  "{:,.0f}".format(product.price_per_kg) }}
+                </span>
+                <span class="text-xs text-muted">/ kg</span>
               </div>
-            </article>
-          {% endfor %}
-        </div>
+            </div>
+          </div>
+
+          {# Actions: Edit / Remove #}
+          <div class="p-3 bg-canvas/40 border-t border-bdr flex items-center gap-2">
+            <a href="{{ url_for('marketplace.edit_product', product_id=product.id) }}"
+              class="btn-secondary flex-1 py-1.5 text-xs text-center font-semibold">
+              Edit
+            </a>
+            <button type="button" onclick="openDeleteListingModal(this.dataset.productId, this.dataset.productName)"
+              data-product-id="{{ product.id }}" data-product-name="{{ product.name }}"
+              class="btn-danger-outline flex-1 py-1.5 text-xs text-center font-semibold">
+              Remove
+            </button>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
       {% else %}
-        {# Meaningful Empty State for Listings #}
-        <div class="py-12 text-center space-y-3">
-          <div class="text-4xl">🏪</div>
-          <h3 class="font-display font-bold text-base text-ink">No produce listed for sale yet</h3>
-          <p class="text-xs text-muted max-w-sm mx-auto">
-            Reach supermarket chains, catering buyers, and local wholesalers across Sri Lanka with genuine farm pricing.
-          </p>
-          <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-xs py-2.5 px-5 inline-block">
-            + Create First Listing
-          </a>
-        </div>
+      {# Meaningful Empty State for Listings #}
+      <div class="py-12 text-center space-y-3">
+        <div class="text-4xl">🏪</div>
+        <h3 class="font-display font-bold text-base text-ink">No produce listed for sale yet</h3>
+        <p class="text-xs text-muted max-w-sm mx-auto">
+          Reach supermarket chains, catering buyers, and local wholesalers across Sri Lanka with genuine farm pricing.
+        </p>
+        <a href="{{ url_for('marketplace.list_product') }}" class="btn-primary text-xs py-2.5 px-5 inline-block">
+          + Create First Listing
+        </a>
+      </div>
       {% endif %}
     </section>
 
@@ -752,14 +754,9 @@
 {# ─── ACCESSIBLE MODALS FOR ACTIONS ───────────────────────────────────────── #}
 
 {# 1. Reject Order Modal #}
-<div
-  id="reject-order-modal"
+<div id="reject-order-modal"
   class="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs hidden items-center justify-center p-4 transition-all"
-  role="dialog"
-  aria-modal="true"
-  aria-hidden="true"
-  aria-labelledby="reject-order-modal-title"
->
+  role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="reject-order-modal-title">
   <div class="card p-6 sm:p-8 bg-white max-w-md w-full rounded-3xl shadow-2xl space-y-4">
     <div class="w-12 h-12 rounded-2xl bg-danger-50 text-danger flex items-center justify-center">
       {{ icon('x-circle', size=24) }}
@@ -770,7 +767,8 @@
         Reject Buyer Order?
       </h3>
       <p id="reject-order-modal-desc" class="text-sm text-muted mt-1.5 leading-relaxed">
-        Are you sure you want to decline this purchase request? Reserved stock will automatically be returned to your active listing.
+        Are you sure you want to decline this purchase request? Reserved stock will automatically be returned to your
+        active listing.
       </p>
     </div>
 
@@ -783,34 +781,21 @@
         <label for="reject-modal-reason" class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Reason for rejection <span class="text-danger">*</span>
         </label>
-        <textarea
-          id="reject-modal-reason"
-          name="rejection_reason"
-          rows="3"
-          required
-          minlength="5"
+        <textarea id="reject-modal-reason" name="rejection_reason" rows="3" required minlength="5"
           placeholder="e.g. Produce lot is already committed or delivery transport is unavailable"
-          class="w-full text-sm rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-danger text-gray-900 bg-white"
-        ></textarea>
-        <p class="text-[11px] text-gray-400 mt-1">Minimum 5 characters. This explanation will be shared with the buyer.</p>
+          class="w-full text-sm rounded-xl border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-danger text-gray-900 bg-white"></textarea>
+        <p class="text-[11px] text-gray-400 mt-1">Minimum 5 characters. This explanation will be shared with the buyer.
+        </p>
       </div>
 
       <div class="flex items-center justify-end gap-3 pt-3 border-t border-bdr">
-        <button
-          type="button"
-          class="btn-secondary text-sm py-2.5 px-4"
-          onclick="(function(){
+        <button type="button" class="btn-secondary text-sm py-2.5 px-4" onclick="(function(){
             var m = document.getElementById('reject-order-modal');
             if (m) { m.classList.add('hidden'); m.classList.remove('flex'); m.setAttribute('aria-hidden', 'true'); }
-          })()"
-        >
+          })()">
           Keep Order
         </button>
-        <button
-          type="submit"
-          id="reject-modal-submit-btn"
-          class="btn-danger text-sm py-2.5 px-4 shadow-sm"
-        >
+        <button type="submit" id="reject-modal-submit-btn" class="btn-danger text-sm py-2.5 px-4 shadow-sm">
           Confirm Rejection
         </button>
       </div>
@@ -820,14 +805,14 @@
 
 {# 2. Remove Produce Listing Modal #}
 {{ confirm_dialog(
-    id='delete-listing-modal',
-    title='Remove Produce Listing?',
-    message='Are you sure you want to remove this product from the marketplace? It will stop appearing in buyer searches.',
-    confirm_text='Yes, Remove Listing',
-    cancel_text='Cancel',
-    confirm_variant='danger',
-    form_action='',
-    csrf_token_val=csrf_token()
+id='delete-listing-modal',
+title='Remove Produce Listing?',
+message='Are you sure you want to remove this product from the marketplace? It will stop appearing in buyer searches.',
+confirm_text='Yes, Remove Listing',
+cancel_text='Cancel',
+confirm_variant='danger',
+form_action='',
+csrf_token_val=csrf_token()
 ) }}
 
 <script>
@@ -870,12 +855,12 @@
   }
 
   // ── Mobile Crop Tracker Tabs Switcher ─────────────────────────────────────
-  (function() {
+  (function () {
     const tabButtons = document.querySelectorAll('.crop-tab-btn');
     const columns = document.querySelectorAll('.crop-column');
 
     tabButtons.forEach(btn => {
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', function () {
         const targetColId = this.getAttribute('data-target-col');
 
         tabButtons.forEach(b => {
@@ -900,7 +885,7 @@
       const modal = document.getElementById(modalId);
       if (!modal) return;
 
-      window.addEventListener('keydown', function(e) {
+      window.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
           modal.classList.add('hidden');
           modal.classList.remove('flex');
@@ -908,7 +893,7 @@
         }
       });
 
-      modal.addEventListener('click', function(e) {
+      modal.addEventListener('click', function (e) {
         if (e.target === modal) {
           modal.classList.add('hidden');
           modal.classList.remove('flex');
@@ -926,7 +911,7 @@
     const missingBanner = document.getElementById('missing-location-banner');
 
     if (updateLocBtn) {
-      updateLocBtn.addEventListener('click', function() {
+      updateLocBtn.addEventListener('click', function () {
         if (!navigator.geolocation) {
           if (window.AgroToast) {
             window.AgroToast('Geolocation is not supported by your browser.', 'error');
@@ -942,7 +927,7 @@
         if (updateLocLabel) updateLocLabel.textContent = 'Acquiring GPS...';
 
         navigator.geolocation.getCurrentPosition(
-          function(pos) {
+          function (pos) {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -957,36 +942,36 @@
               },
               body: JSON.stringify({ latitude: lat, longitude: lng })
             })
-            .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
-            .then(({ status, ok, data }) => {
-              if (!ok) {
-                throw new Error(data.error || 'Failed to update location.');
-              }
-              if (lastUpdatedText) {
-                lastUpdatedText.textContent = 'Location last updated: just now';
-              }
-              if (missingBanner) {
-                missingBanner.style.display = 'none';
-              }
-              if (window.AgroToast) {
-                window.AgroToast(data.message || 'Location updated successfully!', 'success');
-              }
-            })
-            .catch(err => {
-              if (window.AgroToast) {
-                window.AgroToast(err.message || 'Error saving location.', 'error');
-              } else {
-                alert(err.message || 'Error saving location.');
-              }
-            })
-            .finally(() => {
-              updateLocBtn.disabled = false;
-              if (updateLocSpinner) updateLocSpinner.classList.add('hidden');
-              if (updateLocIcon) updateLocIcon.classList.remove('hidden');
-              if (updateLocLabel) updateLocLabel.textContent = 'Update my current location';
-            });
+              .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, data })))
+              .then(({ status, ok, data }) => {
+                if (!ok) {
+                  throw new Error(data.error || 'Failed to update location.');
+                }
+                if (lastUpdatedText) {
+                  lastUpdatedText.textContent = 'Location last updated: just now';
+                }
+                if (missingBanner) {
+                  missingBanner.style.display = 'none';
+                }
+                if (window.AgroToast) {
+                  window.AgroToast(data.message || 'Location updated successfully!', 'success');
+                }
+              })
+              .catch(err => {
+                if (window.AgroToast) {
+                  window.AgroToast(err.message || 'Error saving location.', 'error');
+                } else {
+                  alert(err.message || 'Error saving location.');
+                }
+              })
+              .finally(() => {
+                updateLocBtn.disabled = false;
+                if (updateLocSpinner) updateLocSpinner.classList.add('hidden');
+                if (updateLocIcon) updateLocIcon.classList.remove('hidden');
+                if (updateLocLabel) updateLocLabel.textContent = 'Update my current location';
+              });
           },
-          function(err) {
+          function (err) {
             updateLocBtn.disabled = false;
             if (updateLocSpinner) updateLocSpinner.classList.add('hidden');
             if (updateLocIcon) updateLocIcon.classList.remove('hidden');
