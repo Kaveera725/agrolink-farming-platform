@@ -36,3 +36,7 @@ backup/
 Thumbs.db
 desktop.ini
 backup/
+
+backup/
+agrolink_database_backup_file.sql
+*.dump
