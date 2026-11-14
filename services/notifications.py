@@ -27,3 +27,30 @@ def notify_order_cancelled_by_admin(order, reason, admin):
     )
     return True
 
+
+def notify_payment_success(order, payment):
+    """
+    STUB: Hook called when a simulated payment succeeds.
+    Logs successful payment alert. Full WhatsApp notification dispatch is implemented in Task 12C.
+    """
+    logger.info(
+        f"[Payment Notification] SUCCESS: Order #{order.id} payment confirmed via {payment.method} "
+        f"(Txn: {payment.txn_ref}, Amount: Rs. {payment.amount}). "
+        f"Buyer: {order.buyer_id}, Farmer: {order.product.farmer_id if order.product else 'N/A'}."
+    )
+    return True
+
+
+def notify_payment_failed(order, payment):
+    """
+    STUB: Hook called when a simulated payment fails.
+    Logs payment failure alert. Full WhatsApp notification dispatch is implemented in Task 12C.
+    """
+    logger.info(
+        f"[Payment Notification] FAILED: Order #{order.id} payment failed via {payment.method} "
+        f"(Txn: {payment.txn_ref}, Reason: {payment.failure_reason}). "
+        f"Buyer: {order.buyer_id}."
+    )
+    return True
+
+

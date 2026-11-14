@@ -303,6 +303,13 @@ def create_app(debug=None):
         click.echo(f"Successfully seeded: {u_count} users, {p_count} products, {o_count} orders.")
         click.echo("To purge anytime, run: flask seed-admin-demo --clear")
 
+    @app.cli.command('expire-payments')
+    def expire_payments_command():
+        """Find stale unfinalized initiated payments past their expiration date and mark them expired."""
+        from services.payments import expire_stale_payments
+        count = expire_stale_payments()
+        click.echo(f"Expired {count} stale payment session(s).")
+
     return app
 
 
