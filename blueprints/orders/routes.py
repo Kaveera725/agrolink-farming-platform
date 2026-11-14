@@ -404,4 +404,4 @@ def payment_result(txn_ref: str):
     if payment.order.buyer_id != current_user.id and current_user.role != 'admin':
         abort(403)
     return render_template('orders/payment_result.html', payment=payment, order=payment.order)
-
+

@@ -59,3 +59,4 @@ def payment_result(txn_ref: str):
         abort(403)
 
     return render_template('orders/payment_result.html', payment=payment, order=payment.order)
+

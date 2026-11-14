@@ -220,3 +220,4 @@ def process_checkout(txn_ref: str):
 
     # Redirect to shop payment result page (reads strictly from database)
     return redirect(url_for('payments.payment_result', txn_ref=payment.txn_ref))
+

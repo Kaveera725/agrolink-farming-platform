@@ -87,3 +87,4 @@ def verify_signature(
         return False
 
     return hmac.compare_digest(signature, expected_sig)
+
