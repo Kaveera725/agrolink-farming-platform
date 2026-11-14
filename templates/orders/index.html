@@ -116,6 +116,7 @@
           <div class="flex items-center gap-1.5 flex-wrap justify-end">
             {{ badges.fulfillment_badge(order.fulfillment_type, size='sm') }}
             {{ badges.order_status_badge(order.status, size='sm') }}
+            {{ badges.payment_badge(order.payment_status, size='sm') }}
           </div>
           <a href="{{ url_for('orders.order_detail', order_id=order.id) }}"
             class="btn-secondary text-xs py-1.5 px-3">View Order</a>

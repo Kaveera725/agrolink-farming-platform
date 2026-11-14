@@ -158,6 +158,7 @@ def create_app(debug=None):
     from blueprints.admin.routes import admin_bp
     from blueprints.gateway.routes import gateway_bp
     from blueprints.payments.routes import payments_bp
+    from blueprints.wallet.routes import wallet_bp
 
     # Register Blueprints
     app.register_blueprint(auth_bp)
@@ -170,6 +171,7 @@ def create_app(debug=None):
     app.register_blueprint(admin_bp)
     app.register_blueprint(gateway_bp)
     app.register_blueprint(payments_bp)
+    app.register_blueprint(wallet_bp)
 
     # Dev-only routes and blueprints (only available when app.debug is true)
     if app.debug:

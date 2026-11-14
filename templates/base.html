@@ -754,6 +754,10 @@
             class="nav-link {% if request.blueprint in ('dashboard', 'admin') %}nav-link-active{% endif %}">Dashboard</a>
           <a href="{{ url_for('orders.index') }}"
             class="nav-link {% if request.blueprint == 'orders' %}nav-link-active{% endif %}">Orders</a>
+          {% if current_user.role == 'farmer' %}
+          <a href="{{ url_for('wallet.index') }}"
+            class="nav-link {% if request.blueprint == 'wallet' %}nav-link-active{% endif %}">Wallet</a>
+          {% endif %}
           {% endif %}
         </nav>
 
@@ -813,6 +817,18 @@
                   {% else %}bg-sky-pale text-sky{% endif %}">{{ current_user.role }}</span>
               </div>
               <div class="py-1" role="none">
+                {% if current_user.role == 'farmer' %}
+                <a href="{{ url_for('wallet.index') }}"
+                  class="user-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm text-inksoft hover:bg-leaf-pale hover:text-leaf-dark font-medium transition focus:bg-leaf-pale focus:text-leaf-dark focus:outline-none"
+                  role="menuitem">
+                  <svg class="w-4 h-4 text-leaf" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                    aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  My Wallet &amp; Earnings
+                </a>
+                {% endif %}
                 <a href="{{ url_for('profile.view') }}"
                   class="user-dropdown-item flex items-center gap-3 px-4 py-2.5 text-sm text-inksoft hover:bg-leaf-pale hover:text-leaf-dark font-medium transition focus:bg-leaf-pale focus:text-leaf-dark focus:outline-none"
                   role="menuitem">
@@ -1047,15 +1063,15 @@
       </svg>
       <span class="text-[11px] leading-tight">Home</span>
     </a>
-    {# 2. Market #}
-    <a href="{{ url_for('marketplace.index') }}"
+    {# 2. Wallet #}
+    <a href="{{ url_for('wallet.index') }}"
       class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
-                {% if request.blueprint == 'marketplace' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
+                {% if request.blueprint == 'wallet' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
       <svg class="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
       </svg>
-      <span class="text-[11px] leading-tight">Market</span>
+      <span class="text-[11px] leading-tight">Wallet</span>
     </a>
     {# 3. Orders #}
     <a href="{{ url_for('orders.index') }}"
@@ -1109,7 +1125,6 @@
       </svg>
       <span class="text-[11px] leading-tight">Market</span>
     </a>
-    {# 3. Prices #}
     <a href="{{ url_for('prices.index') }}"
       class="flex-1 flex flex-col items-center justify-center py-1 text-center min-h-[44px] transition-colors
                 {% if request.blueprint == 'prices' %}text-leaf font-bold{% else %}text-muted hover:text-ink font-medium{% endif %}">
