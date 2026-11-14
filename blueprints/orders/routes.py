@@ -376,4 +376,32 @@ def cancel_order(order_id):
     except (IntegrityError, OperationalError, DataError):
         db.session.rollback()
         flash('Stock changed, please retry.', 'error')
-        return redirect(url_for('orders.order_detail', order_id=order_id))
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+
+
+@orders_bp.route('/<int:order_id>/pay', methods=['POST'])
+@login_required
+def initiate_payment(order_id):
+    """Initiate a payment session and redirect buyer to the SimPay checkout."""
+    from services.payments import create_payment_session
+    payment, err = create_payment_session(order_id, current_user.id)
+    if err or not payment:
+        flash(err or 'Unable to initiate payment session.', 'danger')
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+    return redirect(url_for('gateway.checkout', txn_ref=payment.txn_ref))
+
+
+@orders_bp.route('/payment-result/<txn_ref>', methods=['GET'])
+@login_required
+def payment_result(txn_ref: str):
+    """
+    Shop result page displaying the outcome of a payment.
+    CRITICAL SECURITY: Reads payment status strictly from the database.
+    Never trusts or parses any status parameters from the URL query string.
+    """
+    from models import Payment
+    payment = Payment.query.filter_by(txn_ref=txn_ref).first_or_404()
+    if payment.order.buyer_id != current_user.id and current_user.role != 'admin':
+        abort(403)
+    return render_template('orders/payment_result.html', payment=payment, order=payment.order)
+

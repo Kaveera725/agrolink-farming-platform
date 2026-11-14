@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% from 'components/icons.html' import icon %}
+
+{% block title %}Payment {{ 'Successful' if payment.status == 'success' else ('Failed' if payment.status == 'failed' else 'Result') }} — AgroLink{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center py-10 px-4 sm:px-6">
+  <div class="w-full max-w-lg bg-white rounded-3xl border border-bdr shadow-xl shadow-leaf-950/5 p-6 sm:p-10 text-center space-y-7">
+
+    {% if payment.status == 'success' %}
+      {# ── SUCCESS STATE ── #}
+      <div class="w-20 h-20 rounded-full bg-leaf-50 text-leaf border-4 border-leaf-100 flex items-center justify-center mx-auto shadow-sm">
+        {{ icon('check', size=40) }}
+      </div>
+
+      <div class="space-y-1.5">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-50 text-leaf text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-leaf"></span>
+          <span>Simulated Payment Complete</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+          Payment Successful!
+        </h1>
+        <p class="text-xs sm:text-sm text-muted">
+          Your transaction has been confirmed and recorded on AgroLink.
+        </p>
+      </div>
+
+      {# Breakdown Details Card #}
+      <div class="bg-canvas rounded-2xl p-5 text-left space-y-3.5 border border-bdr text-xs sm:text-sm">
+        <div class="flex items-center justify-between pb-3 border-b border-bdr">
+          <span class="text-muted">Amount Paid</span>
+          <span class="font-extrabold text-ink text-base sm:text-lg">
+            Rs. {{ "{:,.2f}".format(payment.amount) }}
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-muted">Payment Method</span>
+          <span class="font-semibold text-ink flex items-center gap-1.5">
+            {{ icon('credit-card', size=16) }}
+            <span>{{ payment.card_brand or 'Card' }} •••• {{ payment.card_last4 or '••••' }}</span>
+          </span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-muted">Order Number</span>
+          <a href="{{ url_for('orders.order_detail', order_id=order.id) }}" class="font-bold text-leaf hover:underline">
+            #{{ order.id }}
+          </a>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-muted">Transaction Reference</span>
+          <span class="font-mono text-xs font-semibold text-ink">{{ payment.txn_ref }}</span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-muted">Completed At</span>
+          <span class="text-xs text-ink font-medium">
+            {{ payment.completed_at.strftime('%b %d, %Y at %I:%M %p') if payment.completed_at else 'Just now' }}
+          </span>
+        </div>
+      </div>
+
+      {# Action Buttons #}
+      <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
+        <a
+          href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+          class="btn-primary w-full sm:flex-1 py-3 px-4 text-xs sm:text-sm font-bold justify-center"
+        >
+          View Order #{{ order.id }}
+        </a>
+        <a
+          href="{{ url_for('dashboard.buyer') }}"
+          class="btn-secondary w-full sm:flex-1 py-3 px-4 text-xs sm:text-sm font-semibold justify-center"
+        >
+          Buyer Dashboard
+        </a>
+      </div>
+
+    {% elif payment.status == 'failed' %}
+      {# ── FAILED STATE ── #}
+      <div class="w-20 h-20 rounded-full bg-red-50 text-danger border-4 border-red-100 flex items-center justify-center mx-auto shadow-sm">
+        {{ icon('alert-circle', size=40) }}
+      </div>
+
+      <div class="space-y-1.5">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-danger text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-danger"></span>
+          <span>Payment Unsuccessful</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+          Payment Failed
+        </h1>
+        <p class="text-xs sm:text-sm text-danger font-medium">
+          {{ payment.failure_reason or 'The simulated transaction was declined.' }}
+        </p>
+      </div>
+
+      {# Failure info #}
+      <div class="bg-red-50/60 rounded-2xl p-5 text-left space-y-3 border border-red-200 text-xs sm:text-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-red-800">Order Reference</span>
+          <span class="font-bold text-red-950">#{{ order.id }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-red-800">Transaction ID</span>
+          <span class="font-mono text-xs font-semibold text-red-950">{{ payment.txn_ref }}</span>
+        </div>
+        <div class="text-[11px] text-red-700 pt-1 border-t border-red-200">
+          No money was deducted. You can retry with the success test card (<span class="font-mono font-bold">4242 4242 4242 4242</span>).
+        </div>
+      </div>
+
+      <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
+        <form method="POST" action="{{ url_for('orders.initiate_payment', order_id=order.id) }}" class="w-full sm:flex-1">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-primary w-full py-3 px-4 text-xs sm:text-sm font-bold justify-center">
+            Try Payment Again
+          </button>
+        </form>
+        <a
+          href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+          class="btn-secondary w-full sm:flex-1 py-3 px-4 text-xs sm:text-sm font-semibold justify-center"
+        >
+          Return to Order
+        </a>
+      </div>
+
+    {% else %}
+      {# ── EXPIRED OR INITIATED STATE ── #}
+      <div class="w-20 h-20 rounded-full bg-amber-50 text-amber-600 border-4 border-amber-100 flex items-center justify-center mx-auto shadow-sm">
+        {{ icon('clock', size=40) }}
+      </div>
+
+      <div class="space-y-1.5">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">
+          Session Expired
+        </h1>
+        <p class="text-xs sm:text-sm text-muted">
+          This payment session has expired or is no longer active.
+        </p>
+      </div>
+
+      <div class="pt-2">
+        <a
+          href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+          class="btn-primary w-full py-3 px-4 text-xs sm:text-sm font-bold justify-center"
+        >
+          Return to Order #{{ order.id }}
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

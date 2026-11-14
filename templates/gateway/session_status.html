@@ -1,0 +1,80 @@
+{% extends "gateway/layout.html" %}
+
+{% block title %}Session Status — SimPay Checkout{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center space-y-6">
+
+  {% if status_type == 'completed' %}
+    <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <div class="space-y-2">
+      <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Payment Already Finalized</h2>
+      <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+        This payment session has already been completed with status:
+        <span class="font-bold text-slate-800 uppercase">{{ payment.status }}</span>.
+      </p>
+    </div>
+    <div class="pt-2 flex flex-col gap-2.5">
+      <a
+        href="{{ url_for('payments.payment_result', txn_ref=payment.txn_ref) }}"
+        class="touch-target w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-sm transition"
+      >
+        View Payment Result
+      </a>
+      <a
+        href="{{ url_for('orders.order_detail', order_id=payment.order_id) }}"
+        class="touch-target w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition"
+      >
+        Return to Order #{{ payment.order_id }}
+      </a>
+    </div>
+
+  {% elif status_type == 'expired' %}
+    <div class="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto shadow-inner">
+      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <div class="space-y-2">
+      <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Payment Session Expired</h2>
+      <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+        This checkout session expired after 15 minutes. For security and inventory reservation, simulated sessions must be completed within the allotted time.
+      </p>
+    </div>
+    <div class="pt-2 flex flex-col gap-2.5">
+      <a
+        href="{{ url_for('orders.order_detail', order_id=payment.order_id) }}"
+        class="touch-target w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-sm transition"
+      >
+        Return to Order to Retry
+      </a>
+    </div>
+
+  {% else %}
+    <div class="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto shadow-inner">
+      <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </div>
+    <div class="space-y-2">
+      <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Payment Limit Reached</h2>
+      <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+        Maximum payment attempts exceeded for this order. Please reach out to customer support.
+      </p>
+    </div>
+    <div class="pt-2">
+      <a
+        href="{{ url_for('orders.order_detail', order_id=payment.order_id) }}"
+        class="touch-target inline-block w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition"
+      >
+        Return to Order #{{ payment.order_id }}
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
