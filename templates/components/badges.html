@@ -103,15 +103,17 @@
 
 {# ─── Payment Badge ──────────────────────────────────────────────────────── #}
 {% macro payment_badge(status, size='md') %}
-{%- set s = (status or '')|lower -%}
+{%- set s = (status or 'unpaid')|lower -%}
 {%- if s == 'paid' -%}
-  {{ badge('Paid',     variant='success', size=size, icon_name='check-circle') }}
+  {{ badge('Paid', variant='success', size=size, icon_name='check-circle') }}
+{%- elif s == 'pending' -%}
+  {{ badge('Processing', variant='warning', size=size, icon_name='clock') }}
 {%- elif s == 'unpaid' -%}
-  {{ badge('Unpaid',   variant='warning', size=size, icon_name='clock') }}
+  {{ badge('Unpaid', variant='warning', size=size, icon_name='clock') }}
 {%- elif s == 'failed' -%}
-  {{ badge('Failed',   variant='danger',  size=size, icon_name='x-circle') }}
+  {{ badge('Failed', variant='danger', size=size, icon_name='x-circle') }}
 {%- elif s == 'refunded' -%}
-  {{ badge('Refunded', variant='info',    size=size, icon_name='refresh') }}
+  {{ badge('Refunded', variant='purple', size=size, icon_name='arrow-left') }}
 {%- else -%}
   {{ badge(status|capitalize, variant='neutral', size=size) }}
 {%- endif -%}

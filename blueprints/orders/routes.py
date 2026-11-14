@@ -316,6 +316,9 @@ def update_status(order_id):
 
     try:
         if new_status == 'rejected':
+            if getattr(order, 'payment_status', 'unpaid') == 'paid':
+                flash('Paid orders cannot be rejected. Contact an administrator to issue a refund.', 'danger')
+                return redirect(request.form.get('next') or url_for('orders.order_detail', order_id=order_id))
             reason = request.form.get('rejection_reason', '').strip()
             if len(reason) < 5:
                 flash('Rejection reason must be at least 5 characters.', 'error')
@@ -353,6 +356,10 @@ def cancel_order(order_id):
         flash('Only pending orders can be cancelled.', 'error')
         return redirect(url_for('orders.order_detail', order_id=order_id))
 
+    if getattr(order, 'payment_status', 'unpaid') == 'paid':
+        flash('Paid orders cannot be cancelled by the buyer. Please contact customer support.', 'danger')
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+
     try:
         order_locked = Order.query.filter_by(id=order_id).with_for_update().populate_existing().first()
         if not order_locked or order_locked.status != 'pending':
@@ -382,7 +389,26 @@ def cancel_order(order_id):
 @orders_bp.route('/<int:order_id>/pay', methods=['POST'])
 @login_required
 def initiate_payment(order_id):
-    """Initiate a payment session and redirect buyer to the SimPay checkout."""
+    """
+    Initiate a payment session and redirect buyer to the SimPay checkout.
+    Re-checks permissions and order status strictly server-side.
+    """
+    order = Order.query.get_or_404(order_id)
+    if order.buyer_id != current_user.id or current_user.role != 'buyer':
+        abort(403)
+
+    if order.status in ('cancelled', 'rejected'):
+        flash(f'Cannot pay for an order that is {order.status}.', 'danger')
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+
+    if order.status not in ('confirmed', 'delivered'):
+        flash('Order must be confirmed by the farmer before payment can be made.', 'warning')
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+
+    if getattr(order, 'payment_status', 'unpaid') == 'paid':
+        flash('This order has already been paid.', 'info')
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+
     from services.payments import create_payment_session
     payment, err = create_payment_session(order_id, current_user.id)
     if err or not payment:
@@ -391,17 +417,60 @@ def initiate_payment(order_id):
     return redirect(url_for('gateway.checkout', txn_ref=payment.txn_ref))
 
 
-@orders_bp.route('/payment-result/<txn_ref>', methods=['GET'])
+@orders_bp.route('/<int:order_id>/payment-result', methods=['GET'])
 @login_required
-def payment_result(txn_ref: str):
+def order_payment_result(order_id: int):
     """
-    Shop result page displaying the outcome of a payment.
-    CRITICAL SECURITY: Reads payment status strictly from the database.
-    Never trusts or parses any status parameters from the URL query string.
+    Shop result page by order ID.
+    Reads payment status strictly from the database.
     """
-    from models import Payment
-    payment = Payment.query.filter_by(txn_ref=txn_ref).first_or_404()
-    if payment.order.buyer_id != current_user.id and current_user.role != 'admin':
+    order = Order.query.get_or_404(order_id)
+    if order.buyer_id != current_user.id and current_user.role != 'admin':
         abort(403)
-    return render_template('orders/payment_result.html', payment=payment, order=payment.order)
+
+    from models import Payment
+    payment = Payment.query.filter_by(order_id=order.id).order_by(Payment.id.desc()).first()
+    if not payment:
+        flash('No payment session found for this order.', 'warning')
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+
+    return render_template('orders/payment_result.html', payment=payment, order=order)
+
+
+@orders_bp.route('/<int:order_id>/receipt', methods=['GET'])
+@login_required
+def order_receipt(order_id: int):
+    """
+    Official receipt view for a paid order.
+    Available to: the buyer, the farmer of the order, or an administrator.
+    Available ONLY for paid orders.
+    """
+    order = Order.query.get_or_404(order_id)
+
+    # Permission check: Buyer, Farmer, or Admin
+    farmer_id = order.product.farmer_id if order.product else None
+    if order.buyer_id != current_user.id and farmer_id != current_user.id and current_user.role != 'admin':
+        abort(403)
+
+    if getattr(order, 'payment_status', 'unpaid') != 'paid':
+        flash('Receipt is available only for paid orders.', 'warning')
+        return redirect(url_for('orders.order_detail', order_id=order_id))
+
+    from models import Payment
+    payment = Payment.query.filter_by(order_id=order.id, status='success').order_by(Payment.id.desc()).first()
+    if not payment:
+        payment = Payment.query.filter_by(order_id=order.id).order_by(Payment.id.desc()).first()
+
+    year = payment.completed_at.year if (payment and payment.completed_at) else datetime.utcnow().year
+    pay_id = payment.id if payment else order.id
+    invoice_number = f"INV-{year}-{pay_id:04d}"
+
+    return render_template(
+        'orders/receipt.html',
+        order=order,
+        payment=payment,
+        invoice_number=invoice_number
+    )
+
+
 

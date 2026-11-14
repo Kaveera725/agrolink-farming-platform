@@ -49,6 +49,7 @@
     <div class="flex items-center gap-2 flex-wrap">
       {{ badges.fulfillment_badge(order.fulfillment_type) }}
       {{ badges.order_status_badge(order.status) }}
+      {{ badges.payment_badge(order.payment_status) }}
     </div>
   </div>
 
@@ -231,10 +232,76 @@
         </div>
       </div>
 
-      {# ── RESERVED HIDDEN PAY NOW SLOT (Prompt 11 Online Checkout) ────────── #}
-      <div id="pay-now-action-slot" class="hidden">
-        {# Future payment gateway integration #}
-      </div>
+      {# ── BUYER PAY NOW / PAYMENT STATUS FLOW (Task 12B) ──────────────── #}
+      {% if is_buyer and order.status not in ('cancelled', 'rejected') %}
+        <div class="mt-4 p-4 rounded-2xl bg-white border border-bdr shadow-2xs space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-9 h-9 rounded-xl bg-leaf-50 text-leaf flex items-center justify-center shrink-0 border border-leaf/20">
+                {{ icon('credit-card', size=18) }}
+              </div>
+              <div class="min-w-0">
+                <span class="text-xs font-bold text-ink block truncate">SimPay Secure Payment</span>
+                <span class="text-[11px] text-muted block truncate">Pay securely with the SimPay test gateway (simulated)</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              {% if order.payment_status == 'paid' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-leaf-50 text-leaf border border-leaf/20">
+                  <span class="w-1.5 h-1.5 rounded-full bg-leaf"></span> Paid
+                </span>
+                <a href="{{ url_for('orders.order_receipt', order_id=order.id) }}"
+                   class="btn-secondary text-xs py-2 px-3.5 rounded-xl font-semibold inline-flex items-center gap-1.5 shadow-2xs">
+                  {{ icon('file-text', size=14) }}
+                  <span>View receipt</span>
+                </a>
+              {% elif order.payment_status == 'refunded' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Refunded
+                </span>
+              {% elif order.status == 'pending' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-canvas text-muted border border-bdr">
+                  <span class="w-2 h-2 rounded-full bg-gold animate-pulse"></span>
+                  Waiting for farmer confirmation
+                </span>
+              {% elif order.status in ('confirmed', 'delivered') and order.payment_status in ('unpaid', 'failed', 'pending') %}
+                <form method="POST" action="{{ url_for('orders.initiate_payment', order_id=order.id) }}"
+                      onsubmit="const btn = this.querySelector('button'); btn.disabled=true; btn.classList.add('opacity-75', 'cursor-wait');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn-primary text-xs sm:text-sm font-bold py-2.5 px-4 shadow-sm inline-flex items-center gap-1.5 hover:shadow transition touch-target">
+                    <span>Pay now (LKR {{ "{:,.2f}".format(order.total_price) }})</span>
+                    {{ icon('arrow-right', size=14) }}
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% elif is_farmer and order.status not in ('cancelled', 'rejected') %}
+        <div class="mt-4 p-3.5 rounded-2xl bg-canvas border border-bdr flex items-center justify-between text-xs">
+          <span class="text-muted flex items-center gap-1.5 font-medium">
+            {{ icon('wallet', size=15) }}
+            <span>Payment Status:</span>
+          </span>
+          {% if order.payment_status == 'paid' %}
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-leaf flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-leaf"></span> Paid (Credited to your wallet)
+              </span>
+              <a href="{{ url_for('orders.order_receipt', order_id=order.id) }}" class="btn-secondary text-[11px] py-1 px-2.5 rounded-lg font-semibold inline-flex items-center gap-1">
+                {{ icon('file-text', size=12) }} Receipt
+              </a>
+            </div>
+          {% elif order.payment_status == 'refunded' %}
+            <span class="font-bold text-purple-700">Refunded</span>
+          {% else %}
+            <span class="font-semibold text-gold-text bg-gold-pale px-2.5 py-0.5 rounded-full border border-gold/20">
+              Unpaid by buyer
+            </span>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
   </div>
 

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% from 'components/icons.html' import icon %}
+
+{% block title %}Receipt {{ invoice_number }} — AgroLink{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    /* Hide navigation, notifications, breadcrumbs and action buttons */
+    header, nav, footer, .no-print, #announcement-banner {
+      display: none !important;
+    }
+    body {
+      background: #ffffff !important;
+      color: #000000 !important;
+      font-size: 12pt !important;
+    }
+    .print-card {
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+    }
+    .print-break {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-8 px-4 sm:px-6">
+
+  {# ── TOP ACTION BAR (Hidden in print) ─────────────────────────────────── #}
+  <div class="no-print flex items-center justify-between mb-6 gap-3">
+    <a href="{{ url_for('orders.order_detail', order_id=order.id) }}"
+       class="inline-flex items-center gap-1.5 text-xs font-semibold text-muted hover:text-ink transition">
+      {{ icon('arrow-left', size=15) }}
+      <span>Back to Order #{{ order.id }}</span>
+    </a>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        onclick="window.print()"
+        class="btn-primary text-xs py-2 px-4 shadow-sm inline-flex items-center gap-1.5 cursor-pointer touch-target"
+      >
+        {{ icon('printer', size=15) }}
+        <span>Print Receipt</span>
+      </button>
+    </div>
+  </div>
+
+  {# ── RECEIPT CARD ─────────────────────────────────────────────────────── #}
+  <div class="bg-white rounded-3xl border border-bdr shadow-md p-6 sm:p-10 space-y-8 print-card">
+
+    {# ── HEADER: BRAND & INVOICE DETAILS ── #}
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-6 border-b border-bdr">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <div class="w-9 h-9 rounded-xl bg-leaf flex items-center justify-center text-white shadow-xs">
+            {{ icon('leaf', size=20) }}
+          </div>
+          <span class="font-display font-black text-2xl text-ink tracking-tight">
+            Agro<span class="text-leaf">Link</span>
+          </span>
+        </div>
+        <p class="text-xs text-muted font-medium pt-1">Direct Farm-to-Buyer Trading Platform Sri Lanka</p>
+        <p class="text-[11px] text-muted font-mono">https://agrolink.lk</p>
+      </div>
+
+      <div class="sm:text-right space-y-1">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-leaf-50 text-leaf text-xs font-bold border border-leaf/20 uppercase tracking-wider">
+          <span class="w-1.5 h-1.5 rounded-full bg-leaf"></span> Official Receipt
+        </span>
+        <h2 class="text-lg sm:text-xl font-mono font-extrabold text-ink pt-1">
+          {{ invoice_number }}
+        </h2>
+        <p class="text-xs text-muted">
+          Date: <span class="font-semibold text-ink">{{ (payment.completed_at or order.created_at).strftime('%d %B %Y, %I:%M %p') }}</span>
+        </p>
+        <p class="text-xs text-muted">
+          Order Ref: <span class="font-semibold text-ink">#{{ order.id }}</span>
+        </p>
+      </div>
+    </div>
+
+    {# ── SIMULATED PAYMENT PERMANENT WATERMARK/BANNER ── #}
+    <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 text-xs flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 font-semibold">
+        <svg class="w-4 h-4 text-amber-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>SIMULATED PAYMENT — Academic Sandbox Demonstration</span>
+      </div>
+      <span class="font-mono text-[10px] text-amber-800 uppercase font-bold">No Real Money</span>
+    </div>
+
+    {# ── PARTICIPANTS (BUYER & FARMER) ── #}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+      {# Billed To (Buyer) #}
+      <div class="space-y-1">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-muted block">Billed To (Buyer)</span>
+        <p class="font-bold text-sm text-ink">{{ order.buyer.name if order.buyer else 'Buyer' }}</p>
+        <p class="text-xs text-muted">{{ order.buyer.email if order.buyer else '' }}</p>
+        {% if order.buyer and order.buyer.phone %}
+          <p class="text-xs text-muted">Tel: {{ order.buyer.phone }}</p>
+        {% endif %}
+        {% if order.fulfillment_type == 'delivery' and order.delivery_address %}
+          <p class="text-xs text-ink/80 pt-1"><strong>Delivery Address:</strong> {{ order.delivery_address }}</p>
+        {% endif %}
+      </div>
+
+      {# Seller (Farmer) #}
+      <div class="space-y-1 sm:text-right">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-muted block">Seller (Verified Farmer)</span>
+        <p class="font-bold text-sm text-ink">{{ order.product.farmer.name if (order.product and order.product.farmer) else 'Farmer' }}</p>
+        {% if order.product and order.product.farmer and order.product.farmer.farm_name %}
+          <p class="text-xs text-muted">{{ order.product.farmer.farm_name }}</p>
+        {% endif %}
+        <p class="text-xs text-muted">District: {{ order.product.farmer.location if (order.product and order.product.farmer) else 'Sri Lanka' }}</p>
+        {% if order.product and order.product.farmer and order.product.farmer.whatsapp_number %}
+          <p class="text-xs text-muted">WhatsApp: {{ order.product.farmer.whatsapp_number }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── ITEMIZED TABLE ── #}
+    <div class="pt-2">
+      <table class="w-full text-left text-xs sm:text-sm">
+        <thead>
+          <tr class="border-b-2 border-bdr text-[11px] uppercase tracking-wider text-muted">
+            <th class="py-2.5 font-bold">Item Description</th>
+            <th class="py-2.5 font-bold text-right">Quantity</th>
+            <th class="py-2.5 font-bold text-right">Rate</th>
+            <th class="py-2.5 font-bold text-right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-bdr/60">
+          <tr>
+            <td class="py-3">
+              <span class="font-bold text-ink block">{{ order.product.name if order.product else 'Produce Item' }}</span>
+              <span class="text-[11px] text-muted">{{ order.product.category if order.product else '' }} &bull; Direct Harvest</span>
+            </td>
+            <td class="py-3 text-right font-medium tabular-nums">{{ "{:,.0f}".format(order.quantity_kg) }} kg</td>
+            <td class="py-3 text-right font-medium tabular-nums">Rs. {{ "{:,.2f}".format(order.product.price_per_kg) if order.product else '0.00' }}</td>
+            <td class="py-3 text-right font-bold text-ink tabular-nums">
+              Rs. {{ "{:,.2f}".format(order.items_total if order.items_total is not none else (order.total_price - (order.delivery_fee or 0))) }}
+            </td>
+          </tr>
+
+          {# Delivery Row #}
+          {% if order.fulfillment_type == 'delivery' %}
+            <tr>
+              <td class="py-3" colspan="3">
+                <span class="font-semibold text-ink block">Direct Transport / Delivery Fee</span>
+                <span class="text-[11px] text-muted">
+                  {{ "{:,.1f}".format(order.distance_km) if order.distance_km else '' }} km distance from farm collection hub
+                </span>
+              </td>
+              <td class="py-3 text-right font-bold text-ink tabular-nums">
+                Rs. {{ "{:,.2f}".format(order.delivery_fee or 0) }}
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td class="py-3" colspan="3">
+                <span class="font-semibold text-ink block">Direct Farm Gate Collection (Self-Pickup)</span>
+                <span class="text-[11px] text-muted">Buyer collection directly from farmer</span>
+              </td>
+              <td class="py-3 text-right font-bold text-leaf tabular-nums">Free (Rs. 0.00)</td>
+            </tr>
+          {% endif %}
+        </tbody>
+        <tfoot>
+          <tr class="border-t-2 border-bdr font-bold text-sm sm:text-base">
+            <td class="pt-4 text-ink uppercase tracking-wider" colspan="3">Total Paid</td>
+            <td class="pt-4 text-right font-display text-leaf-dark text-lg sm:text-xl tabular-nums">
+              Rs. {{ "{:,.2f}".format(order.total_price) }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {# ── PAYMENT METHOD & AUDIT METADATA ── #}
+    <div class="bg-canvas rounded-2xl p-4 sm:p-5 border border-bdr text-xs space-y-2">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <span class="text-muted font-medium">Payment Method:</span>
+        <span class="font-semibold text-ink flex items-center gap-1.5">
+          {{ icon('credit-card', size=15) }}
+          <span>{{ payment.card_brand or 'SimPay Card' }} ending in <strong class="font-mono">{{ payment.card_last4 or '••••' }}</strong></span>
+        </span>
+      </div>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <span class="text-muted font-medium">Transaction Reference:</span>
+        <span class="font-mono font-semibold text-ink">{{ payment.txn_ref if payment else 'N/A' }}</span>
+      </div>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <span class="text-muted font-medium">Payment Gateway:</span>
+        <span class="font-semibold text-ink">SimPay Simulated Sandbox Gateway</span>
+      </div>
+    </div>
+
+    {# ── FOOTER LEGAL & COMPLIANCE ── #}
+    <div class="text-center pt-2 text-[11px] text-muted border-t border-bdr space-y-1">
+      <p>AgroLink Direct Agriculture Trading Platform Sri Lanka &bull; Student Project &copy; 2026</p>
+      <p>This electronic receipt certifies simulated settlement under the AgroLink Sandbox protocol.</p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
