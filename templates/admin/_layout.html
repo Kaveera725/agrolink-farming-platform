@@ -81,13 +81,17 @@
             </div>
           </div>
 
-          {# ─── 4. ORDERS ─── #}
+          {# ─── 4. COMMERCE (ORDERS & PAYMENTS) ─── #}
           <div>
-            <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Orders</p>
+            <p class="text-[10px] uppercase font-bold tracking-[0.18em] text-leaf-300/80 px-2.5 mb-1.5">Commerce</p>
             <div class="space-y-0.5">
               <a href="{{ url_for('admin.orders') }}"
                 class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.orders', 'admin.order_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
                 <span>Orders Registry</span>
+              </a>
+              <a href="{{ url_for('admin.payments') }}"
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg font-semibold {% if request.endpoint in ('admin.payments', 'admin.payment_detail') %}bg-white/15 text-white{% else %}text-leaf-100 hover:bg-white/10{% endif %}">
+                <span>Payments &amp; Refunds</span>
               </a>
             </div>
           </div>
@@ -146,7 +150,6 @@
 
           {# ─── RESERVED / DEFERRED (HIDDEN UNTIL BUILT) ─── #}
           <div class="hidden" aria-hidden="true" style="display:none;">
-            <a href="#" class="block px-2.5 py-1.5 text-gray-500">Payments (Deferred)</a>
             <a href="#" class="block px-2.5 py-1.5 text-gray-500">WhatsApp Log (Deferred)</a>
           </div>
 

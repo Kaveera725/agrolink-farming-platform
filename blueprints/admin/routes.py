@@ -13,14 +13,15 @@ from flask import (
     render_template, request, session, url_for, stream_with_context
 )
 from flask_login import current_user, logout_user
-from sqlalchemy import func, case, desc, asc, distinct, text
+from sqlalchemy import func, case, desc, asc, distinct, text, or_
 from sqlalchemy.orm import joinedload
 
 from extensions import db
 from models import (
     AdminAuditLog, AdminNote, Crop, DataRequest, ListingReport,
-    MarketPrice, MarketPriceHistory, Order, PlatformSetting, Product, User, VerificationRequest
+    MarketPrice, MarketPriceHistory, Order, Payment, PlatformSetting, Product, User, VerificationRequest, WalletTransaction
 )
+from services.payments import refund_payment
 from services.settings import (
     SETTINGS_SCHEMA, get_setting, set_setting, clear_settings_cache,
     reset_settings_to_defaults, validate_setting
@@ -2725,4 +2726,225 @@ def test_routes_api():
         flash(f"Routes API probe failed: {str(e)[:150]}", "error")
 
     return redirect(url_for('admin.system_status'))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 10. PAYMENTS & REFUNDS MANAGEMENT
+# ─────────────────────────────────────────────────────────────────────────────
+
+@admin_bp.route('/payments', methods=['GET'])
+@roles_required('admin')
+def payments():
+    """List and manage all payment transactions, totals, and statuses."""
+    status = request.args.get('status', '').strip()
+    search = request.args.get('q', '').strip()
+    start_date_str = request.args.get('start', '').strip()
+    end_date_str = request.args.get('end', '').strip()
+    page = request.args.get('page', 1, type=int)
+    sort = request.args.get('sort', 'created_at')
+    direction = request.args.get('direction', 'desc')
+
+    # Base query joined with Order
+    query = Payment.query.join(Order, Payment.order_id == Order.id)
+
+    if status and status in ('success', 'failed', 'initiated', 'expired', 'refunded'):
+        query = query.filter(Payment.status == status)
+
+    if search:
+        if search.isdigit():
+            query = query.filter(or_(Payment.order_id == int(search), Payment.txn_ref.ilike(f"%{search}%")))
+        else:
+            query = query.filter(Payment.txn_ref.ilike(f"%{search}%"))
+
+    start_date = _parse_date(start_date_str)
+    if start_date:
+        query = query.filter(Payment.created_at >= start_date)
+
+    end_date = _parse_date(end_date_str)
+    if end_date:
+        query = query.filter(Payment.created_at < end_date + timedelta(days=1))
+
+    # Calculate status summary totals across all payments
+    totals_query = db.session.query(
+        Payment.status,
+        func.count(Payment.id),
+        func.coalesce(func.sum(Payment.amount), 0)
+    ).group_by(Payment.status).all()
+
+    summary_stats = {
+        'success': {'count': 0, 'amount': Decimal('0.00')},
+        'refunded': {'count': 0, 'amount': Decimal('0.00')},
+        'failed': {'count': 0, 'amount': Decimal('0.00')},
+        'initiated': {'count': 0, 'amount': Decimal('0.00')},
+        'expired': {'count': 0, 'amount': Decimal('0.00')}
+    }
+    for st, count_val, amt_val in totals_query:
+        if st in summary_stats:
+            summary_stats[st] = {'count': count_val, 'amount': amt_val or Decimal('0.00')}
+
+    # Sorting
+    sort_column = Payment.created_at
+    if sort == 'id':
+        sort_column = Payment.id
+    elif sort == 'amount':
+        sort_column = Payment.amount
+    elif sort == 'status':
+        sort_column = Payment.status
+    elif sort == 'order_id':
+        sort_column = Payment.order_id
+
+    if direction == 'asc':
+        query = query.order_by(asc(sort_column))
+    else:
+        query = query.order_by(desc(sort_column))
+
+    pagination = query.paginate(page=page, per_page=20, error_out=False)
+
+    return render_template(
+        'admin/payments.html',
+        payments=pagination.items,
+        pagination=pagination,
+        summary_stats=summary_stats,
+        status=status,
+        search=search,
+        start=start_date_str,
+        end=end_date_str,
+        sort=sort,
+        direction=direction
+    )
+
+
+@admin_bp.route('/payments/<int:payment_id>', methods=['GET'])
+@roles_required('admin')
+def payment_detail(payment_id):
+    """Detailed view for a payment transaction, ledger records, and refund action."""
+    payment = Payment.query.get_or_404(payment_id)
+    order = payment.order
+    wallet_transactions = WalletTransaction.query.filter_by(order_id=payment.order_id).order_by(WalletTransaction.id.desc()).all()
+
+    # Determine farmer and check if balance is negative
+    farmer = order.product.farmer if (order and order.product) else None
+    farmer_negative_balance = (farmer.wallet_balance < 0) if farmer else False
+
+    return render_template(
+        'admin/payment_detail.html',
+        payment=payment,
+        order=order,
+        wallet_transactions=wallet_transactions,
+        farmer=farmer,
+        farmer_negative_balance=farmer_negative_balance
+    )
+
+
+@admin_bp.route('/payments/<int:payment_id>/refund', methods=['POST'])
+@roles_required('admin')
+def refund_payment_route(payment_id):
+    """Issue an administrative refund for a successful payment."""
+    payment = Payment.query.get_or_404(payment_id)
+    reason = request.form.get('reason', '').strip()
+
+    if not reason:
+        flash('A mandatory refund reason must be provided.', 'error')
+        return redirect(request.referrer or url_for('admin.payments'))
+
+    try:
+        refund_payment(payment, reason=reason, admin_id=current_user.id)
+        flash(f'Payment {payment.txn_ref} (Rs. {payment.amount:,.2f}) was successfully refunded. The farmer wallet was adjusted.', 'success')
+    except ValueError as e:
+        flash(f'Refund failed: {str(e)}', 'error')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An unexpected error occurred during refund processing: {str(e)}', 'error')
+
+    return redirect(request.referrer or url_for('admin.payments'))
+
+
+@admin_bp.route('/payments/export', methods=['GET'])
+@roles_required('admin')
+def export_payments_csv():
+    """Export filtered payments as UTF-8 BOM CSV with formula injection prevention."""
+    status = request.args.get('status', '').strip()
+    search = request.args.get('q', '').strip()
+    start_date_str = request.args.get('start', '').strip()
+    end_date_str = request.args.get('end', '').strip()
+
+    query = Payment.query.join(Order, Payment.order_id == Order.id)
+
+    if status and status in ('success', 'failed', 'initiated', 'expired', 'refunded'):
+        query = query.filter(Payment.status == status)
+
+    if search:
+        if search.isdigit():
+            query = query.filter(or_(Payment.order_id == int(search), Payment.txn_ref.ilike(f"%{search}%")))
+        else:
+            query = query.filter(Payment.txn_ref.ilike(f"%{search}%"))
+
+    start_date = _parse_date(start_date_str)
+    if start_date:
+        query = query.filter(Payment.created_at >= start_date)
+
+    end_date = _parse_date(end_date_str)
+    if end_date:
+        query = query.filter(Payment.created_at < end_date + timedelta(days=1))
+
+    payments = query.order_by(Payment.created_at.desc(), Payment.id.desc()).all()
+
+    # Log audit entry
+    _audit(
+        action='export_payments_csv',
+        target_type='payment',
+        details=f"Exported {len(payments)} payment records to CSV (status={status or 'all'}, search={search or 'none'})"
+    )
+    db.session.commit()
+
+    output = io.StringIO()
+    # Write UTF-8 BOM so Excel opens Sinhala/Tamil/special characters cleanly
+    output.write('\ufeff')
+    writer = csv.writer(output)
+
+    writer.writerow([
+        'Txn Ref',
+        'Order ID',
+        'Date & Time (UTC)',
+        'Amount (LKR)',
+        'Status',
+        'Method',
+        'Card Brand',
+        'Card Last 4',
+        'Buyer Name',
+        'Buyer Email',
+        'Farmer Name',
+        'Farmer Farm',
+        'Failure Reason'
+    ])
+
+    for p in payments:
+        order = p.order
+        buyer = order.buyer if order else None
+        farmer = order.product.farmer if (order and order.product) else None
+
+        writer.writerow([
+            sanitize_csv_cell(p.txn_ref),
+            sanitize_csv_cell(p.order_id),
+            sanitize_csv_cell(p.created_at.strftime('%Y-%m-%d %H:%M:%S') if p.created_at else ''),
+            sanitize_csv_cell(f"{p.amount:.2f}" if p.amount is not None else ''),
+            sanitize_csv_cell(p.status),
+            sanitize_csv_cell(p.method),
+            sanitize_csv_cell(p.card_brand or ''),
+            sanitize_csv_cell(p.card_last4 or ''),
+            sanitize_csv_cell(buyer.name if buyer else ''),
+            sanitize_csv_cell(buyer.email if buyer else ''),
+            sanitize_csv_cell(farmer.name if farmer else ''),
+            sanitize_csv_cell(farmer.farm_name if (farmer and farmer.farm_name) else ''),
+            sanitize_csv_cell(p.failure_reason or '')
+        ])
+
+    filename = f"agrolink_payments_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv; charset=utf-8',
+        headers={
+            'Content-Disposition': f'attachment; filename="{filename}"'
+        }
+    )
 
