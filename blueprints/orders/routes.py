@@ -297,6 +297,11 @@ def update_status(order_id):
         flash('Invalid status.', 'error')
         return redirect(request.form.get('next') or url_for('orders.order_detail', order_id=order_id))
 
+    # Reject guard on already paid orders
+    if new_status == 'rejected' and getattr(order, 'payment_status', 'unpaid') == 'paid':
+        flash('Cannot reject an order that has already been paid. Please contact administration for a refund.', 'danger')
+        return redirect(request.form.get('next') or url_for('orders.order_detail', order_id=order_id))
+
     current_status = order.status
     # State transitions:
     # pending -> confirmed, rejected
@@ -352,12 +357,12 @@ def cancel_order(order_id):
     if order.buyer_id != current_user.id and current_user.role != 'admin':
         abort(403)
 
-    if order.status != 'pending':
-        flash('Only pending orders can be cancelled.', 'error')
+    if getattr(order, 'payment_status', 'unpaid') == 'paid':
+        flash('Cannot cancel an order that has already been paid. Please contact administration or the farmer for assistance.', 'danger')
         return redirect(url_for('orders.order_detail', order_id=order_id))
 
-    if getattr(order, 'payment_status', 'unpaid') == 'paid':
-        flash('Paid orders cannot be cancelled by the buyer. Please contact customer support.', 'danger')
+    if order.status != 'pending':
+        flash('Only pending orders can be cancelled.', 'error')
         return redirect(url_for('orders.order_detail', order_id=order_id))
 
     try:
@@ -433,6 +438,22 @@ def order_payment_result(order_id: int):
     if not payment:
         flash('No payment session found for this order.', 'warning')
         return redirect(url_for('orders.order_detail', order_id=order_id))
+
+    return render_template('orders/payment_result.html', payment=payment, order=order)
+
+
+@orders_bp.route('/payment-result/<string:txn_ref>', methods=['GET'])
+@login_required
+def payment_result_by_txn(txn_ref: str):
+    """
+    Shop result page by transaction reference.
+    Reads payment status strictly from the database.
+    """
+    from models import Payment
+    payment = Payment.query.filter_by(txn_ref=txn_ref).first_or_404()
+    order = payment.order
+    if order.buyer_id != current_user.id and current_user.role != 'admin':
+        abort(403)
 
     return render_template('orders/payment_result.html', payment=payment, order=order)
 

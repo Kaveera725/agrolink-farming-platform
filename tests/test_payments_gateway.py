@@ -199,13 +199,13 @@ class TestPaymentsGatewayIntegration(unittest.TestCase):
         db.session.add(self.product)
         db.session.commit()
 
-        # Seed Order
+        # Seed Order (confirmed by default for payment flow testing)
         self.order = Order(
             buyer_id=self.buyer.id,
             product_id=self.product.id,
             quantity_kg=10.0,
             total_price=Decimal('3500.00'),
-            status='pending',
+            status='confirmed',
             payment_status='unpaid',
             fulfillment_type='pickup'
         )
